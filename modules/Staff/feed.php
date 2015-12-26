@@ -14,10 +14,10 @@ class fStaff extends Feed
 
     static function getAll()
     {
-        $f3 = \Base::instance();
 
-        $result = $f3->get('DB')->exec(
-            "SELECT * FROM `". $f3->get('tpf') . self::MTB ."` "
+
+        $result = f3()->get('DB')->exec(
+            "SELECT * FROM `". f3()->get('tpf') . self::MTB ."` "
         );
 
         return $result;
@@ -32,7 +32,7 @@ class fStaff extends Feed
      */
     static function get_row($string, $type='id', $condition='')
     {
-        $f3 = \Base::instance();
+
 
         switch ($type) {
             case 'account':
@@ -43,8 +43,8 @@ class fStaff extends Feed
                 break;
         }
 
-        $rows = $f3->get('DB')->exec(
-            "SELECT * FROM `". $f3->get('tpf') .
+        $rows = f3()->get('DB')->exec(
+            "SELECT * FROM `". f3()->get('tpf') .
             self::MTB ."` ". $condition ." LIMIT 1 ", $string
         );
 

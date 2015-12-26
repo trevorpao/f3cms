@@ -6,7 +6,6 @@ class rStaff extends Reaction
 {
     function do_get_one($f3, $args)
     {
-
         rStaff::_chkLogin();
 
         $req = parent::_getReq();
@@ -57,7 +56,7 @@ class rStaff extends Reaction
             return parent::_return(8105);
         }
 
-        $f3->set('SESSION.cs', array('name'=>$cu['account'], "id"=>$cu['id'], 'has_login' => 1));
+        f3()->set('SESSION.cs', array('name'=>$cu['account'], "id"=>$cu['id'], 'has_login' => 1));
 
         return parent::_return(self::_isLogin(), array('name'=>self::_CStaff('name')));
     }
@@ -65,7 +64,7 @@ class rStaff extends Reaction
     function do_logout($f3, $args)
     {
         if (self::_isLogin()) {
-            $f3->clear('SESSION.cs');
+            f3()->clear('SESSION.cs');
         }
 
         return parent::_return(!self::_isLogin(), array());
@@ -78,11 +77,7 @@ class rStaff extends Reaction
 
     static function _isLogin()
     {
-        if (!isset($f3)) {
-            $f3 = \Base::instance();
-        }
-
-        $cu = $f3->get('SESSION.cs');
+        $cu = f3()->get('SESSION.cs');
 
         if (isset($cu)) {
             if (isset($cu['has_login']) && $cu['has_login']) {
@@ -102,12 +97,7 @@ class rStaff extends Reaction
 
     static function _CStaff($column = 'id')
     {
-
-        if (!isset($f3)) {
-            $f3 = \Base::instance();
-        }
-
-        $cu = $f3->get('SESSION.cs');
+        $cu = f3()->get('SESSION.cs');
         $str = "";
 
         if (isset($cu)) {

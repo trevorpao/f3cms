@@ -16,11 +16,11 @@ class rMedia extends Reaction
         rUser::_chkLogin();
 
         list($filename, $width, $height, $title) = Upload::savePhoto(
-            $f3->get('FILES'), array($f3->get('all_thn'))
+            f3()->get('FILES'), array(f3()->get('all_thn'))
         );
 
         $response = new \StdClass;
-        $response->link = $f3->get('uri') . $filename;
+        $response->link = f3()->get('uri') . $filename;
         echo stripslashes(json_encode($response));
     }
 }

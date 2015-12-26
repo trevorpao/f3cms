@@ -15,7 +15,7 @@ class rPost extends Reaction
         $cu = fPost::get_row('/app-about-us', 'slug', " AND `status`='". fPost::ST_ON ."' ");
 
         if (empty($cu)) {
-            $f3->error(404);
+            f3()->error(404);
         }
 
         $rtn = array(array('content'=>$cu['content']));

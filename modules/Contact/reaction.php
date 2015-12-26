@@ -7,7 +7,7 @@ class rContact extends Reaction
 
     function do_add_new($f3, $args) {
 
-        $req = $f3->get('POST'); //parent::getReq();
+        $req = f3()->get('POST'); //parent::getReq();
 
         if (empty($req['cname'])) {
             return parent::_return(8002, array('msg'=>'姓名未填寫!!'));
@@ -23,14 +23,14 @@ class rContact extends Reaction
 
         fContact::insert($req);
 
-        $f3->set('name', $req['cname']);
-        $f3->set('email', $req['cemail']);
-        $f3->set('message', nl2br($req['cmessage']));
+        f3()->set('name', $req['cname']);
+        f3()->set('email', $req['cemail']);
+        f3()->set('message', nl2br($req['cmessage']));
 
         $tp = \Template::instance();
         $content = $tp->render('mail/contact.html');
 
-        $sent = Sender::sendmail('詢問單通知', $content, $f3->get('inquiry_receiver'));
+        $sent = Sender::sendmail('詢問單通知', $content, f3()->get('inquiry_receiver'));
 
         return parent::_return(1, array('pid' => $obj->id, 'msg' => '感謝您，我們會儘快與您聯絡'));
     }
@@ -41,7 +41,7 @@ class rContact extends Reaction
         }
 
         $rows = $this->_db->exec(
-            "SELECT * FROM `". $f3->get('tpf') . self::MTB ."` ORDER BY insert_ts DESC "
+            "SELECT * FROM `". f3()->get('tpf') . self::MTB ."` ORDER BY insert_ts DESC "
         );
 
         if (!$rows) {
@@ -50,7 +50,7 @@ class rContact extends Reaction
         }
         else {
             $template = new Template;
-            $f3->set('rows', $rows);
+            f3()->set('rows', $rows);
 
             Outfit::_setXls("contact_".date("YmdHis"));
             echo $template->render('contact.dl.html', "application/vnd.ms-excel");

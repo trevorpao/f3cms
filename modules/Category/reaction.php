@@ -10,13 +10,13 @@ class rCategory extends Reaction
 
     static public function breadcrumb($ary, $li = true)
     {
-        $f3 = \Base::instance();
+
 
         $no_show_ary = array();
 
         if (empty($ary['parentCate'])) {
             if ($li) {
-                $str = '<li><a href="'. $f3->get('uri') .'">Home</a></li>';
+                $str = '<li><a href="'. f3()->get('uri') .'">Home</a></li>';
             }
             else {
                 $str = '';
@@ -28,7 +28,7 @@ class rCategory extends Reaction
 
         if (!in_array($ary['id'], $no_show_ary)) {
             if ($li) {
-                $str = $str . '<li><a href="'. $f3->get('uri') .'/products' . $ary['slug'] .'">'. $ary['title'] .'</a></li>';
+                $str = $str . '<li><a href="'. f3()->get('uri') .'/products' . $ary['slug'] .'">'. $ary['title'] .'</a></li>';
             }
             else {
                 $str = $str . ' / '. $ary['title'] .'';
@@ -57,13 +57,13 @@ class rCategory extends Reaction
      */
     static function sort_categories($parent_id = 0, $level = 0, $level_mod = 'num')
     {
-        $f3 = \Base::instance();
 
-        $categories = $f3->get('categories');
+
+        $categories = f3()->get('categories');
 
         if (empty($categories)) {
             $categories = fCategory::get_categories();
-            $f3->set('categories', $categories);
+            f3()->set('categories', $categories);
         }
 
         $cates = array();
@@ -99,13 +99,13 @@ class rCategory extends Reaction
      */
     static function breadcrumb_categories($parent_id = 0, $level = 0)
     {
-        $f3 = \Base::instance();
 
-        $categories = $f3->get('categories');
+
+        $categories = f3()->get('categories');
 
         if (empty($categories)) {
             $categories = fCategory::get_categories();
-            $f3->set('categories', $categories);
+            f3()->set('categories', $categories);
         }
 
         $cates = array();

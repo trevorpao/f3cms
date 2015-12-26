@@ -13,10 +13,10 @@ class fPost extends Feed
 
     static function getAll()
     {
-        $f3 = \Base::instance();
 
-        $result = $f3->get('DB')->exec(
-            "SELECT a.id, a.title, a.last_ts, a.pic, a.slug FROM `". $f3->get('tpf') . self::MTB ."` a "
+
+        $result = f3()->get('DB')->exec(
+            "SELECT a.id, a.title, a.last_ts, a.pic, a.slug FROM `". f3()->get('tpf') . self::MTB ."` a "
         );
 
         return $result;
@@ -32,7 +32,7 @@ class fPost extends Feed
      */
     static function get_next_post($post_id, $category_id = 0)
     {
-        $f3 = \Base::instance();
+
 
         $condition = " WHERE `id` > '". $post_id ."' ";
 
@@ -40,7 +40,7 @@ class fPost extends Feed
             $condition .= " AND `category_id`='". $category_id ."' ";
         }
 
-        $rows = $f3->get('DB')->exec("SELECT `slug` FROM `". $f3->get('tpf') . self::MTB ."` ". $condition ." ORDER BY id ASC  LIMIT 1 ");
+        $rows = f3()->get('DB')->exec("SELECT `slug` FROM `". f3()->get('tpf') . self::MTB ."` ". $condition ." ORDER BY id ASC  LIMIT 1 ");
 
         if (count($rows) != 1) {
             return null;
@@ -60,7 +60,7 @@ class fPost extends Feed
      */
     static function get_prev_post($post_id, $category_id = 0)
     {
-        $f3 = \Base::instance();
+
 
         $condition = " WHERE `id` < '". $post_id ."' ";
 
@@ -68,7 +68,7 @@ class fPost extends Feed
             $condition .= " AND `category_id`='". $category_id ."' ";
         }
 
-        $rows = $f3->get('DB')->exec("SELECT `slug` FROM `". $f3->get('tpf') . self::MTB ."` ". $condition ." ORDER BY id DESC  LIMIT 1 ");
+        $rows = f3()->get('DB')->exec("SELECT `slug` FROM `". f3()->get('tpf') . self::MTB ."` ". $condition ." ORDER BY id DESC  LIMIT 1 ");
 
         if (count($rows) != 1) {
             return null;

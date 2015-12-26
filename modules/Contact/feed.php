@@ -11,11 +11,11 @@ class fContact extends Feed
 
     static function getAll()
     {
-        $f3 = \Base::instance();
 
-        $result = $f3->get('DB')->exec(
+
+        $result = f3()->get('DB')->exec(
             "SELECT `id`, `status`, `name`, `phone`, `email`, `last_ts` FROM `".
-            $f3->get('tpf') . self::MTB ."` ORDER BY insert_ts DESC "
+            f3()->get('tpf') . self::MTB ."` ORDER BY insert_ts DESC "
         );
 
         return $result;
@@ -23,10 +23,10 @@ class fContact extends Feed
 
     static function insert($req)
     {
-        $f3 = \Base::instance();
+
 
         $now = date('Y-m-d H:i:s');
-        $obj = new \DB\SQL\Mapper($f3->get('DB'), $f3->get('tpf') . self::MTB);
+        $obj = new \DB\SQL\Mapper(f3()->get('DB'), f3()->get('tpf') . self::MTB);
 
         $obj->name = $req['cname'];
         $obj->email = $req['cemail'];

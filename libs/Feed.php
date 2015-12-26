@@ -13,42 +13,14 @@ class Feed extends Module
     }
 
     /**
-     * set a no [0] array
-     * @param  array $ary - target array
-     * @return array      - fixed array
-     */
-    static function _fixAry(array $ary)
-    {
-        array_unshift($ary, "");
-        unset($ary[0]);
-        return $ary;
-    }
-
-    /**
-     * renderUniqueNo
-     * @param string $length - serial_no length
-     * @param string $chars  - available char in serial_no
-     * @return string
-     */
-    static function renderUniqueNo($length = 6, $chars = '3456789ACDFGHJKLMNPQRSTWXY')
-    {
-        $sn = '';
-        for ($i = 0; $i < $length; $i++) {
-            $sn.= substr($chars, rand(0, strlen($chars) - 1) , 1);
-        }
-        return $sn;
-    }
-
-    /**
      * save whole form for backend
      * @param  array  $req
      */
     static function save($req)
     {
-        $that = get_called_class();
         $f3 = f3();
-
-        $obj = new \DB\SQL\Mapper($f3->get('DB'), $f3->get('tpf') . self::_getMainTbl() ."");
+        $that = get_called_class();
+        $obj = $that::map();
 
         if ($req['pid'] == 0) {
             $obj->insert_ts = date('Y-m-d H:i:s');
@@ -91,8 +63,7 @@ class Feed extends Module
     static function save_meta($pid, $k, $v, $replace = false)
     {
         $f3 = f3();
-
-        $obj = new \DB\SQL\Mapper($f3->get('DB'), $f3->get('tpf') . self::_getMainTbl() ."_meta");
+        $obj = $that::map('meta');
 
         if ($replace == false) {
             $obj->parent_id = $pid;
@@ -114,8 +85,7 @@ class Feed extends Module
     static function change_status($pid, $status)
     {
         $f3 = f3();
-
-        $obj = new \DB\SQL\Mapper($f3->get('DB'), $f3->get('tpf') . self::_getMainTbl() ."");
+        $obj = $that::map();
 
         $obj->load(array('id=?', $pid));
 
@@ -144,8 +114,7 @@ class Feed extends Module
     {
         $f3 = f3();
         $that = get_called_class();
-
-        $obj = new \DB\SQL\Mapper($f3->get('DB'), $f3->get('tpf') . self::_getMainTbl() ."");
+        $obj = $that::map();
 
         if ($req['pid'] == 0) {
             $obj->insert_ts = date('Y-m-d H:i:s');
@@ -250,4 +219,41 @@ class Feed extends Module
         return $that::MTB;
     }
 
+    /**
+     * set a no [0] array
+     * @param  array $ary - target array
+     * @return array      - fixed array
+     */
+    static function _fixAry(array $ary)
+    {
+        array_unshift($ary, "");
+        unset($ary[0]);
+        return $ary;
+    }
+
+    /**
+     * renderUniqueNo
+     * @param string $length - serial_no length
+     * @param string $chars  - available char in serial_no
+     * @return string
+     */
+    static function renderUniqueNo($length = 6, $chars = '3456789ACDFGHJKLMNPQRSTWXY')
+    {
+        $sn = '';
+        for ($i = 0; $i < $length; $i++) {
+            $sn.= substr($chars, rand(0, strlen($chars) - 1) , 1);
+        }
+        return $sn;
+    }
+
+    static function map($sub_table = '') {
+        $f3 = f3();
+
+        $row = new \DB\SQL\Mapper(
+            $f3->get('DB'),
+            $f3->get('tpf') . self::_getMainTbl() . (($sub_table != '') ? '_'.$sub_table : '')
+        );
+
+        return $row;
+    }
 }

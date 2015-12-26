@@ -11,14 +11,14 @@ class rExcel extends Reaction
             return parent::_return(8001);
         }
 
-        $filename = Upload::saveFile($f3->get('FILES') , ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/octet-stream", "application/vnd.ms-excel"]);
+        $filename = Upload::saveFile(f3()->get('FILES') , ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/octet-stream", "application/vnd.ms-excel"]);
 
         return $this->load_xls($filename);
     }
 
     function load_xls($filename)
     {
-        $f3 = \Base::instance();
+
 
         $sheetData = Upload::readExcel($filename, 2, 2000, ['B', 'D', 'E', 'F', 'G']);
 
@@ -72,16 +72,16 @@ class rExcel extends Reaction
 
         $rtn['new_folders'] = $tmpProg;
 
-        $f3->set('SESSION.uploadPrograms', json_encode($rtn));
+        f3()->set('SESSION.uploadPrograms', json_encode($rtn));
 
         return parent::_return(1, $rtn);
     }
 
     function do_save_new_schedules($f3, $args)
     {
-        $allData = json_decode($f3->get('SESSION.uploadPrograms') , true);
+        $allData = json_decode(f3()->get('SESSION.uploadPrograms') , true);
 
-        $f3->get('DB')->begin();
+        f3()->get('DB')->begin();
 
         foreach ($allData['schedules'] as $prog) {
             $program = Program::get_program_by_codename($prog['c']);
@@ -91,10 +91,10 @@ class rExcel extends Reaction
                 $program['id'] = 0;
             }
 
-            $f3->get('DB')->exec("INSERT INTO `" . $f3->get('tpf') . "schedules`(`title`, `uri`, `program_id`, `start_date`, `end_date`, `status`, `last_ts`, " . "`last_user`, `insert_user`, `insert_ts`) VALUES ('" . $program['title'] . "', '" . $program['uri'] . "', '" . $program['id'] . "', '" . $prog['d'] . " " . $prog['s'] . ":00', '" . $prog['d'] . " " . $prog['e'] . ":00', 'Yes', '" . date('Y-m-d H:i:s') . "', '" . User::_CUser('id') . "', '" . User::_CUser('id') . "', '" . date('Y-m-d H:i:s') . "')");
+            f3()->get('DB')->exec("INSERT INTO `" . f3()->get('tpf') . "schedules`(`title`, `uri`, `program_id`, `start_date`, `end_date`, `status`, `last_ts`, " . "`last_user`, `insert_user`, `insert_ts`) VALUES ('" . $program['title'] . "', '" . $program['uri'] . "', '" . $program['id'] . "', '" . $prog['d'] . " " . $prog['s'] . ":00', '" . $prog['d'] . " " . $prog['e'] . ":00', 'Yes', '" . date('Y-m-d H:i:s') . "', '" . User::_CUser('id') . "', '" . User::_CUser('id') . "', '" . date('Y-m-d H:i:s') . "')");
         }
 
-        $f3->get('DB')->commit();
+        f3()->get('DB')->commit();
 
         return parent::_return(1, $allData['schedules']);
     }

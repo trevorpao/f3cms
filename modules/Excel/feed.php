@@ -11,11 +11,11 @@ class fExcel extends Feed
 
     static function getAll()
     {
-        $f3 = \Base::instance();
 
-        $result = $f3->get('DB')->exec(
+
+        $result = f3()->get('DB')->exec(
             "SELECT `id`, `status`, `name`, `phone`, `email`, `counter`, `last_ts` FROM `".
-            $f3->get('tpf') . self::MTB . "` ORDER BY insert_ts DESC "
+            f3()->get('tpf') . self::MTB . "` ORDER BY insert_ts DESC "
         );
 
         foreach ($result as &$row) {

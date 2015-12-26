@@ -13,11 +13,11 @@ class fAdv extends Feed
 
     static function getAll()
     {
-        $f3 = \Base::instance();
 
-        $result = $f3->get('DB')->exec(
+
+        $result = f3()->get('DB')->exec(
             "SELECT a.id, a.title, a.position_id, a.end_date, a.counter, a.last_ts FROM `".
-            $f3->get('tpf') . self::MTB ."` a "
+            f3()->get('tpf') . self::MTB ."` a "
         );
 
         foreach ($result as &$row) {
@@ -36,13 +36,13 @@ class fAdv extends Feed
 
     static function getAdvs($position_id, $limit = 10)
     {
-        $f3 = \Base::instance();
+
 
         $condition = " WHERE `position_id` = '". $position_id ."' AND `status` = '". self::ST_ON ."' ";
         $condition .= " AND `end_date` > '". date('Y-m-d') ."' ";
 
-        $result = $f3->get('DB')->exec(
-            "SELECT `id`, `title`, `status`, `pic`, `uri`, `background`, `summary` FROM `". $f3->get('tpf') . self::MTB .
+        $result = f3()->get('DB')->exec(
+            "SELECT `id`, `title`, `status`, `pic`, `uri`, `background`, `summary` FROM `". f3()->get('tpf') . self::MTB .
             "` ". $condition ."  ORDER BY rand() LIMIT ". $limit
         );
 

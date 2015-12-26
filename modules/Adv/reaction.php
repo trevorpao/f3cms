@@ -9,10 +9,10 @@ class rAdv extends Reaction
 {
     function do_click($f3, $args)
     {
-        $row = fAdv::get_row($f3->get('GET.id'));
+        $row = fAdv::get_row(f3()->get('GET.id'));
 
         if ($row == null) {
-            $f3->error(404);
+            f3()->error(404);
         }
 
         fAdv::save_col(array(
@@ -21,7 +21,7 @@ class rAdv extends Reaction
             'val' => $row['counter'] + 1,
         ));
 
-        $f3->reroute($row['uri']);
+        f3()->reroute($row['uri']);
     }
 
     static function handleRow($row = array())

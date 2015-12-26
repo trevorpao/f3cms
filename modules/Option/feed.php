@@ -16,10 +16,10 @@ class fOption extends Feed
 
     static function get_options ()
     {
-        $f3 = \Base::instance();
 
-        $rows = $f3->get('DB')->exec(
-            "SELECT name, content FROM `". $f3->get('tpf') . self::MTB ."` WHERE `status`='". self::ST_ON ."'"
+
+        $rows = f3()->get('DB')->exec(
+            "SELECT name, content FROM `". f3()->get('tpf') . self::MTB ."` WHERE `status`='". self::ST_ON ."'"
         );
 
         $options = array();
@@ -40,10 +40,10 @@ class fOption extends Feed
      */
     static function get_option($name)
     {
-        $f3 = \Base::instance();
 
-        $rows = $f3->get('DB')->exec(
-            "SELECT * FROM `". $f3->get('tpf') . self::MTB ."` WHERE `name`=? AND `status`='". self::ST_ON ."' LIMIT 1 ", $name
+
+        $rows = f3()->get('DB')->exec(
+            "SELECT * FROM `". f3()->get('tpf') . self::MTB ."` WHERE `name`=? AND `status`='". self::ST_ON ."' LIMIT 1 ", $name
         );
 
         if (count($rows) != 1) {
@@ -56,10 +56,10 @@ class fOption extends Feed
 
     static function get_counties()
     {
-        $f3 = \Base::instance();
 
-        $rows = $f3->get('DB')->exec(
-            "SELECT * FROM `". $f3->get('tpf') . self::COUNTYTB ."` ORDER BY `id`"
+
+        $rows = f3()->get('DB')->exec(
+            "SELECT * FROM `". f3()->get('tpf') . self::COUNTYTB ."` ORDER BY `id`"
         );
 
         return $rows;
@@ -67,10 +67,10 @@ class fOption extends Feed
 
     static function get_zipcodes($county)
     {
-        $f3 = \Base::instance();
 
-        $rows = $f3->get('DB')->exec(
-            "SELECT `zipcode`, `town`, CONCAT(`county`, `town`) AS `full_name` FROM `". $f3->get('tpf') . self::ZIPCODETB .
+
+        $rows = f3()->get('DB')->exec(
+            "SELECT `zipcode`, `town`, CONCAT(`county`, `town`) AS `full_name` FROM `". f3()->get('tpf') . self::ZIPCODETB .
             "` WHERE `county`= ? ORDER BY `zipcode`", $county
         );
 
@@ -79,10 +79,10 @@ class fOption extends Feed
 
     static function getAll()
     {
-        $f3 = \Base::instance();
 
-        $result = $f3->get('DB')->exec(
-            "SELECT id, name, content FROM `". $f3->get('tpf') . self::MTB ."` "
+
+        $result = f3()->get('DB')->exec(
+            "SELECT id, name, content FROM `". f3()->get('tpf') . self::MTB ."` "
         );
 
         return $result;

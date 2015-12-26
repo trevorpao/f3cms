@@ -14,10 +14,10 @@ class fMedia extends Feed
 
     static function getAll()
     {
-        $f3 = \Base::instance();
 
-        $result = $f3->get('DB')->exec(
-            "SELECT a.id, a.title, a.pic, a.last_ts FROM `". $f3->get('tpf') . self::MTB ."` a "
+
+        $result = f3()->get('DB')->exec(
+            "SELECT a.id, a.title, a.pic, a.last_ts FROM `". f3()->get('tpf') . self::MTB ."` a "
         );
 
         return $result;
@@ -25,10 +25,10 @@ class fMedia extends Feed
 
     static function insert($req)
     {
-        $f3 = \Base::instance();
+
         $now = date('Y-m-d H:i:s');
 
-        $obj = new \DB\SQL\Mapper($f3->get('DB'), $f3->get('tpf') . self::MTB);
+        $obj = new \DB\SQL\Mapper(f3()->get('DB'), f3()->get('tpf') . self::MTB);
         $obj->insert_ts = $now;
         $obj->insert_user = rUser::_CUser('id');
         $obj->last_ts = $now;
@@ -51,10 +51,10 @@ class fMedia extends Feed
      */
     static function get_row_by_slug($slug)
     {
-        $f3 = \Base::instance();
 
-        $rows = $f3->get('DB')->exec(
-            "SELECT id, title, content, pic, last_ts, slug FROM `". $f3->get('tpf') . self::MTB ."` WHERE `slug`=? LIMIT 1 ", '/' . $slug
+
+        $rows = f3()->get('DB')->exec(
+            "SELECT id, title, content, pic, last_ts, slug FROM `". f3()->get('tpf') . self::MTB ."` WHERE `slug`=? LIMIT 1 ", '/' . $slug
         );
 
         if (count($rows) != 1) {
