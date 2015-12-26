@@ -5,7 +5,6 @@
         "bcosca/fatfree-core": "^3.5",
         "ikkez/f3-opauth": "dev-master",
         "phpoffice/phpexcel": "^1.8",
-        "tecnickcom/tcpdf": "^6.2",
-        "ondrakub/screenshotmachine-php": "^1.0"
+        "tecnickcom/tcpdf": "^6.2"
     }
 }
