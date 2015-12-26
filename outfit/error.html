@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<include href="parter/head.html" />
+
+<body>
+    <!-- WRAPPER -->
+    <div class="wrapper">
+        <!-- CONTACT -->
+        <section class="module">
+            <!-- Page Content -->
+            <div class="container">
+                <div class="row">
+                    <div class="col-lg-12">
+                        <h1 class="page-header">
+                    {{@ERROR.text}}
+                </h1>
+                    </div>
+                </div>
+                <!-- Intro Content -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <p>Error code: {{@ERROR.code}}</p>
+                    </div>
+                </div>
+                <!-- /.row -->
+            </div>
+        </section>
+        <!-- /.container -->
+        <hr class="divider">
+        <include href="parter/footer.html" />
+    </div>
+    <!-- /WRAPPER -->
+    <include href="parter/script.html" />
+</body>
+
+</html>
