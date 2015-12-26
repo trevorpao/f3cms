@@ -1,7 +1,7 @@
 <?php
 namespace F3CMS;
 
-class Reaction extends BaseModule
+class Reaction extends Module
 {
 
     public function __construct()
@@ -204,4 +204,20 @@ class Reaction extends BaseModule
         return $row;
     }
 
+    /**
+     * new return mode
+     * @param mixed $code - whether sucess or error code
+     * @param array $data - the data need to return
+     * @return array
+     */
+    static function _return($code = 1, $data = array())
+    {
+        $return = array('code' => (string)$code);
+        if (!empty($data)) {
+            $return['data'] = $data;
+        }
+
+        header('Content-Type: application/json');
+        die(json_encode($return));
+    }
 }

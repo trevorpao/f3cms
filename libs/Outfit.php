@@ -1,11 +1,10 @@
 <?php
 namespace F3CMS;
 
-class Outfit extends BaseModule
+class Outfit extends Module
 {
     public function __construct()
     {
-        $f3 = \Base::instance();
         parent::__construct();
     }
 
@@ -33,7 +32,7 @@ class Outfit extends BaseModule
      */
     static function thumbnail($path, $type)
     {
-        $f3 = \Base::instance();
+        $f3 = f3();
 
         list($w, $h) = $f3->get($type . '_thn');
 
@@ -59,7 +58,7 @@ class Outfit extends BaseModule
     {
         $ary = array();
         if (!empty($tags)) {
-            $f3 = \Base::instance();
+            $f3 = f3();
             $items = json_decode($tags);
             foreach ($items as $item) {
                 $ary[] = $item->title;
@@ -111,7 +110,7 @@ class Outfit extends BaseModule
 
     static function wrapper ($html, $title = "", $slug = "")
     {
-        $f3 = \Base::instance();
+        $f3 = f3();
         $f3->set('canonical', $slug);
         $f3->set('pageTitle', $title);
 

@@ -1,7 +1,7 @@
 <?php
 namespace F3CMS;
 
-class Feed extends BaseModule
+class Feed extends Module
 {
 
     protected $_db;
@@ -9,7 +9,7 @@ class Feed extends BaseModule
     public function __construct()
     {
         parent::__construct();
-        $this->_db = \Base::instance()->get('DB');
+        $this->_db = f3()->get('DB');
     }
 
     /**
@@ -46,7 +46,7 @@ class Feed extends BaseModule
     static function save($req)
     {
         $that = get_called_class();
-        $f3 = \Base::instance();
+        $f3 = f3();
 
         $obj = new \DB\SQL\Mapper($f3->get('DB'), $f3->get('tpf') . self::_getMainTbl() ."");
 
@@ -90,7 +90,7 @@ class Feed extends BaseModule
 
     static function save_meta($pid, $k, $v, $replace = false)
     {
-        $f3 = \Base::instance();
+        $f3 = f3();
 
         $obj = new \DB\SQL\Mapper($f3->get('DB'), $f3->get('tpf') . self::_getMainTbl() ."_meta");
 
@@ -113,7 +113,7 @@ class Feed extends BaseModule
 
     static function change_status($pid, $status)
     {
-        $f3 = \Base::instance();
+        $f3 = f3();
 
         $obj = new \DB\SQL\Mapper($f3->get('DB'), $f3->get('tpf') . self::_getMainTbl() ."");
 
@@ -129,7 +129,7 @@ class Feed extends BaseModule
 
     static function get_opts($query)
     {
-        $f3 = \Base::instance();
+        $f3 = f3();
 
         $condition = " WHERE `title` like ? ";
 
@@ -142,7 +142,7 @@ class Feed extends BaseModule
      */
     static function save_col($req)
     {
-        $f3 = \Base::instance();
+        $f3 = f3();
         $that = get_called_class();
 
         $obj = new \DB\SQL\Mapper($f3->get('DB'), $f3->get('tpf') . self::_getMainTbl() ."");
@@ -177,7 +177,7 @@ class Feed extends BaseModule
      */
     static function del_row($pid)
     {
-        $f3 = \Base::instance();
+        $f3 = f3();
 
         $f3->get('DB')->exec(
             "DELETE FROM `". $f3->get('tpf') . self::_getMainTbl() ."` WHERE `id`=? LIMIT 1 ", $pid
@@ -195,7 +195,7 @@ class Feed extends BaseModule
      */
     static function get_row($string, $type='id', $condition='')
     {
-        $f3 = \Base::instance();
+        $f3 = f3();
 
         switch ($type) {
             case 'account':

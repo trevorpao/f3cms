@@ -1,7 +1,7 @@
 <?php
 namespace F3CMS;
 
-class Allpay extends BaseHelper
+class Allpay extends Helper
 {
     // 測試環境
     var $gateway_url = "http://payment-stage.allpay.com.tw"; //交易網址(測試環境)
@@ -26,7 +26,7 @@ class Allpay extends BaseHelper
     public function __construct()
     {
         parent::__construct();
-        $f3       = \Base::instance();
+        $f3       = f3();
     }
     public function check($rtn_data)
     {

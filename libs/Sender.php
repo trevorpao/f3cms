@@ -1,7 +1,7 @@
 <?php
 namespace F3CMS;
 
-class Sender extends BaseHelper
+class Sender extends Helper
 {
 
     /**
@@ -15,7 +15,7 @@ class Sender extends BaseHelper
      */
     static function sendmail($subject, $content, $receiver)
     {
-        $f3 = \Base::instance();
+        $f3 = f3();
 
         $now = date('Y-m-d H:i:s');
 
@@ -50,7 +50,7 @@ class Sender extends BaseHelper
      */
     static function mail($subject, $message, $email = "")
     {
-        $f3 = \Base::instance();
+        $f3 = f3();
 
         $to_address = ($email == "") ? $f3->get('inquiry_receiver') : $email;
 

@@ -1,7 +1,7 @@
 <?php
 namespace F3CMS;
 
-class Cart extends BaseHelper
+class Cart extends Helper
 {
     const ST_INSERTED = 'Inserted';
     const ST_REMOVED  = 'Removed';
@@ -16,7 +16,7 @@ class Cart extends BaseHelper
 
     function do_get_items($f3, $args)
     {
-        return BaseModule::_return(1, array('cart' => self::get_cart()));
+        return Reaction::_return(1, array('cart' => self::get_cart()));
     }
 
     function do_add_item($f3, $args)
@@ -54,7 +54,7 @@ class Cart extends BaseHelper
             }
         }
 
-        return BaseModule::_return(
+        return Reaction::_return(
             self::get_msgs()[$state]['code'],
             array('msg' => self::get_msgs()[$state]['msg'], 'cart' => self::get_cart())
         );
@@ -69,7 +69,7 @@ class Cart extends BaseHelper
             unset($_SESSION['cart'][$pid]);
         }
 
-        return BaseModule::_return(
+        return Reaction::_return(
             self::get_msgs()[$state]['code'],
             array('msg' => self::get_msgs()[$state]['msg'], 'cart' => self::get_cart())
         );
@@ -77,7 +77,7 @@ class Cart extends BaseHelper
 
     function do_get_count($f3, $args)
     {
-        return BaseModule::_return(1, array('count'=>count($_SESSION['cart'])));
+        return Reaction::_return(1, array('count'=>count($_SESSION['cart'])));
     }
 
     static function get_cart()

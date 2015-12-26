@@ -36,7 +36,7 @@ class Pagination {
      * @param $routeKey string the key for pagination in your routing
      */
     public function __construct( $items, $limit = 10, $routeKey = 'page' ) {
-        $this->fw = \Base::instance();
+        $this->fw = f3();
         $this->items_count = is_array($items)?count($items):$items;
         $this->routeKey = $routeKey;
         $this->setLimit($limit);
@@ -111,7 +111,7 @@ class Pagination {
      * @return int|mixed
      */
     static public function findCurrentPage($key='page',$type='GET') {
-        $f3 = \Base::instance();
+        $f3 = f3();
         return $f3->exists($type.'.'.$key) ?
             preg_replace("/[^0-9]/", "", $f3->get($type.'.'.$key)) : 1;
     }

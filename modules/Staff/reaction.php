@@ -96,7 +96,7 @@ class rStaff extends Reaction
     static function _chkLogin()
     {
         if (!self::_isLogin()) {
-            return BaseModule::_return(8001);
+            return parent::_return(8001);
         }
     }
 

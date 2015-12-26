@@ -6,7 +6,7 @@ class MedooHelper extends medoo
 
     public function __construct()
     {
-        $this->pdo = \Base::instance()->get('DB')->pdo();
+        $this->pdo = f3()->get('DB')->pdo();
     }
 
     public static function instance()

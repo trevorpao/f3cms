@@ -1,25 +1,25 @@
 <?php
 namespace F3CMS;
 
-class Upload extends BaseHelper
+class Upload extends Helper
 {
 
     static function savePhoto($files, $thumbnail = [], $column = 'photo')
     {
-        $f3 = \Base::instance();
+        $f3 = f3();
         $root = $f3->get('ROOT') . $f3->get('BASE');
         $path = "/upload/img/".date("Y/m")."/";
 
         if (($files[$column]['size'] >= $f3->get('maxsize')) || ($files[$column]['size'] == 0)) {
-            BaseModule::_return("2002", "File too large. File must be less than 2 megabytes.");
+            Reaction::_return("2002", "File too large. File must be less than 2 megabytes.");
         }
 
         if (!in_array($files[$column]['type'], $f3->get('photo_acceptable')) && !empty($files["photo"]["type"])) {
-            BaseModule::_return("2003", 'Invalid file type. Only JPG, GIF and PNG types are accepted.');
+            Reaction::_return("2003", 'Invalid file type. Only JPG, GIF and PNG types are accepted.');
         }
 
         if ($files[$column]['error'] != 0) {
-            BaseModule::_return("2004", 'other error.');
+            Reaction::_return("2004", 'other error.');
         }
 
         if (!file_exists($root . $path)) {
@@ -55,7 +55,7 @@ class Upload extends BaseHelper
 
     static function saveFile($files, $acceptable = [])
     {
-        $f3 = \Base::instance();
+        $f3 = f3();
         $root = $f3->get('ROOT') . $f3->get('BASE');
         $path = "/upload/doc/".date("Y/m")."/";
 
@@ -64,15 +64,15 @@ class Upload extends BaseHelper
         );
 
         if (($files['file']['size'] >= $f3->get('maxsize')) || ($files['file']['size'] == 0)) {
-            BaseModule::_return("2002", "File too large. File must be less than 2 megabytes.");
+            Reaction::_return("2002", "File too large. File must be less than 2 megabytes.");
         }
 
         if (!in_array($files['file']['type'], $acceptable) && !empty($files["file"]["type"])) {
-            BaseModule::_return("2003", 'Invalid file type.('. $files['file']['type'] .')');
+            Reaction::_return("2003", 'Invalid file type.('. $files['file']['type'] .')');
         }
 
         if ($files['file']['error'] != 0) {
-            BaseModule::_return("2004", 'other error.');
+            Reaction::_return("2004", 'other error.');
         }
 
         if (!file_exists($root . $path)) {
@@ -97,7 +97,7 @@ class Upload extends BaseHelper
 
     static function takeScreenshot($uri)
     {
-        $f3 = \Base::instance();
+        $f3 = f3();
         $root = $f3->get('ROOT') . $f3->get('BASE');
         $path = "/upload/screenshot/".date("Y/m")."/";
 
@@ -135,7 +135,7 @@ class Upload extends BaseHelper
      */
     static function readExcel($filename, $startRow, $endRow, $columns)
     {
-        $f3 = \Base::instance();
+        $f3 = f3();
         $root = $f3->get('ROOT') . $f3->get('BASE');
 
         // include_once $root . $f3->get('vendors') . 'PHPExcel/IOFactory.php';
@@ -154,7 +154,7 @@ class Upload extends BaseHelper
 
             return $objPHPExcel->getActiveSheet()->toArray(null,true,true,true);
         } catch(PHPExcel_Reader_Exception $e) {
-            BaseModule::_return("2005", str_replace($root, '', $e->getMessage()));
+            Reaction::_return("2005", str_replace($root, '', $e->getMessage()));
         }
     }
 
@@ -169,7 +169,7 @@ class Upload extends BaseHelper
      */
     static function scan($dir = '', $only_dir = 0, $target = 'all')
     {
-        $f3 = \Base::instance();
+        $f3 = f3();
         $root = $f3->get('ROOT') . $f3->get('BASE');
 
         $files = array();

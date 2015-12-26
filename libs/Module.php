@@ -1,7 +1,7 @@
 <?php
 namespace F3CMS;
 
-class BaseModule
+class Module
 {
 
     //! Instantiate class
@@ -15,7 +15,7 @@ class BaseModule
      */
     static protected function _escape($array, $quote = true)
     {
-        $f3 = \Base::instance();
+        $f3 = f3();
         if (is_array($array)) {
             while (list($k,$v) = each($array)) {
                 if (is_string($v)) {
@@ -58,25 +58,8 @@ class BaseModule
      */
     static function _getReq()
     {
-        $f3 = \Base::instance();
+        $f3 = f3();
         return json_decode($f3->get('BODY'), true);
-    }
-
-    /**
-     * new return mode
-     * @param mixed $code - whether sucess or error code
-     * @param array $data - the data need to return
-     * @return array
-     */
-    static function _return($code = 1, $data = array())
-    {
-        $return = array('code' => (string)$code);
-        if (!empty($data)) {
-            $return['data'] = $data;
-        }
-
-        header('Content-Type: application/json');
-        die(json_encode($return));
     }
 
     static public function _slugify($text)
