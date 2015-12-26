@@ -5,77 +5,8 @@ namespace F3CMS;
 /**
  * Category
  */
-class rCategory extends Backend
+class rCategory extends Reaction
 {
-
-    const MTB = "categories";
-
-    /**
-     * get a category by category id
-     *
-     * @param int $cid - type id
-     *
-     * @return array
-     */
-    static function get_category($cid)
-    {
-        $f3 = \Base::instance();
-
-        $rows = $f3->get('DB')->exec(
-            "SELECT * FROM `". $f3->get('tpf') . self::MTB ."` WHERE `id`=? LIMIT 1 ", $cid
-        );
-
-        if (count($rows) != 1) {
-            return null;
-        }
-        else {
-            $cu = $rows[0];
-            $cu['subrows'] = self::get_categories($cu['id']);
-            return $cu;
-        }
-    }
-
-    /**
-     * get a category by slug
-     *
-     * @param string $slug - slug
-     *
-     * @return array
-     */
-    static function get_category_by_slug($slug)
-    {
-        $f3 = \Base::instance();
-
-        $rows = $f3->get('DB')->exec(
-            "SELECT c.*, p.title AS parent FROM `". $f3->get('tpf') . self::MTB ."` c LEFT JOIN `". $f3->get('tpf') . self::MTB ."` p ON p.id=c.parent_id WHERE c.`slug`=? LIMIT 1 ", '/'.$slug
-        );
-
-        if (count($rows) != 1) {
-            return null;
-        }
-        else {
-            $cu = $rows[0];
-            $cu['subrows'] = self::get_categories($cu['id']);
-            return $cu;
-        }
-    }
-
-    /**
-     * get categories by parent id
-     *
-     * @param int $parent_id - parent type id
-     *
-     * @return array
-     */
-    static function get_categories($parent_id)
-    {
-        $f3 = \Base::instance();
-
-        $f3->set('result',
-            $f3->get('DB')->exec("SELECT c.id, c.title, c.slug, c.parent_id, p.title AS parent FROM `". $f3->get('tpf') . self::MTB ."` c LEFT JOIN `". $f3->get('tpf') . self::MTB ."` p ON p.id=c.parent_id  where c.parent_id='". $parent_id ."'"));
-
-        return $f3->get('result');
-    }
 
     static public function breadcrumb($ary, $li = true)
     {
@@ -85,7 +16,7 @@ class rCategory extends Backend
 
         if (empty($ary['parentCate'])) {
             if ($li) {
-                $str = '<li><a href="'. $f3->get('slug') .'">Home</a></li>';
+                $str = '<li><a href="'. $f3->get('uri') .'">Home</a></li>';
             }
             else {
                 $str = '';
@@ -97,7 +28,7 @@ class rCategory extends Backend
 
         if (!in_array($ary['id'], $no_show_ary)) {
             if ($li) {
-                $str = $str . '<li><a href="'. $f3->get('slug') .'/' . $ary['slug'] .'">'. $ary['title'] .'</a></li>';
+                $str = $str . '<li><a href="'. $f3->get('uri') .'/products' . $ary['slug'] .'">'. $ary['title'] .'</a></li>';
             }
             else {
                 $str = $str . ' / '. $ary['title'] .'';
@@ -131,7 +62,7 @@ class rCategory extends Backend
         $categories = $f3->get('categories');
 
         if (empty($categories)) {
-            $categories = $f3->get('DB')->exec("SELECT c.id, c.parent_id, c.title, c.slug, p.title AS parent FROM `". $f3->get('tpf') . self::MTB ."` c LEFT JOIN `". $f3->get('tpf') . self::MTB ."` p ON p.id=c.parent_id ORDER BY id");
+            $categories = fCategory::get_categories();
             $f3->set('categories', $categories);
         }
 
@@ -173,7 +104,7 @@ class rCategory extends Backend
         $categories = $f3->get('categories');
 
         if (empty($categories)) {
-            $categories = $f3->get('DB')->exec("SELECT id, parent_id, title, slug FROM `". $f3->get('tpf') . self::MTB ."` ORDER BY id");
+            $categories = fCategory::get_categories();
             $f3->set('categories', $categories);
         }
 
@@ -193,25 +124,5 @@ class rCategory extends Backend
     {
         $row['categories'] = self::sort_categories(0, 0 , '~');
         return $row;
-    }
-
-    /**
-     * get all records for backend
-     *
-     * @param object $f3  - $f3
-     * @param array $args - pass by router
-     *
-     * @return array
-     */
-    function do_list_all($f3, $args)
-    {
-        $rows = $this->_db->exec("SELECT id, parent_id, title, slug, last_ts FROM `". $f3->get('tpf') . self::MTB ."` ");
-
-        foreach ($rows as &$row) {
-            $row['category'] = rCategory::breadcrumb(Category::breadcrumb_categories($row['parent_id']), false);
-            $row['category'] .= (($row['category'] != ' / ')?' / ':'') . $row['title'];
-        }
-
-        return parent::_return(1, $rows);
     }
 }

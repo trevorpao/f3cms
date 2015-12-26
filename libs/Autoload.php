@@ -25,6 +25,15 @@ class F3CMS_Autoloader
         );
     }
 
+    static function getPrefix()
+    {
+        return array(
+            'reaction' => 'r',
+            'feed' => 'f',
+            'outfit' => 'o',
+        );
+    }
+
     /**
      * Autoload a class identified by name
      *

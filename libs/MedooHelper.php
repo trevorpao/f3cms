@@ -1,5 +1,4 @@
 <?php
-namespace F3CMS;
 
 class MedooHelper extends medoo
 {

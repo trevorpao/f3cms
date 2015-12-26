@@ -4,11 +4,8 @@ namespace F3CMS;
 class BaseModule
 {
 
-    protected $_db;
-
     //! Instantiate class
     function __construct() {
-        $this->_db = \Base::instance()->get('DB');
     }
 
     /**
@@ -46,6 +43,15 @@ class BaseModule
         return $array;
     }
 
+    static function _shift($name, $target)
+    {
+        $name = str_replace(array('F3CMS\\', '\\'), array('', ''), $name);
+
+        list($type, $className) = preg_split("/(?<=[rfo])(?=[A-Z])/", $name);
+
+        return '\\F3CMS\\' . \F3CMS_Autoloader::getPrefix()[$target] . $className;
+    }
+
     /**
      * handle angular post data
      * @return array - post data
@@ -54,18 +60,6 @@ class BaseModule
     {
         $f3 = \Base::instance();
         return json_decode($f3->get('BODY'), true);
-    }
-
-    /**
-     * set a no [0] array
-     * @param  array $ary - target array
-     * @return array      - fixed array
-     */
-    static function _fixAry(array $ary)
-    {
-        array_unshift($ary, "");
-        unset($ary[0]);
-        return $ary;
     }
 
     /**
@@ -83,29 +77,6 @@ class BaseModule
 
         header('Content-Type: application/json');
         die(json_encode($return));
-    }
-
-    /**
-     * set excel header
-     * @param string $filename - file name to user
-     */
-    static function _setXls($filename)
-    {
-        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT"); // Date in the past
-        header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT"); // always modified
-        header("Cache-Control: no-cache, must-revalidate"); // HTTP/1.1
-        header("Pragma: no-cache"); // HTTP/1.0
-        header("Content-Disposition:filename=". $filename .".xls");
-        header("Content-type:application/vnd.ms-excel; charset=UTF-8");
-        header("Content-Language:content=zh-tw");
-        echo "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; CHARSET=UTF-8\">";
-    }
-
-    /** get class const */
-    static function _getMainTbl()
-    {
-        $that = get_called_class();
-        return $that::MTB;
     }
 
     static public function _slugify($text)
@@ -130,5 +101,4 @@ class BaseModule
 
         return $text;
     }
-
 }

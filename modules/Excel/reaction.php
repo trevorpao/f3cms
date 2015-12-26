@@ -1,10 +1,8 @@
 <?php
 namespace F3CMS;
 
-class rExcel extends Backend
+class rExcel extends Reaction
 {
-
-    const MTB = "excels";
 
     function do_upload_file($f3, $args)
     {

@@ -2,29 +2,12 @@
 
 namespace F3CMS;
 
-class rUser extends Backend
+class rStaff extends Reaction
 {
-
-    const MTB = "users";
-    const ST_ON = "Enabled";
-    const ST_OFF = "Disabled";
-
-    const ROLE_ADMIN = "Admin";
-    const ROLE_MEMBER = "Member";
-
-    function do_list_all($f3, $args)
-    {
-
-        rUser::_chkLogin();
-
-        $f3->set('result', $this->_db->exec("SELECT * FROM `". $f3->get('tpf') . self::MTB ."` "));
-        return parent::_return(1, $f3->get('result'));
-    }
-
     function do_get_one($f3, $args)
     {
 
-        rUser::_chkLogin();
+        rStaff::_chkLogin();
 
         $req = parent::_getReq();
 
@@ -36,15 +19,11 @@ class rUser extends Backend
             return parent::_return(1, array('id'=>0));
         }
 
-        $rows = $this->_db->exec(
-            "SELECT * FROM `". $f3->get('tpf') . self::MTB ."` WHERE `id`=? ", $req['pid']
-        );
+        $cu = fStaff::get_row($req['pid']);
 
-        if (count($rows) != 1) {
+        if ($cu == null) {
             return parent::_return(8106);
         }
-
-        $cu = $rows[0];
 
         unset($cu['pwd']);
 
@@ -64,33 +43,29 @@ class rUser extends Backend
             return parent::_return(8103);
         }
 
-        $rows = $this->_db->exec(
-            "SELECT * FROM `". $f3->get('tpf') . self::MTB ."` WHERE `account`=? ", $req['account']
-        );
+        $cu = fStaff::get_row($req['account'], 'account');
 
-        if (count($rows) != 1) {
+        if ($cu == null) {
             return parent::_return(8106);
         }
 
-        $cu = $rows[0];
-
-        if ($cu['pwd'] != self::_setPsw($req['pwd'])) {
+        if ($cu['pwd'] != fStaff::_setPsw($req['pwd'])) {
             return parent::_return(8104);
         }
 
-        if ($cu['status'] != 'Verified') {
+        if ($cu['status'] != fStaff::ST_VERIFIED) {
             return parent::_return(8105);
         }
 
-        $f3->set('SESSION.cu', array('name'=>$cu['account'], "id"=>$cu['id'], 'has_login' => 1));
+        $f3->set('SESSION.cs', array('name'=>$cu['account'], "id"=>$cu['id'], 'has_login' => 1));
 
-        return parent::_return(self::_isLogin(), array('name'=>self::_CUser('name')));
+        return parent::_return(self::_isLogin(), array('name'=>self::_CStaff('name')));
     }
 
     function do_logout($f3, $args)
     {
         if (self::_isLogin()) {
-            $f3->clear('SESSION.cu');
+            $f3->clear('SESSION.cs');
         }
 
         return parent::_return(!self::_isLogin(), array());
@@ -101,18 +76,13 @@ class rUser extends Backend
         return parent::_return(self::_isLogin());
     }
 
-    static function _setPsw($str)
-    {
-        return md5($str);
-    }
-
     static function _isLogin()
     {
         if (!isset($f3)) {
             $f3 = \Base::instance();
         }
 
-        $cu = $f3->get('SESSION.cu');
+        $cu = $f3->get('SESSION.cs');
 
         if (isset($cu)) {
             if (isset($cu['has_login']) && $cu['has_login']) {
@@ -130,14 +100,14 @@ class rUser extends Backend
         }
     }
 
-    static function _CUser($column = 'id')
+    static function _CStaff($column = 'id')
     {
 
         if (!isset($f3)) {
             $f3 = \Base::instance();
         }
 
-        $cu = $f3->get('SESSION.cu');
+        $cu = $f3->get('SESSION.cs');
         $str = "";
 
         if (isset($cu)) {

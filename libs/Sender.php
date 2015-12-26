@@ -19,7 +19,7 @@ class Sender extends BaseHelper
 
         $now = date('Y-m-d H:i:s');
 
-        $smtp = new SMTP('smtp.gmail.com', 465, 'SSL', $f3->get('smtp_account'), $f3->get('smtp_password'));
+        $smtp = new \SMTP($f3->get('smtp_host'), $f3->get('smtp_port'), 'SSL', $f3->get('smtp_account'), $f3->get('smtp_password'));
 
         $smtp->set('From', '"' . $f3->get('smtp_name') . '" <' . $f3->get('smtp_account') . '>');
         $smtp->set('To', '<' . $receiver . '>');

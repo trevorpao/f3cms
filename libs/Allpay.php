@@ -4,10 +4,15 @@ namespace F3CMS;
 class Allpay extends BaseHelper
 {
     // 測試環境
-    var $gateway_url = "http://payment-stage.allpay.com.tw"; //交易網址
+    var $gateway_url = "http://payment-stage.allpay.com.tw"; //交易網址(測試環境)
     var $merchant_id = "2000132"; //商店代號
     var $hash_key    = "5294y06JbISpM5x9"; //HashKey
     var $hash_iv     = "v77hoKGq4kWxNNIS"; //HashIV
+
+    // var $gateway_url = "https://payment.allpay.com.tw"; //交易網址(正式環境)
+    // var $merchant_id = ""; //商店代號
+    // var $hash_key    = ""; //HashKey
+    // var $hash_iv     = ""; //HashIV
 
     private $_commands   = array(
         'Checkout' => array(
@@ -22,7 +27,6 @@ class Allpay extends BaseHelper
     {
         parent::__construct();
         $f3       = \Base::instance();
-        $merchant = Option::get_option('allpay_merchant');
     }
     public function check($rtn_data)
     {

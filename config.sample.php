@@ -41,6 +41,8 @@ $f3->set('photo_acceptable', array(
 $f3->set('maxsize', 20971520);
 
 //EMAIL
+$f3->set('smtp_host', 'smtp.gmail.com');
+$f3->set('smtp_port', 465);
 $f3->set('smtp_account', 'sense.info.co@gmail.com');
 $f3->set('smtp_password', 'ilixxmcanfdnsjgl'); //
 $f3->set('smtp_name', 'Trevor Pao');

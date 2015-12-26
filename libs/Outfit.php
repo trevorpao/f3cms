@@ -1,18 +1,28 @@
 <?php
 namespace F3CMS;
 
-class Outfit extends BaseHelper
+class Outfit extends BaseModule
 {
     public function __construct()
     {
         $f3 = \Base::instance();
         parent::__construct();
-        // $f3->set('options', Option::get_options());
     }
 
-    function do_comingsoon ($f3, $args)
+    /**
+     * set excel header
+     * @param string $filename - file name to user
+     */
+    static function _setXls($filename)
     {
-        self::wrapper('comingsoon.html', 'Coming Soon', '/');
+        header("Expires: Mon, 26 Jul 1997 05:00:00 GMT"); // Date in the past
+        header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT"); // always modified
+        header("Cache-Control: no-cache, must-revalidate"); // HTTP/1.1
+        header("Pragma: no-cache"); // HTTP/1.0
+        header("Content-Disposition:filename=". $filename .".xls");
+        header("Content-type:application/vnd.ms-excel; charset=UTF-8");
+        header("Content-Language:content=zh-tw");
+        echo "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; CHARSET=UTF-8\">";
     }
 
     /**
@@ -34,7 +44,8 @@ class Outfit extends BaseHelper
         return $newpath;
     }
 
-    static function paginate ($total, $limit = 10, $link = "", $range = 5) {
+    static function paginate ($total, $limit = 10, $link = "", $range = 5)
+    {
         $pages = new Pagination($total, $limit);
         $pages->setTemplate('parter/pagination.html');
         if (!empty($link)) {
@@ -44,15 +55,40 @@ class Outfit extends BaseHelper
         return $pages->serve();
     }
 
-    static function nl2br ($val){
+    static function handleTag ($tags)
+    {
+        $ary = array();
+        if (!empty($tags)) {
+            $f3 = \Base::instance();
+            $items = json_decode($tags);
+            foreach ($items as $item) {
+                $ary[] = $item->title;
+            }
+            $f3->set('rel_tag', $ary);
+            $f3->set('pageKeyword', implode(',', $ary));
+        }
+        return $ary;
+    }
+
+    static function date ($val, $format)
+    {
+        return date($format, strtotime($val));
+    }
+
+    static function nl2br ($val)
+    {
         return nl2br($val);
     }
 
-    static function crop($val,$len) {
+    static function crop($val,$len)
+    {
         return mb_substr($val, 0, $len, "utf-8");
     }
 
-    static function minify($buffer) {
+    static function minify($buffer)
+    {
+
+        //return $buffer;
 
         $search = array(
             '/\>[^\S ]+/s',  // strip whitespaces after tags, except space
@@ -73,21 +109,20 @@ class Outfit extends BaseHelper
         return $buffer;
     }
 
-    static function wrapper ($html, $title = "", $slug = "") {
+    static function wrapper ($html, $title = "", $slug = "")
+    {
         $f3 = \Base::instance();
         $f3->set('canonical', $slug);
         $f3->set('pageTitle', $title);
-        // $pcate = Category::get_categories(0);
 
-        // foreach ($pcate as &$row) {
-        //     $row['subrows'] = Category::get_categories($row['id']);
-        // }
-
-        // $f3->set('pcate', $pcate);
+        if (empty($f3->get('topTitle'))) {
+            $f3->set('topTitle', $title);
+        }
 
         $tp = \Template::instance();
-        $tp->filter('nl2br','Outfit::nl2br');
-        $tp->filter('crop','Outfit::crop');
+        $tp->filter('nl2br','\F3CMS\Outfit::nl2br');
+        $tp->filter('crop','\F3CMS\Outfit::crop');
+        $tp->filter('date','\F3CMS\Outfit::date');
 
         echo self::minify($tp->render($html));
     }

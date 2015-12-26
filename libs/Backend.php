@@ -1,7 +1,7 @@
 <?php
 namespace F3CMS;
 
-class Backend extends BaseModule
+class Reaction extends BaseModule
 {
 
     protected $default_filtered_column = array('id', 'last_ts', 'last_user', 'insert_ts', 'insert_user');

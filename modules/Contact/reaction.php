@@ -2,15 +2,8 @@
 
 namespace F3CMS;
 
-class rContact extends Backend
+class rContact extends Reaction
 {
-
-    const MTB = "contact";
-
-    function do_list_all($f3, $args) {
-        $f3->set('result', $this->_db->exec("SELECT `id`, `status`, `name`, `phone`, `email`, `last_ts` FROM `". $f3->get('tpf') . self::MTB ."` ORDER BY insert_ts DESC "));
-        return parent::_return(1, $f3->get('result'));
-    }
 
     function do_add_new($f3, $args) {
 
@@ -28,15 +21,7 @@ class rContact extends Backend
             return parent::_return(8002, array('msg'=>'訊息未填寫!!'));
         }
 
-        $now = date('Y-m-d H:i:s');
-        $obj = new \DB\SQL\Mapper($this->_db, $f3->get('tpf') . self::MTB);
-
-        $obj->name = $req['cname'];
-        $obj->email = $req['cemail'];
-        $obj->message = $req['cmessage'];
-        $obj->last_ts = $now;
-        $obj->insert_ts = $now;
-        $obj->save();
+        fContact::insert($req);
 
         $f3->set('name', $req['cname']);
         $f3->set('email', $req['cemail']);
@@ -67,7 +52,7 @@ class rContact extends Backend
             $template = new Template;
             $f3->set('rows', $rows);
 
-            parent::_setXls("contact_".date("YmdHis"));
+            Outfit::_setXls("contact_".date("YmdHis"));
             echo $template->render('contact.dl.html', "application/vnd.ms-excel");
         }
     }

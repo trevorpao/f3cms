@@ -36,7 +36,7 @@ class Cart extends BaseHelper
         }
         else {
 
-            $tmp = Product::get_row($pid);
+            $tmp = fProduct::get_row($pid);
 
             if (!$tmp) {
                 $state = self::ST_EMPTY;
@@ -45,7 +45,7 @@ class Cart extends BaseHelper
                 $_SESSION['cart'][$pid] = array(
                     'id'    => $pid,
                     'title' => $tmp['title'],
-                    'pic'   => $tmp['pic1'],
+                    'pic'   => $tmp['pic'],
                     'price' => $tmp['price'],
                     'qty'   => 1,
                     'slug'  => $tmp['slug']
