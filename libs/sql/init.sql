@@ -14,10 +14,10 @@
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `tbl_advs`
+-- 資料表結構 `tbl_adv`
 --
 
-CREATE TABLE IF NOT EXISTS `tbl_advs` (
+CREATE TABLE IF NOT EXISTS `tbl_adv` (
 `id` int(11) NOT NULL,
   `position_id` int(11) NOT NULL,
   `counter` int(11) NOT NULL,
@@ -37,10 +37,10 @@ CREATE TABLE IF NOT EXISTS `tbl_advs` (
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `tbl_categories`
+-- 資料表結構 `tbl_category`
 --
 
-CREATE TABLE IF NOT EXISTS `tbl_categories` (
+CREATE TABLE IF NOT EXISTS `tbl_category` (
 `id` int(11) NOT NULL,
   `status` enum('Enabled','Disabled') NOT NULL DEFAULT 'Disabled',
   `parent_id` int(11) NOT NULL,
@@ -75,10 +75,10 @@ CREATE TABLE IF NOT EXISTS `tbl_contact` (
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `tbl_medias`
+-- 資料表結構 `tbl_media`
 --
 
-CREATE TABLE IF NOT EXISTS `tbl_medias` (
+CREATE TABLE IF NOT EXISTS `tbl_media` (
 `id` int(11) NOT NULL,
   `status` enum('Disabled','Enabled') DEFAULT 'Disabled',
   `slug` varchar(255) NOT NULL,
@@ -94,11 +94,12 @@ CREATE TABLE IF NOT EXISTS `tbl_medias` (
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `tbl_options`
+-- 資料表結構 `tbl_option`
 --
 
-CREATE TABLE IF NOT EXISTS `tbl_options` (
+CREATE TABLE IF NOT EXISTS `tbl_option` (
 `id` int(11) NOT NULL,
+  `status` enum('Enabled','Disabled') NOT NULL DEFAULT 'Enabled',
   `name` varchar(255) DEFAULT NULL,
   `content` text,
   `last_ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
@@ -110,10 +111,10 @@ CREATE TABLE IF NOT EXISTS `tbl_options` (
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `tbl_posts`
+-- 資料表結構 `tbl_post`
 --
 
-CREATE TABLE IF NOT EXISTS `tbl_posts` (
+CREATE TABLE IF NOT EXISTS `tbl_post` (
 `id` int(11) NOT NULL,
   `status` enum('Disabled','Enabled') DEFAULT 'Disabled',
   `type` enum('Ancestor','Draft','Backup') NOT NULL DEFAULT 'Ancestor',
@@ -130,10 +131,10 @@ CREATE TABLE IF NOT EXISTS `tbl_posts` (
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `tbl_tags`
+-- 資料表結構 `tbl_tag`
 --
 
-CREATE TABLE IF NOT EXISTS `tbl_tags` (
+CREATE TABLE IF NOT EXISTS `tbl_tag` (
 `id` int(11) NOT NULL,
   `status` enum('Disabled','Enabled') DEFAULT 'Disabled',
   `parent_id` int(11) NOT NULL DEFAULT '0',
@@ -149,10 +150,10 @@ CREATE TABLE IF NOT EXISTS `tbl_tags` (
 -- --------------------------------------------------------
 
 --
--- 資料表結構 `tbl_users`
+-- 資料表結構 `tbl_staff`
 --
 
-CREATE TABLE IF NOT EXISTS `tbl_users` (
+CREATE TABLE IF NOT EXISTS `tbl_staff` (
 `id` int(11) NOT NULL,
   `status` enum('New','Verified','Freeze') DEFAULT 'New',
   `account` varchar(45) DEFAULT NULL,
@@ -168,15 +169,15 @@ CREATE TABLE IF NOT EXISTS `tbl_users` (
 --
 
 --
--- 資料表索引 `tbl_advs`
+-- 資料表索引 `tbl_adv`
 --
-ALTER TABLE `tbl_advs`
+ALTER TABLE `tbl_adv`
  ADD PRIMARY KEY (`id`), ADD KEY `category_id` (`position_id`), ADD KEY `uri` (`uri`);
 
 --
--- 資料表索引 `tbl_categories`
+-- 資料表索引 `tbl_category`
 --
-ALTER TABLE `tbl_categories`
+ALTER TABLE `tbl_category`
  ADD PRIMARY KEY (`id`), ADD UNIQUE KEY `uri` (`slug`), ADD KEY `parent_id` (`parent_id`);
 
 --
@@ -186,33 +187,33 @@ ALTER TABLE `tbl_contact`
  ADD PRIMARY KEY (`id`);
 
 --
--- 資料表索引 `tbl_medias`
+-- 資料表索引 `tbl_media`
 --
-ALTER TABLE `tbl_medias`
+ALTER TABLE `tbl_media`
  ADD PRIMARY KEY (`id`);
 
 --
--- 資料表索引 `tbl_options`
+-- 資料表索引 `tbl_option`
 --
-ALTER TABLE `tbl_options`
+ALTER TABLE `tbl_option`
  ADD PRIMARY KEY (`id`);
 
 --
--- 資料表索引 `tbl_posts`
+-- 資料表索引 `tbl_post`
 --
-ALTER TABLE `tbl_posts`
+ALTER TABLE `tbl_post`
  ADD PRIMARY KEY (`id`);
 
 --
--- 資料表索引 `tbl_tags`
+-- 資料表索引 `tbl_tag`
 --
-ALTER TABLE `tbl_tags`
+ALTER TABLE `tbl_tag`
  ADD PRIMARY KEY (`id`);
 
 --
--- 資料表索引 `tbl_users`
+-- 資料表索引 `tbl_staff`
 --
-ALTER TABLE `tbl_users`
+ALTER TABLE `tbl_staff`
  ADD PRIMARY KEY (`id`);
 
 --
@@ -220,14 +221,14 @@ ALTER TABLE `tbl_users`
 --
 
 --
--- 使用資料表 AUTO_INCREMENT `tbl_advs`
+-- 使用資料表 AUTO_INCREMENT `tbl_adv`
 --
-ALTER TABLE `tbl_advs`
+ALTER TABLE `tbl_adv`
 MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
 --
--- 使用資料表 AUTO_INCREMENT `tbl_categories`
+-- 使用資料表 AUTO_INCREMENT `tbl_category`
 --
-ALTER TABLE `tbl_categories`
+ALTER TABLE `tbl_category`
 MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
 --
 -- 使用資料表 AUTO_INCREMENT `tbl_contact`
@@ -235,30 +236,30 @@ MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
 ALTER TABLE `tbl_contact`
 MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
 --
--- 使用資料表 AUTO_INCREMENT `tbl_medias`
+-- 使用資料表 AUTO_INCREMENT `tbl_media`
 --
-ALTER TABLE `tbl_medias`
+ALTER TABLE `tbl_media`
 MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
 --
--- 使用資料表 AUTO_INCREMENT `tbl_options`
+-- 使用資料表 AUTO_INCREMENT `tbl_option`
 --
-ALTER TABLE `tbl_options`
+ALTER TABLE `tbl_option`
 MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
 --
--- 使用資料表 AUTO_INCREMENT `tbl_posts`
+-- 使用資料表 AUTO_INCREMENT `tbl_post`
 --
-ALTER TABLE `tbl_posts`
+ALTER TABLE `tbl_post`
 MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
 --
--- 使用資料表 AUTO_INCREMENT `tbl_tags`
+-- 使用資料表 AUTO_INCREMENT `tbl_tag`
 --
-ALTER TABLE `tbl_tags`
+ALTER TABLE `tbl_tag`
 MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
 --
--- 使用資料表 AUTO_INCREMENT `tbl_users`
+-- 使用資料表 AUTO_INCREMENT `tbl_staff`
 --
-ALTER TABLE `tbl_users`
+ALTER TABLE `tbl_staff`
 MODIFY `id` int(11) NOT NULL AUTO_INCREMENT,AUTO_INCREMENT=1;
 
-INSERT INTO `tbl_users` (`id`, `status`, `account`, `pwd`, `last_ts`, `last_user`, `insert_ts`, `insert_user`) VALUES
+INSERT INTO `tbl_staff` (`id`, `status`, `account`, `pwd`, `last_ts`, `last_user`, `insert_ts`, `insert_user`) VALUES
 (1, 'Verified', 'admin', '6fb42da0e32e07b61c9f0251fe627a9c', '2015-08-04 19:13:01', 1, '2015-08-05 00:41:20', 1);
