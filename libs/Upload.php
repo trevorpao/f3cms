@@ -6,15 +6,15 @@ class Upload extends Helper
 
     static function savePhoto($files, $thumbnail = [], $column = 'photo')
     {
-        $f3 = f3();
-        $root = $f3->get('ROOT') . $f3->get('BASE');
+
+        $root = f3()->get('ROOT') . f3()->get('BASE');
         $path = "/upload/img/".date("Y/m")."/";
 
-        if (($files[$column]['size'] >= $f3->get('maxsize')) || ($files[$column]['size'] == 0)) {
+        if (($files[$column]['size'] >= f3()->get('maxsize')) || ($files[$column]['size'] == 0)) {
             Reaction::_return("2002", "File too large. File must be less than 2 megabytes.");
         }
 
-        if (!in_array($files[$column]['type'], $f3->get('photo_acceptable')) && !empty($files["photo"]["type"])) {
+        if (!in_array($files[$column]['type'], f3()->get('photo_acceptable')) && !empty($files["photo"]["type"])) {
             Reaction::_return("2003", 'Invalid file type. Only JPG, GIF and PNG types are accepted.');
         }
 
@@ -55,15 +55,15 @@ class Upload extends Helper
 
     static function saveFile($files, $acceptable = [])
     {
-        $f3 = f3();
-        $root = $f3->get('ROOT') . $f3->get('BASE');
+
+        $root = f3()->get('ROOT') . f3()->get('BASE');
         $path = "/upload/doc/".date("Y/m")."/";
 
         $acceptable = (!empty($acceptable)) ? $acceptable : array(
             "application/pdf",
         );
 
-        if (($files['file']['size'] >= $f3->get('maxsize')) || ($files['file']['size'] == 0)) {
+        if (($files['file']['size'] >= f3()->get('maxsize')) || ($files['file']['size'] == 0)) {
             Reaction::_return("2002", "File too large. File must be less than 2 megabytes.");
         }
 
@@ -97,8 +97,8 @@ class Upload extends Helper
 
     static function takeScreenshot($uri)
     {
-        $f3 = f3();
-        $root = $f3->get('ROOT') . $f3->get('BASE');
+
+        $root = f3()->get('ROOT') . f3()->get('BASE');
         $path = "/upload/screenshot/".date("Y/m")."/";
 
         if (!file_exists($root . $path)) {
@@ -109,7 +109,7 @@ class Upload extends Helper
         $fp = fopen($root . $filename . ".png", 'w+b');
 
         $params = [
-            'key'     => $f3->get('screenshot_key'),
+            'key'     => f3()->get('screenshot_key'),
             'size'    => Screenshot::SIZE_F,
             'url'     => $uri,
             'format'  => Screenshot::PNG,
@@ -135,10 +135,10 @@ class Upload extends Helper
      */
     static function readExcel($filename, $startRow, $endRow, $columns)
     {
-        $f3 = f3();
-        $root = $f3->get('ROOT') . $f3->get('BASE');
 
-        // include_once $root . $f3->get('vendors') . 'PHPExcel/IOFactory.php';
+        $root = f3()->get('ROOT') . f3()->get('BASE');
+
+        // include_once $root . f3()->get('vendors') . 'PHPExcel/IOFactory.php';
 
         $inputFileName = $root .''. $filename;
 
@@ -169,8 +169,8 @@ class Upload extends Helper
      */
     static function scan($dir = '', $only_dir = 0, $target = 'all')
     {
-        $f3 = f3();
-        $root = $f3->get('ROOT') . $f3->get('BASE');
+
+        $root = f3()->get('ROOT') . f3()->get('BASE');
 
         $files = array();
 

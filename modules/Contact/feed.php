@@ -12,10 +12,9 @@ class fContact extends Feed
     static function getAll()
     {
 
-
-        $result = f3()->get('DB')->exec(
+        $result = db()->exec(
             "SELECT `id`, `status`, `name`, `phone`, `email`, `last_ts` FROM `".
-            f3()->get('tpf') . self::MTB ."` ORDER BY insert_ts DESC "
+            self::fmTbl() ."` ORDER BY insert_ts DESC "
         );
 
         return $result;
@@ -24,9 +23,8 @@ class fContact extends Feed
     static function insert($req)
     {
 
-
         $now = date('Y-m-d H:i:s');
-        $obj = new \DB\SQL\Mapper(f3()->get('DB'), f3()->get('tpf') . self::MTB);
+        $obj = self::map();
 
         $obj->name = $req['cname'];
         $obj->email = $req['cemail'];
@@ -34,5 +32,7 @@ class fContact extends Feed
         $obj->last_ts = $now;
         $obj->insert_ts = $now;
         $obj->save();
+
+        return $obj->id;
     }
 }

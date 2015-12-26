@@ -3,11 +3,6 @@ namespace F3CMS;
 
 class Outfit extends Module
 {
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
     /**
      * set excel header
      * @param string $filename - file name to user
@@ -32,9 +27,8 @@ class Outfit extends Module
      */
     static function thumbnail($path, $type)
     {
-        $f3 = f3();
 
-        list($w, $h) = $f3->get($type . '_thn');
+        list($w, $h) = f3()->get($type . '_thn');
 
         $tmp = explode('.', $path);
 
@@ -58,13 +52,13 @@ class Outfit extends Module
     {
         $ary = array();
         if (!empty($tags)) {
-            $f3 = f3();
+
             $items = json_decode($tags);
             foreach ($items as $item) {
                 $ary[] = $item->title;
             }
-            $f3->set('rel_tag', $ary);
-            $f3->set('pageKeyword', implode(',', $ary));
+            f3()->set('rel_tag', $ary);
+            f3()->set('pageKeyword', implode(',', $ary));
         }
         return $ary;
     }
@@ -110,12 +104,12 @@ class Outfit extends Module
 
     static function wrapper ($html, $title = "", $slug = "")
     {
-        $f3 = f3();
-        $f3->set('canonical', $slug);
-        $f3->set('pageTitle', $title);
 
-        if (empty($f3->get('topTitle'))) {
-            $f3->set('topTitle', $title);
+        f3()->set('canonical', $slug);
+        f3()->set('pageTitle', $title);
+
+        if (empty(f3()->get('topTitle'))) {
+            f3()->set('topTitle', $title);
         }
 
         $tp = \Template::instance();

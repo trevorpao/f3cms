@@ -13,7 +13,7 @@ class rMedia extends Reaction
      */
     function do_editor_upload($f3, $args)
     {
-        rUser::_chkLogin();
+        rStaff::_chkLogin();
 
         list($filename, $width, $height, $title) = Upload::savePhoto(
             f3()->get('FILES'), array(f3()->get('all_thn'))

@@ -6,19 +6,24 @@ class rExcel extends Reaction
 
     function do_upload_file($f3, $args)
     {
-
-        if (!User::_isLogin()) {
+        if (!rStaff::_isLogin()) {
             return parent::_return(8001);
         }
 
-        $filename = Upload::saveFile(f3()->get('FILES') , ["application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "application/octet-stream", "application/vnd.ms-excel"]);
+        $filename = Upload::saveFile(
+            f3()->get('FILES'),
+            [
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                "application/octet-stream",
+                "application/vnd.ms-excel"
+            ]
+        );
 
         return $this->load_xls($filename);
     }
 
     function load_xls($filename)
     {
-
 
         $sheetData = Upload::readExcel($filename, 2, 2000, ['B', 'D', 'E', 'F', 'G']);
 
@@ -81,7 +86,7 @@ class rExcel extends Reaction
     {
         $allData = json_decode(f3()->get('SESSION.uploadPrograms') , true);
 
-        f3()->get('DB')->begin();
+        db()->begin();
 
         foreach ($allData['schedules'] as $prog) {
             $program = Program::get_program_by_codename($prog['c']);
@@ -91,10 +96,10 @@ class rExcel extends Reaction
                 $program['id'] = 0;
             }
 
-            f3()->get('DB')->exec("INSERT INTO `" . f3()->get('tpf') . "schedules`(`title`, `uri`, `program_id`, `start_date`, `end_date`, `status`, `last_ts`, " . "`last_user`, `insert_user`, `insert_ts`) VALUES ('" . $program['title'] . "', '" . $program['uri'] . "', '" . $program['id'] . "', '" . $prog['d'] . " " . $prog['s'] . ":00', '" . $prog['d'] . " " . $prog['e'] . ":00', 'Yes', '" . date('Y-m-d H:i:s') . "', '" . User::_CUser('id') . "', '" . User::_CUser('id') . "', '" . date('Y-m-d H:i:s') . "')");
+            db()->exec("INSERT INTO `" . tpf() . "schedules`(`title`, `uri`, `program_id`, `start_date`, `end_date`, `status`, `last_ts`, " . "`last_user`, `insert_user`, `insert_ts`) VALUES ('" . $program['title'] . "', '" . $program['uri'] . "', '" . $program['id'] . "', '" . $prog['d'] . " " . $prog['s'] . ":00', '" . $prog['d'] . " " . $prog['e'] . ":00', 'Yes', '" . date('Y-m-d H:i:s') . "', '" . User::_CUser('id') . "', '" . User::_CUser('id') . "', '" . date('Y-m-d H:i:s') . "')");
         }
 
-        f3()->get('DB')->commit();
+        db()->commit();
 
         return parent::_return(1, $allData['schedules']);
     }

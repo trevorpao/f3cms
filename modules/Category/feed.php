@@ -1,36 +1,29 @@
 <?php
-
 namespace F3CMS;
-
 /**
  * data feed
  */
 class fCategory extends Feed
 {
-    const MTB           = "category";
+    const MTB = "category";
 
-    const ST_NEW        = "New";
-    const ST_PAID       = "Paid";
-    const ST_DONE       = "Done";
-    const ST_INVALID    = "Invalid";
+    const ST_NEW = "New";
+    const ST_PAID = "Paid";
+    const ST_DONE = "Done";
+    const ST_INVALID = "Invalid";
 
     static function getAll()
     {
 
+        $result = db()->exec("SELECT id, parent_id, title, slug, last_ts FROM `" . self::fmTbl() . "` ");
 
-        $result = f3()->get('DB')->exec(
-            "SELECT id, parent_id, title, slug, last_ts FROM `". f3()->get('tpf') .
-            self::MTB ."` "
-        );
-
-        foreach ($result as &$row) {
-            $row['category'] = rCategory::breadcrumb(rCategory::breadcrumb_categories($row['parent_id']), false);
-            $row['category'] .= (($row['category'] != ' / ')?' / ':'') . $row['title'];
+        foreach ($result as & $row) {
+            $row['category'] = rCategory::breadcrumb(rCategory::breadcrumb_categories($row['parent_id']) , false);
+            $row['category'].= (($row['category'] != ' / ') ? ' / ' : '') . $row['title'];
         }
 
         return $result;
     }
-
     /**
      * get a category by slug
      *
@@ -41,10 +34,7 @@ class fCategory extends Feed
     static function get_category_by_slug($slug)
     {
 
-
-        $rows = f3()->get('DB')->exec(
-            "SELECT c.*, p.title AS parent FROM `". f3()->get('tpf') . self::MTB ."` c LEFT JOIN `". f3()->get('tpf') . self::MTB ."` p ON p.id=c.parent_id WHERE c.`slug`=? LIMIT 1 ", '/'.$slug
-        );
+        $rows = db()->exec("SELECT c.*, p.title AS parent FROM `" . self::fmTbl() . "` c LEFT JOIN `" . self::fmTbl() . "` p ON p.id=c.parent_id WHERE c.`slug`=? LIMIT 1 ", '/' . $slug);
 
         if (count($rows) != 1) {
             return null;
@@ -55,7 +45,6 @@ class fCategory extends Feed
             return $cu;
         }
     }
-
     /**
      * get a category by category id
      *
@@ -66,10 +55,7 @@ class fCategory extends Feed
     static function get_category($cid)
     {
 
-
-        $rows = f3()->get('DB')->exec(
-            "SELECT * FROM `". f3()->get('tpf') . self::MTB ."` WHERE `id`=? LIMIT 1 ", $cid
-        );
+        $rows = db()->exec("SELECT * FROM `" . self::fmTbl() . "` WHERE `id`=? LIMIT 1 ", $cid);
 
         if (count($rows) != 1) {
             return null;
@@ -80,7 +66,6 @@ class fCategory extends Feed
             return $cu;
         }
     }
-
     /**
      * get categories by parent id
      *
@@ -88,18 +73,16 @@ class fCategory extends Feed
      *
      * @return array
      */
-    static function get_categories($parent_id = -1)
+    static function get_categories($parent_id = - 1)
     {
 
         $condition = "";
 
-        if ($parent_id!=-1) {
-            $condition = " where c.parent_id='". $parent_id ."' ";
+        if ($parent_id != - 1) {
+            $condition = " where c.parent_id='" . $parent_id . "' ";
         }
 
-        $rows = f3()->get('DB')->exec("SELECT c.id, c.title, c.slug, c.parent_id, p.title AS parent FROM `".
-            f3()->get('tpf') . self::MTB ."` c LEFT JOIN `". f3()->get('tpf') . self::MTB .
-            "` p ON p.id=c.parent_id ". $condition ." ORDER BY c.id ");
+        $rows = db()->exec("SELECT c.id, c.title, c.slug, c.parent_id, p.title AS parent FROM `" . self::fmTbl() . "` c LEFT JOIN `" . self::fmTbl() . "` p ON p.id=c.parent_id " . $condition . " ORDER BY c.id ");
 
         return $rows;
     }

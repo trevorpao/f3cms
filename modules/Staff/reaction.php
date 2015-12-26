@@ -1,5 +1,4 @@
 <?php
-
 namespace F3CMS;
 
 class rStaff extends Reaction
@@ -15,7 +14,9 @@ class rStaff extends Reaction
         }
 
         if ($req['pid'] == 0) {
-            return parent::_return(1, array('id'=>0));
+            return parent::_return(1, array(
+                'id' => 0
+            ));
         }
 
         $cu = fStaff::get_row($req['pid']);
@@ -56,9 +57,15 @@ class rStaff extends Reaction
             return parent::_return(8105);
         }
 
-        f3()->set('SESSION.cs', array('name'=>$cu['account'], "id"=>$cu['id'], 'has_login' => 1));
+        f3()->set('SESSION.cs', array(
+            'name' => $cu['account'],
+            "id" => $cu['id'],
+            'has_login' => 1
+        ));
 
-        return parent::_return(self::_isLogin(), array('name'=>self::_CStaff('name')));
+        return parent::_return(self::_isLogin() , array(
+            'name' => self::_CStaff('name')
+        ));
     }
 
     function do_logout($f3, $args)
@@ -67,7 +74,7 @@ class rStaff extends Reaction
             f3()->clear('SESSION.cs');
         }
 
-        return parent::_return(!self::_isLogin(), array());
+        return parent::_return(!self::_isLogin() , array());
     }
 
     function do_chk_login($f3, $args)

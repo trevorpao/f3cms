@@ -26,8 +26,8 @@ class Allpay extends Helper
     public function __construct()
     {
         parent::__construct();
-        $f3       = f3();
     }
+
     public function check($rtn_data)
     {
         $chkCode1 = $rtn_data['CheckMacValue'];

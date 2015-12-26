@@ -36,12 +36,12 @@ class rContact extends Reaction
     }
 
     function do_dl_csv($f3, $args) {
-        if (!User::_isLogin()) {
+        if (!rStaff::_isLogin()) {
             return parent::_return(8001);
         }
 
         $rows = $this->_db->exec(
-            "SELECT * FROM `". f3()->get('tpf') . self::MTB ."` ORDER BY insert_ts DESC "
+            "SELECT * FROM `". self::fmTbl() ."` ORDER BY insert_ts DESC "
         );
 
         if (!$rows) {

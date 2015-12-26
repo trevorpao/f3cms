@@ -4,21 +4,12 @@ namespace F3CMS;
 class Feed extends Module
 {
 
-    protected $_db;
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->_db = f3()->get('DB');
-    }
-
     /**
      * save whole form for backend
      * @param  array  $req
      */
     static function save($req)
     {
-        $f3 = f3();
         $that = get_called_class();
         $obj = $that::map();
 
@@ -62,7 +53,6 @@ class Feed extends Module
 
     static function save_meta($pid, $k, $v, $replace = false)
     {
-        $f3 = f3();
         $obj = $that::map('meta');
 
         if ($replace == false) {
@@ -84,7 +74,6 @@ class Feed extends Module
 
     static function change_status($pid, $status)
     {
-        $f3 = f3();
         $obj = $that::map();
 
         $obj->load(array('id=?', $pid));
@@ -94,16 +83,15 @@ class Feed extends Module
 
         $obj->save();
 
-        return 1;
+        return $obj->id;
     }
 
     static function get_opts($query)
     {
-        $f3 = f3();
 
         $condition = " WHERE `title` like ? ";
 
-        return $f3->get('DB')->exec("SELECT id, title FROM `". $f3->get('tpf') . self::_getMainTbl() ."` " . $condition . " LIMIT 30 ", '%'. $query .'%');
+        return db()->exec("SELECT id, title FROM `". self::fmTbl() ."` " . $condition . " LIMIT 30 ", '%'. $query .'%');
     }
 
     /**
@@ -112,7 +100,6 @@ class Feed extends Module
      */
     static function save_col($req)
     {
-        $f3 = f3();
         $that = get_called_class();
         $obj = $that::map();
 
@@ -146,10 +133,9 @@ class Feed extends Module
      */
     static function del_row($pid)
     {
-        $f3 = f3();
 
-        $f3->get('DB')->exec(
-            "DELETE FROM `". $f3->get('tpf') . self::_getMainTbl() ."` WHERE `id`=? LIMIT 1 ", $pid
+        db()->exec(
+            "DELETE FROM `". self::fmTbl() ."` WHERE `id`=? LIMIT 1 ", $pid
         );
 
         return 1;
@@ -164,7 +150,6 @@ class Feed extends Module
      */
     static function get_row($string, $type='id', $condition='')
     {
-        $f3 = f3();
 
         switch ($type) {
             case 'account':
@@ -178,9 +163,8 @@ class Feed extends Module
                 break;
         }
 
-        $rows = $f3->get('DB')->exec(
-            "SELECT * FROM `". $f3->get('tpf') .
-            self::_getMainTbl() ."` ". $condition ." LIMIT 1 ", $string
+        $rows = db()->exec(
+            "SELECT * FROM `". self::fmTbl() ."` ". $condition ." LIMIT 1 ", $string
         );
 
         if (count($rows) != 1) {
@@ -213,10 +197,10 @@ class Feed extends Module
     }
 
     /** get class const */
-    static function _getMainTbl()
+    static function fmTbl($sub_table = '')
     {
         $that = get_called_class();
-        return $that::MTB;
+        return tpf() . $that::MTB . (($sub_table != '') ? '_'.$sub_table : '');
     }
 
     /**
@@ -247,11 +231,10 @@ class Feed extends Module
     }
 
     static function map($sub_table = '') {
-        $f3 = f3();
-
+        $that = get_called_class();
         $row = new \DB\SQL\Mapper(
-            $f3->get('DB'),
-            $f3->get('tpf') . self::_getMainTbl() . (($sub_table != '') ? '_'.$sub_table : '')
+            db(),
+            $that::fmTbl()
         );
 
         return $row;

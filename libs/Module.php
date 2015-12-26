@@ -3,11 +3,6 @@ namespace F3CMS;
 
 class Module
 {
-
-    //! Instantiate class
-    function __construct() {
-    }
-
     /**
      * _escape
      * @param mixed $array - obj need to escape
@@ -15,12 +10,11 @@ class Module
      */
     static protected function _escape($array, $quote = true)
     {
-        $f3 = f3();
         if (is_array($array)) {
             while (list($k,$v) = each($array)) {
                 if (is_string($v)) {
                     if ($quote) {
-                        $array[$k] =  $f3->get('DB')->quote(htmlspecialchars(trim($v)));
+                        $array[$k] =  f3()->get('DB')->quote(htmlspecialchars(trim($v)));
                     }
                     else {
                         $array[$k] =  htmlspecialchars(trim($v));
@@ -33,7 +27,7 @@ class Module
         }
         else {
             if ($quote) {
-                $array = $f3->get('DB')->quote(htmlspecialchars(trim($array)));
+                $array = f3()->get('DB')->quote(htmlspecialchars(trim($array)));
             }
             else {
                 $array = htmlspecialchars(trim($array));
@@ -58,8 +52,7 @@ class Module
      */
     static function _getReq()
     {
-        $f3 = f3();
-        return json_decode($f3->get('BODY'), true);
+        return json_decode(f3()->get('BODY'), true);
     }
 
     static public function _slugify($text)

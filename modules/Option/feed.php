@@ -1,26 +1,21 @@
 <?php
-
 namespace F3CMS;
-
 /**
  * data feed
  */
 class fOption extends Feed
 {
-    const MTB       = "option";
-    const COUNTYTB  = "county";
+    const MTB = "option";
+    const COUNTYTB = "county";
     const ZIPCODETB = "zipcode";
 
-    const ST_ON     = "Enabled";
-    const ST_OFF    = "Disabled";
+    const ST_ON = "Enabled";
+    const ST_OFF = "Disabled";
 
-    static function get_options ()
+    static function get_options()
     {
 
-
-        $rows = f3()->get('DB')->exec(
-            "SELECT name, content FROM `". f3()->get('tpf') . self::MTB ."` WHERE `status`='". self::ST_ON ."'"
-        );
+        $rows = db()->exec("SELECT name, content FROM `" . self::fmTbl() . "` WHERE `status`='" . self::ST_ON . "'");
 
         $options = array();
 
@@ -30,7 +25,6 @@ class fOption extends Feed
 
         return $options;
     }
-
     /**
      * get one row by name
      *
@@ -41,10 +35,7 @@ class fOption extends Feed
     static function get_option($name)
     {
 
-
-        $rows = f3()->get('DB')->exec(
-            "SELECT * FROM `". f3()->get('tpf') . self::MTB ."` WHERE `name`=? AND `status`='". self::ST_ON ."' LIMIT 1 ", $name
-        );
+        $rows = db()->exec("SELECT * FROM `" . self::fmTbl() . "` WHERE `name`=? AND `status`='" . self::ST_ON . "' LIMIT 1 ", $name);
 
         if (count($rows) != 1) {
             return null;
@@ -57,10 +48,7 @@ class fOption extends Feed
     static function get_counties()
     {
 
-
-        $rows = f3()->get('DB')->exec(
-            "SELECT * FROM `". f3()->get('tpf') . self::COUNTYTB ."` ORDER BY `id`"
-        );
+        $rows = db()->exec("SELECT * FROM `" . tpf() . self::COUNTYTB . "` ORDER BY `id`");
 
         return $rows;
     }
@@ -68,11 +56,7 @@ class fOption extends Feed
     static function get_zipcodes($county)
     {
 
-
-        $rows = f3()->get('DB')->exec(
-            "SELECT `zipcode`, `town`, CONCAT(`county`, `town`) AS `full_name` FROM `". f3()->get('tpf') . self::ZIPCODETB .
-            "` WHERE `county`= ? ORDER BY `zipcode`", $county
-        );
+        $rows = db()->exec("SELECT `zipcode`, `town`, CONCAT(`county`, `town`) AS `full_name` FROM `" . tpf() . self::ZIPCODETB . "` WHERE `county`= ? ORDER BY `zipcode`", $county);
 
         return $rows;
     }
@@ -80,10 +64,7 @@ class fOption extends Feed
     static function getAll()
     {
 
-
-        $result = f3()->get('DB')->exec(
-            "SELECT id, name, content FROM `". f3()->get('tpf') . self::MTB ."` "
-        );
+        $result = db()->exec("SELECT id, name, content FROM `" . self::fmTbl() . "` ");
 
         return $result;
     }
@@ -93,7 +74,7 @@ class fOption extends Feed
         $rtn = array();
         if (!empty($str)) {
             $ary = explode("\n", $str);
-            foreach ($ary as $idx=>$value) {
+            foreach ($ary as $idx => $value) {
                 $tmp = explode(":", $value);
                 foreach ($tmp as $k => $v) {
                     if (isset($cols[$k])) {

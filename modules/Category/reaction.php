@@ -11,7 +11,6 @@ class rCategory extends Reaction
     static public function breadcrumb($ary, $li = true)
     {
 
-
         $no_show_ary = array();
 
         if (empty($ary['parentCate'])) {
@@ -58,7 +57,6 @@ class rCategory extends Reaction
     static function sort_categories($parent_id = 0, $level = 0, $level_mod = 'num')
     {
 
-
         $categories = f3()->get('categories');
 
         if (empty($categories)) {
@@ -99,7 +97,6 @@ class rCategory extends Reaction
      */
     static function breadcrumb_categories($parent_id = 0, $level = 0)
     {
-
 
         $categories = f3()->get('categories');
 

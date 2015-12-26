@@ -25,7 +25,6 @@ class Pagination {
     private $routeKey;
     private $routeKeyPrefix;
     private $linkPath;
-	private $fw;
 
     const
         TEXT_MissingItemsAttr='You need to specify items attribute for a pagination.';
@@ -36,7 +35,6 @@ class Pagination {
      * @param $routeKey string the key for pagination in your routing
      */
     public function __construct( $items, $limit = 10, $routeKey = 'page' ) {
-        $this->fw = f3();
         $this->items_count = is_array($items)?count($items):$items;
         $this->routeKey = $routeKey;
         $this->setLimit($limit);
@@ -47,8 +45,9 @@ class Pagination {
      * @param $limit int
      */
     public function setLimit($limit) {
-        if(is_numeric($limit))
+        if(is_numeric($limit)) {
             $this->items_per_page = $limit;
+        }
         $this->setCurrent( self::findCurrentPage($this->routeKey));
     }
 
@@ -89,8 +88,9 @@ class Pagination {
      * @param $current int
      */
     public function setCurrent($current) {
-        if(!$this->routeKeyPrefix)
+        if(!$this->routeKeyPrefix) {
             $current = str_replace($this->routeKeyPrefix,'',$current);
+        }
         if(!is_numeric($current)) return;
         if($current <= $this->getMax()) $this->current_page = $current;
         else $this->current_page = $this->getMax();
@@ -111,9 +111,9 @@ class Pagination {
      * @return int|mixed
      */
     static public function findCurrentPage($key='page',$type='GET') {
-        $f3 = f3();
-        return $f3->exists($type.'.'.$key) ?
-            preg_replace("/[^0-9]/", "", $f3->get($type.'.'.$key)) : 1;
+
+        return f3()->exists($type.'.'.$key) ?
+            preg_replace("/[^0-9]/", "", f3()->get($type.'.'.$key)) : 1;
     }
 
     /**
@@ -208,23 +208,23 @@ class Pagination {
      */
     public function serve() {
         if(is_null($this->linkPath)) {
-            $route = $this->fw->get('PARAMS.0');
-            if($this->fw->exists('PARAMS.'.$this->routeKey))
-                $route = preg_replace("/".$this->fw->get('PARAMS.'.$this->routeKey)."$/",'',$route);
+            $route = f3()->get('PARAMS.0');
+            if(f3()->exists('PARAMS.'.$this->routeKey))
+                $route = preg_replace("/".f3()->get('PARAMS.'.$this->routeKey)."$/",'',$route);
             elseif(substr($route,-1) != '/')
                 $route.= '/';
         } else
             $route = $this->linkPath;
-        $this->fw->set('pg.route',$route);
-        $this->fw->set('pg.prefix',$this->routeKeyPrefix);
-        $this->fw->set('pg.currentPage',$this->current_page);
-        $this->fw->set('pg.nextPage',$this->getNext());
-        $this->fw->set('pg.prevPage',$this->getPrev());
-        $this->fw->set('pg.firstPage',$this->getFirst());
-        $this->fw->set('pg.lastPage',$this->getLast());
-        $this->fw->set('pg.rangePages',$this->getInRange());
+        f3()->set('pg.route',$route);
+        f3()->set('pg.prefix',$this->routeKeyPrefix);
+        f3()->set('pg.currentPage',$this->current_page);
+        f3()->set('pg.nextPage',$this->getNext());
+        f3()->set('pg.prevPage',$this->getPrev());
+        f3()->set('pg.firstPage',$this->getFirst());
+        f3()->set('pg.lastPage',$this->getLast());
+        f3()->set('pg.rangePages',$this->getInRange());
         $output = \Template::instance()->render($this->template);
-        $this->fw->clear('pg');
+        f3()->clear('pg');
         return $output;
     }
 

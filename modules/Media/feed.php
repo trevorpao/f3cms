@@ -1,13 +1,11 @@
 <?php
-
 namespace F3CMS;
-
 /**
  * data feed
  */
 class fMedia extends Feed
 {
-    const MTB           = "media";
+    const MTB = "media";
 
     const ST_ON = "Enabled";
     const ST_OFF = "Disabled";
@@ -15,10 +13,7 @@ class fMedia extends Feed
     static function getAll()
     {
 
-
-        $result = f3()->get('DB')->exec(
-            "SELECT a.id, a.title, a.pic, a.last_ts FROM `". f3()->get('tpf') . self::MTB ."` a "
-        );
+        $result = db()->exec("SELECT a.id, a.title, a.pic, a.last_ts FROM `" . self::fmTbl() . "` a ");
 
         return $result;
     }
@@ -28,7 +23,7 @@ class fMedia extends Feed
 
         $now = date('Y-m-d H:i:s');
 
-        $obj = new \DB\SQL\Mapper(f3()->get('DB'), f3()->get('tpf') . self::MTB);
+        $obj = self::map();
         $obj->insert_ts = $now;
         $obj->insert_user = rUser::_CUser('id');
         $obj->last_ts = $now;
@@ -37,11 +32,12 @@ class fMedia extends Feed
         $obj->status = self::ST_ON;
         $obj->title = $title;
         $obj->pic = $filename;
-        $obj->slug = '/'. parent::_slugify($title);
+        $obj->slug = '/' . parent::_slugify($title);
 
         $obj->save();
-    }
 
+        return $obj->id;
+    }
     /**
      * get a row by slug
      *
@@ -52,10 +48,7 @@ class fMedia extends Feed
     static function get_row_by_slug($slug)
     {
 
-
-        $rows = f3()->get('DB')->exec(
-            "SELECT id, title, content, pic, last_ts, slug FROM `". f3()->get('tpf') . self::MTB ."` WHERE `slug`=? LIMIT 1 ", '/' . $slug
-        );
+        $rows = db()->exec("SELECT id, title, content, pic, last_ts, slug FROM `" . self::fmTbl() . "` WHERE `slug`=? LIMIT 1 ", '/' . $slug);
 
         if (count($rows) != 1) {
             return null;

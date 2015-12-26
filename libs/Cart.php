@@ -23,14 +23,14 @@ class Cart extends Helper
     {
         // need check depot
         $state = "";
-        $pid = intval($f3->get('POST.item_id'));
+        $pid = intval(f3()->get('POST.item_id'));
 
         if (array_key_exists($pid, $_SESSION['cart'])) {
-            if ($f3->get('POST.type') == 'force') {
-                $_SESSION['cart'][$pid]['qty'] = $f3->get('POST.qty');
+            if (f3()->get('POST.type') == 'force') {
+                $_SESSION['cart'][$pid]['qty'] = f3()->get('POST.qty');
             }
             else {
-                $_SESSION['cart'][$pid]['qty'] += $f3->get('POST.qty');
+                $_SESSION['cart'][$pid]['qty'] += f3()->get('POST.qty');
             }
             $state = self::ST_ADDED;
         }
@@ -63,7 +63,7 @@ class Cart extends Helper
     function do_remove_item($f3, $args)
     {
         $state = self::ST_REMOVED;
-        $pid = intval($f3->get('POST.item_id'));
+        $pid = intval(f3()->get('POST.item_id'));
 
         if (array_key_exists($pid, $_SESSION['cart'])) {
             unset($_SESSION['cart'][$pid]);

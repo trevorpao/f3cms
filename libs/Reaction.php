@@ -4,11 +4,6 @@ namespace F3CMS;
 class Reaction extends Module
 {
 
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
     /**
      * save whole form for backend
      * @param  object $f3   - $f3
@@ -23,7 +18,7 @@ class Reaction extends Module
             // Check if the action has a corresponding method.
             $method = sprintf('do_%s', $args['method']);
             if (!method_exists($class, $method)) {
-                return parent::_return(1004, array('class'=>$class, 'method'=>$method));
+                return self::_return(1004, array('class'=>$class, 'method'=>$method));
             }
 
             // Create a reflection instance of the module, and obtaining the action method.
@@ -39,19 +34,19 @@ class Reaction extends Module
             );
         }
         catch (Exception $e) {
-            return parent::_return($e->getCode());
+            return self::_return($e->getCode());
         }
     }
 
     function do_list_all($f3, $args)
     {
-        rUser::_chkLogin();
+        rStaff::_chkLogin();
 
         $feed = parent::_shift(get_called_class(), 'feed');
 
         $result = $feed::getAll();
 
-        return parent::_return(1, $result);
+        return self::_return(1, $result);
     }
 
     /**
@@ -61,18 +56,18 @@ class Reaction extends Module
      */
     function do_save($f3, $args)
     {
-        rUser::_chkLogin();
+        rStaff::_chkLogin();
 
         $req = parent::_getReq();
         $feed = parent::_shift(get_called_class(), 'feed');
 
         if (!isset($req['pid'])) {
-            return parent::_return(8004);
+            return self::_return(8004);
         }
 
         $pid = $feed::save($req);
 
-        return parent::_return(1, array('pid' => $pid));
+        return self::_return(1, array('pid' => $pid));
     }
 
     /**
@@ -82,7 +77,7 @@ class Reaction extends Module
      */
     function do_upload($f3, $args)
     {
-        rUser::_chkLogin();
+        rStaff::_chkLogin();
 
         $name = str_replace(array('F3CMS\\', '\\'), array('', ''), get_called_class());
 
@@ -91,10 +86,10 @@ class Reaction extends Module
         $thumb_str = strtolower($className) . '_thn';
 
         list($filename, $width, $height) = Upload::savePhoto(
-            $f3->get('FILES'), array($f3->get($thumb_str), $f3->get('all_thn'))
+            f3()->get('FILES'), array(f3()->get($thumb_str), f3()->get('all_thn'))
         );
 
-        return parent::_return(1, array('filename' => $filename));
+        return self::_return(1, array('filename' => $filename));
     }
 
     /**
@@ -105,18 +100,18 @@ class Reaction extends Module
     function do_save_col($f3, $args)
     {
 
-        rUser::_chkLogin();
+        rStaff::_chkLogin();
 
         $req = parent::_getReq();
         $feed = parent::_shift(get_called_class(), 'feed');
 
         if (!isset($req['pid'])) {
-            return parent::_return(8004);
+            return self::_return(8004);
         }
 
         $pid = $feed::save_col($req);
 
-        return parent::_return(1, array('pid' => $pid));
+        return self::_return(1, array('pid' => $pid));
     }
 
     /**
@@ -129,17 +124,17 @@ class Reaction extends Module
         $that = get_called_class();
         $feed = parent::_shift($that, 'feed');
 
-        rUser::_chkLogin();
+        rStaff::_chkLogin();
 
         $req = parent::_getReq();
 
         if (!isset($req['pid'])) {
-            return parent::_return(8004);
+            return self::_return(8004);
         }
 
         $feed::del_row($req['pid']);
 
-        return parent::_return(1);
+        return self::_return(1);
     }
 
     /**
@@ -152,12 +147,12 @@ class Reaction extends Module
         $that = get_called_class();
         $feed = parent::_shift($that, 'feed');
 
-        rUser::_chkLogin();
+        rStaff::_chkLogin();
 
         $req = parent::_getReq();
 
         if (!isset($req['pid'])) {
-            return parent::_return(8004);
+            return self::_return(8004);
         }
 
         if ($req['pid'] == 0) {
@@ -169,12 +164,12 @@ class Reaction extends Module
         }
 
         if (empty($cu)) {
-            return parent::_return(8106);
+            return self::_return(8106);
         }
         else {
             // handleCurrentRow
             $cu = $that::handleRow($cu);
-            return parent::_return(1, $cu);
+            return self::_return(1, $cu);
         }
     }
 
@@ -183,7 +178,7 @@ class Reaction extends Module
         $that = get_called_class();
         $feed = parent::_shift($that, 'feed');
 
-        rUser::_chkLogin();
+        rStaff::_chkLogin();
 
         $req = self::_getReq();
 
@@ -193,7 +188,7 @@ class Reaction extends Module
 
         $rows = $feed::get_opts($req['query']);
 
-        return parent::_return(1, $rows);
+        return self::_return(1, $rows);
     }
 
     static function beforeSave($params = array()){
