@@ -38,23 +38,4 @@ class fMedia extends Feed
 
         return $obj->id;
     }
-    /**
-     * get a row by slug
-     *
-     * @param string $slug - slug
-     *
-     * @return array
-     */
-    static function get_row_by_slug($slug)
-    {
-
-        $rows = db()->exec("SELECT id, title, content, pic, last_ts, slug FROM `" . self::fmTbl() . "` WHERE `slug`=? LIMIT 1 ", '/' . $slug);
-
-        if (count($rows) != 1) {
-            return null;
-        }
-        else {
-            return $rows[0];
-        }
-    }
 }
