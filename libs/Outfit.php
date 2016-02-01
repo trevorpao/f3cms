@@ -37,12 +37,15 @@ class Outfit extends Module
         return $newpath;
     }
 
-    static function paginate ($total, $limit = 10, $link = "", $range = 5)
+    static function paginate ($total, $limit = 10, $link = "", $current = -1, $range = 5)
     {
         $pages = new Pagination($total, $limit);
         $pages->setTemplate('parter/pagination.html');
         if (!empty($link)) {
             $pages->setLinkPath($link);
+        }
+        if ($current!=-1) {
+            $pages->setCurrent($current);
         }
         $pages->setRange($range);
         return $pages->serve();
@@ -71,6 +74,18 @@ class Outfit extends Module
     static function nl2br ($val)
     {
         return nl2br($val);
+    }
+
+    static function str2tbl($val)
+    {
+        $ary = explode("\n", $val);
+        $str = '';
+        foreach ($ary as $row) {
+            $row = explode('：', $row);
+            $str .= '<tr><td class="title">'. $row[0] .'：</td><td>'. $row[1] .'</td></tr>';
+        }
+
+        return '<table class="normal-tbl">'. $str .'</table>';
     }
 
     static function crop($val,$len)
@@ -106,16 +121,26 @@ class Outfit extends Module
     {
 
         f3()->set('canonical', $slug);
-        f3()->set('pageTitle', $title);
 
-        if (empty(f3()->get('topTitle'))) {
-            f3()->set('topTitle', $title);
+        $page = fOption::load('page');
+
+        if (!f3()->exists('page')) {
+            f3()->set('page', $page);
         }
+
+        f3()->set('prods', fProduct::get_all_as_menu());
+
+        f3()->set('branchs', fBranch::load_all());
+
+        f3()->set('page.title', $title .(($title!='') ? ' | ' : ''). $page['title']);
+
+        f3()->set('social', fOption::load('social'));
 
         $tp = \Template::instance();
         $tp->filter('nl2br','\F3CMS\Outfit::nl2br');
         $tp->filter('crop','\F3CMS\Outfit::crop');
         $tp->filter('date','\F3CMS\Outfit::date');
+        $tp->filter('str2tbl','\F3CMS\Outfit::str2tbl');
 
         echo self::minify($tp->render($html));
     }

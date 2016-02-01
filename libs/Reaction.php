@@ -56,6 +56,9 @@ class Reaction extends Module
      */
     function do_save($f3, $args)
     {
+        $that = get_called_class();
+        $feed = parent::_shift($that, 'feed');
+
         rStaff::_chkLogin();
 
         $req = parent::_getReq();
@@ -67,7 +70,26 @@ class Reaction extends Module
 
         $pid = $feed::save($req);
 
+        $feed::handleSave($req);
+
         return self::_return(1, array('pid' => $pid));
+    }
+
+    /**
+     * draft whole form for backend
+     * @param  object $f3   - $f3
+     * @param  array  $args - uri params
+     */
+    function do_draft($f3, $args)
+    {
+        rStaff::_chkLogin();
+
+        $req = parent::_getReq();
+        $feed = parent::_shift(get_called_class(), 'feed');
+
+        $feed::draft($req);
+
+        return self::_return(1, array('pid' => $req['pid']));
     }
 
     /**
@@ -88,6 +110,20 @@ class Reaction extends Module
         list($filename, $width, $height) = Upload::savePhoto(
             f3()->get('FILES'), array(f3()->get($thumb_str), f3()->get('all_thn'))
         );
+
+        return self::_return(1, array('filename' => $filename));
+    }
+
+    /**
+     * save photo
+     * @param  object $f3   - $f3
+     * @param  array  $args - uri params
+     */
+    function do_upload_file($f3, $args)
+    {
+        rStaff::_chkLogin();
+
+         $filename = Upload::saveFile(f3()->get('FILES'));
 
         return self::_return(1, array('filename' => $filename));
     }

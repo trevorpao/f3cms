@@ -15,7 +15,7 @@ class Feed extends Module
 
         if ($req['pid'] == 0) {
             $obj->insert_ts = date('Y-m-d H:i:s');
-            $obj->insert_user = rUser::_CUser('id');
+            $obj->insert_user = rStaff::_CStaff('id');
             $obj->save();
         }
         else {
@@ -44,11 +44,90 @@ class Feed extends Module
 
         $obj->last_ts = date('Y-m-d H:i:s');
 
-        $obj->last_user = rUser::_CUser('id');
+        $obj->last_user = rStaff::_CStaff('id');
 
         $obj->save();
 
         return $obj->id;
+    }
+
+    /**
+     * draft whole form for backend
+     * @param  array  $req
+     */
+    static function draft($req)
+    {
+        $that = get_called_class();
+        $obj = $that::map('draft');
+
+        $obj->insert_ts = date('Y-m-d H:i:s');
+        $obj->insert_user = rStaff::_CStaff('id');
+
+        foreach ($req['data'] as $key => $value) {
+            if ($that::filterColumn($key)) {
+                switch ($key) {
+                    case 'slug':
+                        $value = '/'. parent::_slugify($value);
+                        $obj->{$key} = $value;
+                        break;
+                    default:
+                        $obj->{$key} = (is_array($value)) ? json_encode($value) : $value;
+                        break;
+                }
+            }
+        }
+
+        $obj->save();
+    }
+
+    static function load_many($ta_tbl, $pid, $reverse = false)
+    {
+        $that = get_called_class();
+        $main_key = $that::MTB ."_id";
+        $sub_key = $ta_tbl ."_id";
+
+        if ($reverse) {
+            $sub_key = $main_key;
+            $main_key = $ta_tbl ."_id";
+        }
+
+        $condition = " WHERE `". $main_key ."` = '". $pid ."' ";
+        $rows = array();
+
+        $rows = db()->exec("SELECT GROUP_CONCAT(`". $sub_key ."`) AS `rels` FROM `". self::fmTbl($ta_tbl) ."` ". $condition ." ");
+
+        if (count($rows) != 1) {
+            return null;
+        }
+        else {
+            return explode(',', $rows[0]['rels']);
+        }
+    }
+
+    static function save_many($ta_tbl, $pid, $rels = array(), $reverse = false)
+    {
+        $that = get_called_class();
+        $main_key = $that::MTB ."_id";
+        $sub_key = $ta_tbl ."_id";
+
+        if ($reverse) {
+            $sub_key = $main_key;
+            $main_key = $ta_tbl ."_id";
+        }
+
+        db()->exec(
+            "DELETE FROM `". self::fmTbl($ta_tbl) ."` WHERE `". $main_key ."` = ? ", $pid
+        );
+
+        foreach ($rels as $value) {
+            if (!empty($value)) {
+                db()->exec(
+                "INSERT INTO `". self::fmTbl($ta_tbl) ."` (`". $main_key ."`, `". $sub_key ."`) VALUES (?, ?)", self::_fixAry(array($pid, $value))
+                );
+            }
+        }
+
+        return 1;
     }
 
     static function save_meta($pid, $k, $v, $replace = false)
@@ -105,7 +184,7 @@ class Feed extends Module
 
         if ($req['pid'] == 0) {
             $obj->insert_ts = date('Y-m-d H:i:s');
-            $obj->insert_user = rUser::_CUser('id');
+            $obj->insert_user = rStaff::_CStaff('id');
             $obj->save();
         }
         else {
@@ -120,7 +199,7 @@ class Feed extends Module
 
         $obj->last_ts = date('Y-m-d H:i:s');
 
-        $obj->last_user = rUser::_CUser('id');
+        $obj->last_user = rStaff::_CStaff('id');
 
         $obj->save();
 
@@ -148,7 +227,7 @@ class Feed extends Module
      *
      * @return array
      */
-    static function get_row($string, $type='id', $condition='')
+    static function get_row($string, $type='id', $condition='', $draft = false)
     {
 
         switch ($type) {
@@ -164,7 +243,7 @@ class Feed extends Module
         }
 
         $rows = db()->exec(
-            "SELECT * FROM `". self::fmTbl() ."` ". $condition ." LIMIT 1 ", $string
+            "SELECT * FROM `". self::fmTbl() . (($draft)?'_draft':'') ."` ". $condition ." ORDER BY `id` DESC LIMIT 1 ", $string
         );
 
         if (count($rows) != 1) {
@@ -189,6 +268,10 @@ class Feed extends Module
     static function filtered_column()
     {
         return array();
+    }
+
+    static function handleSave($req){
+        return 1;
     }
 
     static function default_filtered_column()
@@ -234,7 +317,7 @@ class Feed extends Module
         $that = get_called_class();
         $row = new \DB\SQL\Mapper(
             db(),
-            $that::fmTbl()
+            $that::fmTbl($sub_table)
         );
 
         return $row;
