@@ -254,6 +254,39 @@ class Feed extends Module
         }
     }
 
+    static function paginate($sql, $filter, $page = 0, $limit = 10)
+    {
+        $stmt = db()->prepare($sql);
+
+        $stmt->execute($filter);
+
+        if ($stmt->errorCode() != '00000') {
+            if (f3()->get('DEBUG') === 0) {
+                return null;
+            }
+            else {
+                print_r($stmt->errorInfo());
+                die;
+            }
+        }
+
+        $total = $stmt->rowCount();
+        $count = ceil($total/$limit);
+        $page = max(0, min($page, $count-1));
+
+        $stmt = db()->prepare($sql .' LIMIT '. ($page * $limit) .', '. $limit);
+        $stmt->execute($filter);
+        $result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+
+        return array(
+            'subset' => $result,
+            'total'  => $total,
+            'limit'  => $limit,
+            'count'  => $count,
+            'pos'    => (($page < $count) ? $page : 0)
+        );
+    }
+
     /**
      * filter some columns we don't want user by themselves
      * @param  string $column - column name
