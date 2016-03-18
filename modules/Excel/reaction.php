@@ -96,7 +96,7 @@ class rExcel extends Reaction
                 $program['id'] = 0;
             }
 
-            db()->exec("INSERT INTO `" . tpf() . "schedules`(`title`, `uri`, `program_id`, `start_date`, `end_date`, `status`, `last_ts`, " . "`last_user`, `insert_user`, `insert_ts`) VALUES ('" . $program['title'] . "', '" . $program['uri'] . "', '" . $program['id'] . "', '" . $prog['d'] . " " . $prog['s'] . ":00', '" . $prog['d'] . " " . $prog['e'] . ":00', 'Yes', '" . date('Y-m-d H:i:s') . "', '" . User::_CUser('id') . "', '" . User::_CUser('id') . "', '" . date('Y-m-d H:i:s') . "')");
+            db()->exec("INSERT INTO `" . tpf() . "schedules`(`title`, `uri`, `program_id`, `start_date`, `end_date`, `status`, `last_ts`, " . "`last_user`, `insert_user`, `insert_ts`) VALUES ('" . $program['title'] . "', '" . $program['uri'] . "', '" . $program['id'] . "', '" . $prog['d'] . " " . $prog['s'] . ":00', '" . $prog['d'] . " " . $prog['e'] . ":00', 'Yes', '" . date('Y-m-d H:i:s') . "', '" . rStaff::_CStaff('id') . "', '" . rStaff::_CStaff('id') . "', '" . date('Y-m-d H:i:s') . "')");
         }
 
         db()->commit();

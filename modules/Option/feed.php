@@ -12,15 +12,28 @@ class fOption extends Feed
     const ST_ON = "Enabled";
     const ST_OFF = "Disabled";
 
-    static function get_options()
+    static function load($group = '', $mode = 'Demand')
     {
+        $sql = 'SELECT `group`, `name`, `content` FROM `' . self::fmTbl() . '`';
+        $condition = ' WHERE `status`=? AND `loader` = ? ';
+        $params = array(self::ST_ON, $mode);
 
-        $rows = db()->exec("SELECT name, content FROM `" . self::fmTbl() . "` WHERE `status`='" . self::ST_ON . "'");
+        if ($group != '') {
+            $condition .= ' AND `group` = ? ';
+            $params[] = $group;
+        }
+
+        $rows = db()->exec($sql . $condition, parent::_fixAry($params));
 
         $options = array();
 
         foreach ($rows as $row) {
-            $options[$row['name']] = $row['content'];
+            if ($group != '') {
+                $options[$row['name']] = $row['content'];
+            }
+            else {
+                $options[$row['group']][$row['name']] = $row['content'];
+            }
         }
 
         return $options;
@@ -32,7 +45,7 @@ class fOption extends Feed
      *
      * @return array
      */
-    static function get_option($name)
+    static function get($name)
     {
 
         $rows = db()->exec("SELECT * FROM `" . self::fmTbl() . "` WHERE `name`=? AND `status`='" . self::ST_ON . "' LIMIT 1 ", $name);
@@ -45,7 +58,7 @@ class fOption extends Feed
         }
     }
 
-    static function get_counties()
+    static function load_counties()
     {
 
         $rows = db()->exec("SELECT * FROM `" . tpf() . self::COUNTYTB . "` ORDER BY `id`");
@@ -53,7 +66,7 @@ class fOption extends Feed
         return $rows;
     }
 
-    static function get_zipcodes($county)
+    static function load_zipcodes($county)
     {
 
         $rows = db()->exec("SELECT `zipcode`, `town`, CONCAT(`county`, `town`) AS `full_name` FROM `" . tpf() . self::ZIPCODETB . "` WHERE `county`= ? ORDER BY `zipcode`", $county);
@@ -64,7 +77,7 @@ class fOption extends Feed
     static function getAll()
     {
 
-        $result = db()->exec("SELECT id, name, content FROM `" . self::fmTbl() . "` ");
+        $result = db()->exec("SELECT id, `group`, loader, status, name, content FROM `" . self::fmTbl() . "` ");
 
         return $result;
     }

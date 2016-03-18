@@ -128,13 +128,11 @@ class Outfit extends Module
             f3()->set('page', $page);
         }
 
-        f3()->set('prods', fProduct::get_all_as_menu());
-
-        f3()->set('branchs', fBranch::load_all());
-
         f3()->set('page.title', $title .(($title!='') ? ' | ' : ''). $page['title']);
 
         f3()->set('social', fOption::load('social'));
+
+        f3()->set('menus', rMenu::sort_menus(0, 0 , '', 0));
 
         $tp = \Template::instance();
         $tp->filter('nl2br','\F3CMS\Outfit::nl2br');

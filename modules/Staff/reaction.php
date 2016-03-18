@@ -115,4 +115,10 @@ class rStaff extends Reaction
 
         return $str;
     }
+
+    static function handleRow($row = array())
+    {
+        unset($row['pwd']);
+        return $row;
+    }
 }

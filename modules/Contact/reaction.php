@@ -9,30 +9,30 @@ class rContact extends Reaction
 
         $req = f3()->get('POST'); //parent::getReq();
 
-        if (empty($req['cname'])) {
+        if (empty($req['name'])) {
             return parent::_return(8002, array('msg'=>'姓名未填寫!!'));
         }
 
-        if (empty($req['cemail'])) {
+        if (empty($req['email'])) {
             return parent::_return(8002, array('msg'=>'Email 未填寫!!'));
         }
 
-        if (empty($req['cmessage'])) {
+        if (empty($req['message'])) {
             return parent::_return(8002, array('msg'=>'訊息未填寫!!'));
         }
 
         fContact::insert($req);
 
-        f3()->set('name', $req['cname']);
-        f3()->set('email', $req['cemail']);
-        f3()->set('message', nl2br($req['cmessage']));
+        f3()->set('name', $req['name']);
+        f3()->set('email', $req['email']);
+        f3()->set('message', nl2br($req['message']));
 
         $tp = \Template::instance();
         $content = $tp->render('mail/contact.html');
 
-        $sent = Sender::sendmail('詢問單通知', $content, f3()->get('inquiry_receiver'));
+        $sent = Sender::sendmail($req['type'] .'通知', $content, f3()->get('webmaster'));
 
-        return parent::_return(1, array('pid' => $obj->id, 'msg' => '感謝您，我們會儘快與您聯絡'));
+        return parent::_return(1, array('pid' => $obj->id, 'msg' => '感謝您~~'));
     }
 
     function do_dl_csv($f3, $args) {

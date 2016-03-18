@@ -13,7 +13,7 @@ class fStaff extends Feed
     static function getAll()
     {
 
-        $result = db()->exec("SELECT * FROM `" . self::fmTbl() . "` ");
+        $result = db()->exec("SELECT `id`, `status`, `account` FROM `" . self::fmTbl() . "` ");
 
         return $result;
     }

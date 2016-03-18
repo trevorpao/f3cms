@@ -24,27 +24,7 @@ class fCategory extends Feed
 
         return $result;
     }
-    /**
-     * get a category by slug
-     *
-     * @param string $slug - slug
-     *
-     * @return array
-     */
-    static function get_category_by_slug($slug)
-    {
 
-        $rows = db()->exec("SELECT c.*, p.title AS parent FROM `" . self::fmTbl() . "` c LEFT JOIN `" . self::fmTbl() . "` p ON p.id=c.parent_id WHERE c.`slug`=? LIMIT 1 ", '/' . $slug);
-
-        if (count($rows) != 1) {
-            return null;
-        }
-        else {
-            $cu = $rows[0];
-            $cu['subrows'] = self::get_categories($cu['id']);
-            return $cu;
-        }
-    }
     /**
      * get a category by category id
      *
@@ -52,10 +32,23 @@ class fCategory extends Feed
      *
      * @return array
      */
-    static function get_category($cid)
+    static function get_category($input)
     {
+        $condition = '';
 
-        $rows = db()->exec("SELECT * FROM `" . self::fmTbl() . "` WHERE `id`=? LIMIT 1 ", $cid);
+        if (is_numeric($input)) {
+            $condition .= ' WHERE c.`id`=? ';
+        }
+        else {
+            $input = '/' . $input;
+            $condition .= ' WHERE c.`slug`=? ';
+        }
+
+        $rows = db()->exec(
+            "SELECT c.*, p.title AS parent  FROM `". self::fmTbl() ."` c LEFT JOIN `".
+            self::fmTbl() . "` p ON p.id=c.parent_id ". $condition ." LIMIT 1 "
+            , $input
+        );
 
         if (count($rows) != 1) {
             return null;
@@ -66,6 +59,7 @@ class fCategory extends Feed
             return $cu;
         }
     }
+
     /**
      * get categories by parent id
      *
@@ -82,8 +76,30 @@ class fCategory extends Feed
             $condition = " where c.parent_id='" . $parent_id . "' ";
         }
 
-        $rows = db()->exec("SELECT c.id, c.title, c.slug, c.parent_id, p.title AS parent FROM `" . self::fmTbl() . "` c LEFT JOIN `" . self::fmTbl() . "` p ON p.id=c.parent_id " . $condition . " ORDER BY c.id ");
+        $rows = db()->exec("SELECT c.id, c.title, c.slug, c.parent_id, p.title AS parent FROM `" . self::fmTbl() . "` c LEFT JOIN `" . self::fmTbl() . "` p ON p.id=c.parent_id " . $condition . " ORDER BY c.sorter, c.id ");
 
         return $rows;
+    }
+
+    static function get_condition($input, $connect = 'AND', $column = '`category_id`')
+    {
+        $rows = self::get_category($input);
+
+        if ($rows) {
+            if (empty($rows['subrows'])) {
+                $condition .= " ". $connect ." ". $column ." = '". $rows['id'] ."' ";
+            }
+            else {
+                $cates = array($rows['id']);
+
+                foreach ($rows['subrows'] as $row) {
+                    $cates[] = $cow['id'];
+                }
+
+                $condition .= " ". $connect ." ". $column ." IN ('". implode("','", $cates) ."') ";
+            }
+        }
+
+        return $condition;
     }
 }

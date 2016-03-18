@@ -26,9 +26,12 @@ class fContact extends Feed
         $now = date('Y-m-d H:i:s');
         $obj = self::map();
 
-        $obj->name = $req['cname'];
-        $obj->email = $req['cemail'];
-        $obj->message = $req['cmessage'];
+        $obj->name = $req['name'];
+        $obj->email = $req['email'];
+        $obj->type = $req['type'];
+        $obj->phone = $req['phone'];
+        $obj->message = $req['message'];
+        $obj->other = $req['other'];
         $obj->last_ts = $now;
         $obj->insert_ts = $now;
         $obj->save();

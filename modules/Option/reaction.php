@@ -7,7 +7,7 @@ class rOption extends Reaction
     function do_get_zipcodes($f3, $args)
     {
 
-        $zipcodes = fOption::get_zipcodes(f3()->get('POST')['query']);
+        $zipcodes = fOption::load_zipcodes(f3()->get('POST')['query']);
 
         $rtn = array();
         $rtn['html'] = '<option value="">請選擇</option>';

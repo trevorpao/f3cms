@@ -9,24 +9,10 @@ class oPost extends Outfit
 
     function do_home ($f3, $args)
     {
-        $subset = fWork::get_works($args['page']);
-        f3()->set('works', $subset);
-
-        $subset = fProduct::get_products(0, 1);
-        f3()->set('prods', $subset);
-
-        $pcate = fCategory::get_categories(0);
-        foreach ($pcate as &$row) {
-            $row['subrows'] = fCategory::get_categories($row['id']);
-        }
-        f3()->set('pcate', $pcate);
-
-        f3()->set('advs', fAdv::getAdvs(1, 5));
-
         parent::wrapper('home.html', '首頁', '/');
     }
 
-    function do_post_show ($f3, $args)
+    function do_show ($f3, $args)
     {
         $cu = fPost::get_row('/'. $args['slug'], 'slug', " AND `status`='". fPost::ST_ON ."' ");
 
@@ -36,7 +22,42 @@ class oPost extends Outfit
 
         f3()->set('cu', $cu);
 
+        f3()->set('bc_ary', array(
+            array('link'=>'javascript:;', 'title'=>$cu['title'])
+        ));
+
         parent::wrapper('post.html', $cu['title'], '/post'. $cu['slug']);
+    }
+
+    function do_preview ($f3, $args)
+    {
+        rStaff::_chkLogin();
+
+        $cu = fPost::get_row('/'. $args['slug'], 'slug', '', true);
+
+        if (empty($cu)) {
+            f3()->error(404);
+        }
+
+        f3()->set('cu', $cu);
+
+        switch ($cu['slug']) {
+            case '/about':
+                $tmpl = 'about.html';
+                break;
+            case '/ourservice':
+                $tmpl = 'ourservice.html';
+                break;
+            default:
+                $tmpl = 'post.html';
+                break;
+        }
+
+        f3()->set('bc_ary', array(
+            array('link'=>'javascript:;', 'title'=>$cu['title'])
+        ));
+
+        parent::wrapper($tmpl, $cu['title'], '/post'. $cu['slug']);
     }
 
     function do_about ($f3, $args)
@@ -49,7 +70,12 @@ class oPost extends Outfit
 
         f3()->set('cu', $cu);
 
-        parent::wrapper('about.html', '關於酷崎獅', '/about');
+        f3()->set('bc_ary', array(
+            array('link'=>'javascript:;', 'title'=>$cu['title'])
+        ));
+        $f3->set('act_link', 'about');
+
+        parent::wrapper('about.html', $cu['title'], '/about');
     }
 
     function do_privacy ($f3, $args)
@@ -61,6 +87,10 @@ class oPost extends Outfit
         }
 
         f3()->set('cu', $cu);
+
+        f3()->set('bc_ary', array(
+            array('link'=>'javascript:;', 'title'=>$cu['title'])
+        ));
 
         parent::wrapper('post.html', $cu['title'], $cu['slug']);
     }

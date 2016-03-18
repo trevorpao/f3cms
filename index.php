@@ -54,6 +54,6 @@ $opauth->onAbort(function($data){
 
 // $opauth->onSuccess('\F3CMS\rUser->socialLogin');
 
-$f3->set('options', \F3CMS\fOption::get_options());
+$f3->set('opts', \F3CMS\fOption::load('', 'Preload'));
 
 $f3->run();

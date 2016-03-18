@@ -12,7 +12,7 @@ class fPost extends Feed
     static function getAll()
     {
 
-        $result = db()->exec("SELECT a.id, a.title, a.last_ts, a.pic, a.slug FROM `" . self::fmTbl() . "` a ");
+        $result = db()->exec("SELECT a.id, a.title, a.last_ts, a.pic, a.status, a.slug FROM `" . self::fmTbl() . "` a ");
 
         return $result;
     }
@@ -24,7 +24,7 @@ class fPost extends Feed
      *
      * @return string
      */
-    static function get_next_post($post_id, $category_id = 0)
+    static function load_next($post_id, $category_id = 0)
     {
 
         $condition = " WHERE `id` > '" . $post_id . "' ";
@@ -50,7 +50,7 @@ class fPost extends Feed
      *
      * @return string
      */
-    static function get_prev_post($post_id, $category_id = 0)
+    static function load_prev($post_id, $category_id = 0)
     {
 
         $condition = " WHERE `id` < '" . $post_id . "' ";

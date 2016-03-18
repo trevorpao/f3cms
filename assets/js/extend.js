@@ -8,8 +8,7 @@
                 var $this = $(this);
                 var placeholder = $this.attr('placeholder');
                 $this.val(placeholder).data('color', $this.css('color')).css('color', '#aaa');
-                $this
-                    .focus(function() {
+                $this.focus(function() {
                         if ($.trim($this.val()) === placeholder) {
                             $this.val('').css('color', $this.data('color'));
                         }
@@ -26,65 +25,42 @@
     /*
     base lib
     */
-    $.fn.ifEmpty = function() {
+    $.fn.isEmpty = function() {
         return (this.val() === "" || this.val() == this.attr("placeholder"));
     };
 
-    $.fn.ifErrEmail = function() {
-        var str = this.val(),
-            erp = /[\w-]+@([\w-]+\.)+[\w-]+/;
+    $.fn.isEmailErr = function() {
+        var erp = /[\w-]+@([\w-]+\.)+[\w-]+/;
 
-        gee.clog('iee:'+ erp.test(str));
-
-        if (erp.test(str) !== true)
-            return true;
-        else
-            return false;
+        return (erp.test(this.val()) !== true) ? true : false;
     };
 
-    $.fn.ifErrPasswd = function() {
-        var str = this.val(),
-            erp = /^(?=.*\d)(?=.*[a-zA-Z]){2,}(?=.*[a-zA-Z])(?!.*\s).{4,12}$/;
+    $.fn.isPasswdErr = function() {
+        var erp = /^(?=.*\d)(?=.*[a-zA-Z]){2,}(?=.*[a-zA-Z])(?!.*\s).{4,12}$/;
 
-        if (erp.test(str) !== true)
-            return true;
-        else
-            return false;
+        return (erp.test(this.val()) !== true) ? true : false;
     };
 
-    $.fn.ifErrChinese = function() {
-        var str = this.val(),
-            erp = /[^\u4e00-\u9fa5]/;
+    $.fn.isChineseErr = function() {
+        var erp = /[^\u4e00-\u9fa5]/;
 
-        gee.clog(erp.test(str));
-
-        if (erp.test(str) === true)
-            return true;
-        else
-            return false;
+        return (erp.test(this.val()) === true) ? true : false;
     };
 
-    $.fn.ifErrNumber = function() {
-        var str = this.val(),
-            erp = /^\d+$/;
+    $.fn.isNumberErr = function() {
+        var erp = /^\d+$/;
 
-        gee.clog("num::" + erp.test(str));
-
-        if (erp.test(str) !== true)
-            return true;
-        else
-            return false;
+        return (erp.test(this.val()) !== true) ? true : false;
     };
 
     $.fn.inArray = function(ary, str) {
-        var inArray = 0,
-            i;
-        for (i in ary) {
+        var inArray = 0;
+
+        for (var i in ary) {
             if (ary[i] == str) inArray++;
         }
+
         return (inArray > 0) ? true : false;
     };
 
 })(window, jQuery);
-
-gee.init();

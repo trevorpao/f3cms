@@ -25,9 +25,9 @@ class fMedia extends Feed
 
         $obj = self::map();
         $obj->insert_ts = $now;
-        $obj->insert_user = rUser::_CUser('id');
+        $obj->insert_user = rStaff::_CStaff('id');
         $obj->last_ts = $now;
-        $obj->last_user = rUser::_CUser('id');
+        $obj->last_user = rStaff::_CStaff('id');
 
         $obj->status = self::ST_ON;
         $obj->title = $title;

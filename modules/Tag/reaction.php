@@ -7,8 +7,4 @@ namespace F3CMS;
  */
 class rTag extends Reaction
 {
-    public function __construct()
-    {
-        parent::__construct();
-    }
 }

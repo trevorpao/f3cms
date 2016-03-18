@@ -5,6 +5,18 @@ namespace F3CMS;
 class rMedia extends Reaction
 {
 
+    function do_show ($f3, $args)
+    {
+        $cu = fMedia::get_row('/'. $args['slug'], 'slug', " AND `status`='". fMedia::ST_ON ."' ");
+
+        if (empty($cu)) {
+            f3()->error(404);
+        }
+
+        f3()->reroute($cu['pic']);
+    }
+
+
     /**
      * save photo
      * @param  object $f3   - $f3
