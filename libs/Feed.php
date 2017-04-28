@@ -25,6 +25,13 @@ class Feed extends Module
         foreach ($req['data'] as $key => $value) {
             if ($that::filterColumn($key)) {
                 switch ($key) {
+                    case 'meta':
+                        if (is_array($value)) {
+                            foreach ($value as $k => $v) {
+                                $that::save_meta($req['pid'], $k, $v['v'], true);
+                            }
+                        }
+                        break;
                     case 'slug':
                         $value = '/'. parent::_slugify($value);
                         $obj->{$key} = $value;
@@ -132,6 +139,7 @@ class Feed extends Module
 
     static function save_meta($pid, $k, $v, $replace = false)
     {
+        $that = get_called_class();
         $obj = $that::map('meta');
 
         if ($replace == false) {
@@ -153,6 +161,7 @@ class Feed extends Module
 
     static function change_status($pid, $status)
     {
+        $that = get_called_class();
         $obj = $that::map();
 
         $obj->load(array('id=?', $pid));
