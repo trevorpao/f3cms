@@ -5,6 +5,9 @@
         "bcosca/fatfree-core": "^3.5",
         "ikkez/f3-opauth": "dev-master",
         "phpoffice/phpexcel": "^1.8",
-        "tecnickcom/tcpdf": "^6.2"
+        "tecnickcom/tcpdf": "^6.2",
+        "mailgun/mailgun-php": "^2.3",
+        "php-http/curl-client": "^1.7",
+        "guzzlehttp/psr7": "^1.4"
     }
 }
