@@ -55,6 +55,39 @@ class Module
         return json_decode(f3()->get('BODY'), true);
     }
 
+    static function _lang($args = array())
+    {
+        if (!empty($args)) {
+            f3()->set('lang', (empty($args['lang'])) ? f3()->get('defaultLang') : $args['lang'] );
+        }
+        else {
+            return (f3()->exists('lang')) ? f3()->get('lang') : f3()->get('defaultLang') ;
+        }
+    }
+
+    static function _mobile_user_agent(){
+        if (!f3()->exists('device')) {
+            $device = 'unknown';
+
+            if( stristr($_SERVER['HTTP_USER_AGENT'],'ipad') ) {
+                $device = "ipad";
+            } else if( stristr($_SERVER['HTTP_USER_AGENT'],'iphone') || strstr($_SERVER['HTTP_USER_AGENT'],'iphone') ) {
+                $device = "iphone";
+            } else if( stristr($_SERVER['HTTP_USER_AGENT'],'blackberry') ) {
+                $device = "blackberry";
+            } else if( stristr($_SERVER['HTTP_USER_AGENT'],'android') ) {
+                $device = "android";
+            }
+
+            f3()->set('device', $device);
+        }
+        else {
+            $device = f3()->get('device');
+        }
+
+        return $device;
+    }
+
     static public function _slugify($text)
     {
         // replace non letter or digits by -

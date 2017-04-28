@@ -4,6 +4,22 @@ namespace F3CMS;
 class Outfit extends Module
 {
     /**
+     * prepare page info
+     * @param  string $title og data
+     * @param  string $desc  og data
+     * @param  string $img   og data
+     * @return self
+     */
+    static function prepare($title, $desc, $img)
+    {
+        f3()->set('page', array(
+            'title' => $title,
+            'desc' => $desc,
+            'img' => f3()->get('uri') . $img
+        ));
+    }
+
+    /**
      * set excel header
      * @param string $filename - file name to user
      */
@@ -20,21 +36,25 @@ class Outfit extends Module
     }
 
     /**
-     * render thumbnail file name
+     * render path file name by device
      * @param  string $path - old path
      * @param  string $type - thumb type
+     * @param  boolen $byDevice - use thumb path by device
      * @return string       - new path
      */
-    static function thumbnail($path, $type)
+    static function thumbnail($path, $type, $byDevice=0)
     {
+        $device = f3()->get('device');
 
-        list($w, $h) = f3()->get($type . '_thn');
+        if (!($byDevice === 1 && $device === 'unknown')) {
+            list($w, $h) = f3()->get($type . '_thn');
 
-        $tmp = explode('.', $path);
+            $tmp = explode('.', $path);
 
-        $newpath = $tmp[0] .'_' . $w . 'x' . $h . '.'. $tmp[1];
+            $path = $tmp[0] .'_' . $w . 'x' . $h . '.'. $tmp[1];
+        }
 
-        return $newpath;
+        return $path;
     }
 
     static function paginate ($total, $limit = 10, $link = "", $current = -1, $range = 5)
@@ -134,11 +154,14 @@ class Outfit extends Module
 
         f3()->set('menus', rMenu::sort_menus(0, 0 , '', 0));
 
+        parent::_mobile_user_agent();
+
         $tp = \Template::instance();
         $tp->filter('nl2br','\F3CMS\Outfit::nl2br');
         $tp->filter('crop','\F3CMS\Outfit::crop');
         $tp->filter('date','\F3CMS\Outfit::date');
         $tp->filter('str2tbl','\F3CMS\Outfit::str2tbl');
+        $tp->filter('thumbnail','\F3CMS\Outfit::thumbnail');
 
         echo self::minify($tp->render($html));
     }
