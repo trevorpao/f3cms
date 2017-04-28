@@ -8,9 +8,20 @@ $f3 = \Base::instance();
 // config
 require('./config.php');
 
-$db = new \DB\SQL($f3->get('db'), $f3->get('db_account'), $f3->get('db_password'));
+try {
+    $db = new \DB\SQL($f3->get('db'), $f3->get('db_account'), $f3->get('db_password'));
+} catch (Exception $e) {
+    header('Content-Type: text');
+    echo 'Database is disconnected.'."\n";
+    if ($f3->get('DEBUG') > 1) {
+        print_r($e);
+    }
+    exit;
+}
+
 $f3->set('DB', $db);
 
+/* session base on DB */
 new \DB\SQL\Session($db, 'sessions', TRUE, function($session) {
     //suspect session
     $logger = new \Log('session.log');
@@ -23,12 +34,22 @@ new \DB\SQL\Session($db, 'sessions', TRUE, function($session) {
     }
 });
 
+// /* session base on cache */
+// $f3->set('CACHE', TRUE);
+// new Session();
+
 // Define routes
 $f3->config('./routes.ini');
 
 if ($f3->get('DEBUG') == 0) {
     $f3->set('ONERROR',function($f3){
-        \F3CMS\Outfit::wrapper('error.html', 'Not Found', '/404');
+        $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
+        if($isAjax) {
+            \F3CMS\Reaction::_return(404);
+        }
+        else {
+            \F3CMS\Outfit::wrapper('error.html', 'Not Found', '/404');
+        }
     });
 }
 
