@@ -54,4 +54,15 @@ if ($_SERVER['SERVER_NAME']!='127.0.0.1') {
     $f3->set('db_account','your_account');
     $f3->set('db_password','your_password');
     $f3->set('uri','http://domain.com' . $f3->get('BASE'));
+
+    if (isset($_SERVER['HTTP_ORIGIN'])) {
+        $allowedOrigins = array('http://otherdomain.com', 'http://anotherdomain.com');
+        if (in_array($_SERVER['HTTP_ORIGIN'], $allowedOrigins)) {
+            $f3->set('CORS.credentials', 'true');
+            $f3->set('CORS.origin', '*');
+            $f3->set('CORS.headers', 'X-Requested-With, Content-Type, Origin, Accept');
+            // $f3->set('CORS.expose', 'true');
+            $f3->set('CORS.ttl', '86400');
+        }
+    }
 }
