@@ -30,7 +30,7 @@ class rContact extends Reaction
         $tp = \Template::instance();
         $content = $tp->render('mail/contact.html');
 
-        $sent = Sender::sendmail($req['type'] .'通知', $content, f3()->get('webmaster'));
+        $sent = Sender::sendmail('聯絡我們-通知', $content, f3()->get('webmaster'));
 
         return parent::_return(1, array('pid' => $obj->id, 'msg' => '感謝您~~'));
     }

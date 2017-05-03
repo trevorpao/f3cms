@@ -5,54 +5,53 @@
     Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
 -->
 <html>
-
 <include href="parter/head.html" />
 
 <body>
-    <!-- Wrapper -->
-    <div id="wrapper">
-        <include href="parter/nav.html" />
-        <!-- Main -->
-        <div id="main">
-            <!-- Post -->
-            <article class="post">
-                <header>
-                    <div class="title">
-                        <h2><a href="#">Contact me</a></h2>
-                        <p>Lorem ipsum dolor amet nullam consequat etiam feugiat</p>
-                    </div>
-                </header>
-                <section>
-                    <h3>Form</h3>
-                    <form method="post" action="#">
-                        <div class="row uniform">
-                            <div class="6u 12u$(xsmall)">
-                                <input type="text" name="demo-name" id="demo-name" value="" placeholder="Name" />
-                            </div>
-                            <div class="6u$ 12u$(xsmall)">
-                                <input type="email" name="demo-email" id="demo-email" value="" placeholder="Email" />
-                            </div>
-                            <div class="12u$">
-                                <textarea name="demo-message" id="demo-message" placeholder="Enter your message" rows="6"></textarea>
-                            </div>
-                            <div class="12u$">
-                                <ul class="actions">
-                                    <li>
-                                        <input type="submit" value="Send Message" />
-                                    </li>
-                                    <li>
-                                        <input type="reset" value="Reset" />
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </form>
-                </section>
-            </article>
-        </div>
-        <include href="parter/sidebar.html" />
+  <!-- Wrapper -->
+  <div id="wrapper">
+    <include href="parter/nav.html" />
+    <!-- Main -->
+    <div id="main">
+      <!-- Post -->
+      <article class="post">
+        <header>
+          <div class="title">
+            <h2><a href="#">Contact me</a></h2>
+            <p>Lorem ipsum dolor amet nullam consequat etiam feugiat</p>
+          </div>
+        </header>
+        <section>
+          <h3>Form</h3>
+          <form method="post" action="#">
+            <div class="row uniform">
+              <div class="6u 12u$(xsmall)">
+                <input type="text" name="name" id="name" value="" require title="Name" placeholder="Name" />
+              </div>
+              <div class="6u$ 12u$(xsmall)">
+                <input type="email" name="email" id="email" value="" require="email" title="Email" placeholder="Email" />
+              </div>
+              <div class="12u$">
+                <textarea name="message" id="message" require title="Message" placeholder="Enter your message" rows="6"></textarea>
+              </div>
+              <div class="12u$">
+                <ul class="actions">
+                  <li>
+                    <button class="gee" data-uri='/contact/add_new' data-gene="click:stdSubmit" reset="1" type="button" value="Send Message">Send Message</button>
+                  </li>
+                  <li>
+                    <input type="reset" value="Reset" />
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </form>
+        </section>
+      </article>
     </div>
-    <include href="parter/script.html" />
+    <include href="parter/sidebar.html" />
+  </div>
+  <include href="parter/script.html" />
 </body>
 
 </html>
