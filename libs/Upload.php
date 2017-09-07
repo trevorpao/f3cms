@@ -64,15 +64,15 @@ class Upload extends Helper
         );
 
         if (($files['file']['size'] >= f3()->get('maxsize')) || ($files['file']['size'] == 0)) {
-            Reaction::_return("2002", "File too large. File must be less than 2 megabytes.");
+            Reaction::_return("2002", array("msg" => "File too large. File must be less than 2 megabytes."));
         }
 
         if (!in_array($files['file']['type'], $acceptable) && !empty($files["file"]["type"])) {
-            Reaction::_return("2003", 'Invalid file type.('. $files['file']['type'] .')');
+            Reaction::_return("2003", array("msg" => 'Invalid file type.('. $files['file']['type'] .')'));
         }
 
         if ($files['file']['error'] != 0) {
-            Reaction::_return("2004", 'other error.');
+            Reaction::_return("2004", array("msg" => 'other error.'));
         }
 
         if (!file_exists($root . $path)) {

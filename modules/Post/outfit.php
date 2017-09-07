@@ -9,12 +9,73 @@ class oPost extends Outfit
 
     function do_home ($f3, $args)
     {
+        f3()->set('presses1', fPress::load_homepage_list(3));
+        $except = array_column(f3()->get('presses1'), 'id');
+        // print_r($except);
+        f3()->set('presses2', fPress::load_homepage_list(3, 2, $except));
+        $except = array_merge($except, array_column(f3()->get('presses2'), 'id'));
+        // print_r($except);
+        f3()->set('presses3', fPress::load_homepage_list(3, 4, $except));
+
         parent::wrapper('home.html', '首頁', '/');
+    }
+
+    function do_sitemap ($f3, $args)
+    {
+
+        $subset = fPress::load_list(0, '', 'author', 500);
+
+        foreach ($subset['subset'] as &$row) {
+            if (!empty($row['rel_tag'])) {
+                $row['rel_tag'] = json_decode($row['rel_tag'], true);
+                $ary = array();
+
+                foreach ($row['rel_tag'] as $tmp) {
+                    $ary[] = $tmp['title'];
+                }
+
+                $row['keyword'] = implode(',', $ary) .','. $row['keyword'];
+            }
+            if (!empty($row['rel_dict'])) {
+                $row['rel_dict'] = json_decode($row['rel_dict'], true);
+                $ary = array();
+
+                foreach ($row['rel_dict'] as $tmp) {
+                    $ary[] = $tmp['title'];
+                }
+
+                $row['keyword'] = implode(',', $ary) .','. $row['keyword'];
+            }
+        }
+
+        f3()->set('rows', $subset);
+
+        f3()->set('page', fOption::load('page'));
+
+        echo \Template::instance()->render('sitemap.xml','application/xml');
+    }
+
+    function do_rss ($f3, $args)
+    {
+
+        $subset = fPress::load_list(0, '', 'author', 50);
+
+        f3()->set('rows', $subset);
+
+        f3()->set('page', fOption::load('page'));
+
+        f3()->set('contact_mail', fOption::get('contact_mail'));
+
+        $tp = \Template::instance();
+        $tp->filter('date','\F3CMS\Outfit::date');
+
+        echo $tp->render('rss.xml','application/xml');
     }
 
     function do_show ($f3, $args)
     {
-        $cu = fPost::get_row('/'. $args['slug'], 'slug', " AND `status`='". fPost::ST_ON ."' ");
+
+        $row = fPost::get_row('/'. $args['slug'], 'slug', " AND `status`='". fPost::ST_ON ."' ");
 
         if (empty($cu)) {
             f3()->error(404);
@@ -25,6 +86,8 @@ class oPost extends Outfit
         f3()->set('bc_ary', array(
             array('link'=>'javascript:;', 'title'=>$cu['title'])
         ));
+
+        f3()->set('nav', rMenu::sort_menus(1, 0 , '', 0));
 
         parent::wrapper('post.html', $cu['title'], '/post'. $cu['slug']);
     }
@@ -62,6 +125,7 @@ class oPost extends Outfit
 
     function do_about ($f3, $args)
     {
+
         $cu = fPost::get_row('/about', 'slug', " AND `status`='". fPost::ST_ON ."' ");
 
         if (empty($cu)) {
@@ -80,6 +144,7 @@ class oPost extends Outfit
 
     function do_privacy ($f3, $args)
     {
+
         $cu = fPost::get_row('/privacy', 'slug', " AND `status`='". fPost::ST_ON ."' ");
 
         if (empty($cu)) {
@@ -97,6 +162,14 @@ class oPost extends Outfit
 
     function do_comingsoon ($f3, $args)
     {
-        parent::wrapper('comingsoon.html', 'Coming Soon', '/');
+        // parent::wrapper('comingsoon.html', 'Coming Soon', '/');
+        $ts = strtotime('Mar 31 2017 23:59:00');
+        $now = time();
+        if ($now < $ts) {
+            parent::wrapper('comingsoon.html', 'Coming Soon', '/');
+        }
+        else {
+            $f3->reroute('/home');
+        }
     }
 }

@@ -28,16 +28,28 @@ class fAdv extends Feed
                 'id' => '1',
                 'title' => '首頁/HERO大圖(1600*800)'
             ) ,
+            '2' => array(
+                'id' => '2',
+                'title' => '外部連結(400*200)'
+            ) ,
+            '3' => array(
+                'id' => '3',
+                'title' => '首頁跳出式提示'
+            ) ,
+            '4' => array(
+                'id' => '4',
+                'title' => '會員跳出式提示'
+            )
         );
     }
 
-    static function getAdvs($position_id, $limit = 10)
+    static function getAdvs($position_id, $limit = 10, $orderby = ' rand() ')
     {
 
         $condition = " WHERE `position_id` = '" . $position_id . "' AND `status` = '" . self::ST_ON . "' ";
         $condition.= " AND `end_date` > '" . date('Y-m-d') . "' ";
 
-        $result = db()->exec("SELECT `id`, `title`, `status`, `pic`, `uri`, `background`, `summary` FROM `" . self::fmTbl() . "` " . $condition . "  ORDER BY rand() LIMIT " . $limit);
+        $result = db()->exec("SELECT `id`, `title`, `status`, `pic`, `uri`, `theme`, `background`, `summary` FROM `" . self::fmTbl() . "` " . $condition . "  ORDER BY ". $orderby ." LIMIT " . $limit);
 
         return (1 === $limit && !empty($result)) ? $result[0] : $result;
     }

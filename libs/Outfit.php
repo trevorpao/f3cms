@@ -4,22 +4,6 @@ namespace F3CMS;
 class Outfit extends Module
 {
     /**
-     * prepare page info
-     * @param  string $title og data
-     * @param  string $desc  og data
-     * @param  string $img   og data
-     * @return self
-     */
-    static function prepare($title, $desc, $img)
-    {
-        f3()->set('page', array(
-            'title' => $title,
-            'desc' => $desc,
-            'img' => f3()->get('uri') . $img
-        ));
-    }
-
-    /**
      * set excel header
      * @param string $filename - file name to user
      */
@@ -36,17 +20,34 @@ class Outfit extends Module
     }
 
     /**
-     * render path file name by device
+     * render thumbnail file name
      * @param  string $path - old path
      * @param  string $type - thumb type
-     * @param  boolen $byDevice - use thumb path by device
      * @return string       - new path
      */
-    static function thumbnail($path, $type, $byDevice=0)
+    static function thumbnail($path, $type)
     {
-        $device = f3()->get('device');
 
-        if (!($byDevice === 1 && $device === 'unknown')) {
+        list($w, $h) = f3()->get($type . '_thn');
+
+        $tmp = explode('.', $path);
+
+        $newpath = $tmp[0] .'_' . $w . 'x' . $h . '.'. $tmp[1];
+
+        return $newpath;
+    }
+
+    /**
+     * render pathByDevice file name
+     * @param  string $path - old path
+     * @param  string $type - thumb type
+     * @return string       - new path
+     */
+    static function pathByDevice($path, $type)
+    {
+        $device = parent::_mobile_user_agent();
+
+        if ($device != 'unknown') {
             list($w, $h) = f3()->get($type . '_thn');
 
             $tmp = explode('.', $path);
@@ -139,20 +140,26 @@ class Outfit extends Module
 
     static function wrapper ($html, $title = "", $slug = "")
     {
+        f3()->set('SESSION.csrf', 'wdfghn'); // f3()->get('sess')->csrf());
 
         f3()->set('canonical', $slug);
 
         $page = fOption::load('page');
 
-        if (!f3()->exists('page')) {
-            f3()->set('page', $page);
+        if (f3()->exists('page')) {
+            $new = f3()->get('page', $page);
+            $page = array_merge($page, $new);
         }
 
+        f3()->set('page', $page);
+
+        f3()->set('site.title', $page['title']);
         f3()->set('page.title', $title .(($title!='') ? ' | ' : ''). $page['title']);
 
         f3()->set('social', fOption::load('social'));
 
-        f3()->set('menus', rMenu::sort_menus(0, 0 , '', 0));
+        f3()->set('nav', rMenu::sort_menus(1, 0 , '', 0));
+        f3()->set('footernav', rMenu::sort_menus(85, 0 , '', 0));
 
         parent::_mobile_user_agent();
 

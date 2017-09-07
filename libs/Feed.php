@@ -28,7 +28,14 @@ class Feed extends Module
                     case 'meta':
                         if (is_array($value)) {
                             foreach ($value as $k => $v) {
-                                $that::save_meta($req['pid'], $k, $v['v'], true);
+                                $that::save_meta($obj->id, $k, $v['v'], true);
+                            }
+                        }
+                        break;
+                    case 'lang':
+                        if (is_array($value)) {
+                            foreach ($value as $k => $v) {
+                                $that::save_lang($obj->id, $k, $v, !$draft, $draft);
                             }
                         }
                         break;
@@ -41,6 +48,9 @@ class Feed extends Module
                             $value = $that::_setPsw($value);
                             $obj->{$key} = $value;
                         }
+                        break;
+                    case 'online_date':
+                        $obj->{$key} = date('Y-m-d', strtotime($value) + 7*3600);
                         break;
                     default:
                         $obj->{$key} = (is_array($value)) ? json_encode($value) : $value;
@@ -135,6 +145,28 @@ class Feed extends Module
         }
 
         return 1;
+    }
+
+    static function load_meta($pid, $key = '')
+    {
+        $condition = " WHERE `parent_id` = '". intval($pid) ."' ";
+
+        if ($key != '') {
+            $condition .= " AND `k` = '". $key ."' ";
+        }
+
+        $result = db()->exec("SELECT `id`, `k`, `v` FROM `". self::fmTbl('meta') ."` " . $condition . " LIMIT 30 ", '%'. $query .'%');
+
+        if (count($result) < 1) {
+            return null;
+        }
+        else {
+            $rows = array();
+            foreach ($result as $row) {
+                $rows[$row['k']] = $row;
+            }
+            return $rows;
+        }
     }
 
     static function save_meta($pid, $k, $v, $replace = false)
@@ -242,6 +274,9 @@ class Feed extends Module
         switch ($type) {
             case 'account':
                 $condition = " WHERE `account`=? ". $condition;
+                break;
+            case 'email':
+                $condition = " WHERE `email`=? ". $condition;
                 break;
             case 'slug':
                 $condition = " WHERE `slug`=? ". $condition;

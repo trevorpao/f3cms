@@ -244,9 +244,14 @@ class Reaction extends Module
     static function _return($code = 1, $data = array())
     {
         $return = array('code' => (string)$code);
+
         if (!empty($data)) {
             $return['data'] = $data;
         }
+
+        f3()->set('SESSION.csrf', f3()->get('sess')->csrf());
+
+        $return['csrf'] = f3()->get('SESSION.csrf');
 
         header('Content-Type: application/json');
         die(json_encode($return));

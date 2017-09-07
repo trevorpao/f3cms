@@ -33,7 +33,7 @@ class fMenu extends Feed
             $condition = " where c.parent_id='" . $parent_id . "' ";
         }
 
-        $rows = db()->exec("SELECT c.id, c.title, c.slug, c.parent_id, c.summary, p.title AS parent FROM `" . self::fmTbl() . "` c LEFT JOIN `" . self::fmTbl() . "` p ON p.id=c.parent_id " . $condition . " ORDER BY c.sorter, c.id ");
+        $rows = db()->exec("SELECT c.id, c.title, c.uri, c.parent_id, c.summary, p.title AS parent FROM `" . self::fmTbl() . "` c LEFT JOIN `" . self::fmTbl() . "` p ON p.id=c.parent_id " . $condition . " ORDER BY c.sorter, c.id ");
 
         return $rows;
     }

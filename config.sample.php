@@ -46,7 +46,7 @@ $f3->set('smtp_port', 465);
 $f3->set('smtp_account', 'sense.info.co@gmail.com');
 $f3->set('smtp_password', 'ilixxmcanfdnsjgl'); //
 $f3->set('smtp_name', 'Trevor Pao');
-$f3->set('inquiry_receiver', 'shuaib25@gmail.com');
+$f3->set('webmaster', 'shuaib25@gmail.com');
 
 if ($_SERVER['SERVER_NAME']!='127.0.0.1') {
     $f3->set('DEBUG', 0);
@@ -54,15 +54,4 @@ if ($_SERVER['SERVER_NAME']!='127.0.0.1') {
     $f3->set('db_account','your_account');
     $f3->set('db_password','your_password');
     $f3->set('uri','http://domain.com' . $f3->get('BASE'));
-
-    if (isset($_SERVER['HTTP_ORIGIN'])) {
-        $allowedOrigins = array('http://otherdomain.com', 'http://anotherdomain.com');
-        if (in_array($_SERVER['HTTP_ORIGIN'], $allowedOrigins)) {
-            $f3->set('CORS.credentials', 'true');
-            $f3->set('CORS.origin', '*');
-            $f3->set('CORS.headers', 'X-Requested-With, Content-Type, Origin, Accept');
-            // $f3->set('CORS.expose', 'true');
-            $f3->set('CORS.ttl', '86400');
-        }
-    }
 }

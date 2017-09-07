@@ -30,7 +30,7 @@ class Sender extends Helper
         $smtp->set('To', '<' . $to_address . '>');
         $smtp->set('Subject', $subject);
         $smtp->set('Errors-to', '<' . f3()->get('smtp_account') . '>');
-        $smtp->set('bcc', '<skytzz@osha.gov.tw>');
+        $smtp->set('bcc', '<'. f3()->get('webmaster') .'>');
         $smtp->set('Content-Type', 'text/html;  charset=UTF-8');
 
         $sent = $smtp->send($content, TRUE);

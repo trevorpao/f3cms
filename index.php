@@ -1,75 +1,68 @@
 <?php
+
 require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/libs/Autoload.php';
 require_once __DIR__ . '/libs/Utils.php';
 
+if (!is_https()) {
+    $redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+    header('HTTP/1.1 301 Moved Permanently');
+    header('Location: ' . $redirect);
+    exit();
+}
+
 $f3 = \Base::instance();
 
 // config
-require('./config.php');
+require './config.php';
 
-try {
-    $db = new \DB\SQL($f3->get('db'), $f3->get('db_account'), $f3->get('db_password'));
-} catch (Exception $e) {
-    header('Content-Type: text');
-    echo 'Database is disconnected.'."\n";
-    if ($f3->get('DEBUG') > 1) {
-        print_r($e);
-    }
-    exit;
-}
-
+$db = new \DB\SQL($f3->get('db'), $f3->get('db_account'), $f3->get('db_password'));
 $f3->set('DB', $db);
 
-/* session base on DB */
-new \DB\SQL\Session($db, 'sessions', TRUE, function($session) {
+$sess = new \DB\SQL\Session($db, 'sessions', true, function ($session) {
     //suspect session
     $logger = new \Log('session.log');
-    $f3=\Base::instance();
-    if (($ip=$session->ip())!=$f3->get('IP')) {
-        $logger->write('user changed IP:'.$ip);
-    }
-    else {
-        $logger->write('user changed browser/device:'.$f3->get('AGENT'));
+    $f3 = \Base::instance();
+    if (($ip = $session->ip()) != $f3->get('IP')) {
+        $logger->write('user changed IP:' . $ip);
+    } else {
+        $logger->write('user changed browser/device:' . $f3->get('AGENT'));
     }
 });
 
-// /* session base on cache */
-// $f3->set('CACHE', TRUE);
-// new Session();
+$f3->set('sess', $sess);
 
 // Define routes
 $f3->config('./routes.ini');
 
 if ($f3->get('DEBUG') == 0) {
-    $f3->set('ONERROR',function($f3){
+    $f3->set('ONERROR', function ($f3) {
         $isAjax = !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest';
-        if($isAjax) {
+        if ($isAjax) {
             \F3CMS\Reaction::_return(404);
-        }
-        else {
+        } else {
             \F3CMS\Outfit::wrapper('error.html', 'Not Found', '/404');
         }
     });
 }
 
 // load opauth config (allow token resolve)
-$f3->config('./opauth.ini', TRUE);
+$f3->config('./opauth.ini', true);
 
 // init with config
 $opauth = OpauthBridge::instance($f3->opauth);
 
 // define login handler
-$opauth->onSuccess(function($data){
+$opauth->onSuccess(function ($data) {
     header('Content-Type: text');
-    echo 'User successfully authenticated.'."\n";
+    echo 'User successfully authenticated.' . "\n";
     print_r($data['info']);
 });
 
 // define error handler
-$opauth->onAbort(function($data){
+$opauth->onAbort(function ($data) {
     header('Content-Type: text');
-    echo 'Auth request was canceled.'."\n";
+    echo 'Auth request was canceled.' . "\n";
     print_r($data);
 });
 

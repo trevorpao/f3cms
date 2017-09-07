@@ -10,10 +10,20 @@ class fTag extends Feed
     static function getAll()
     {
 
-        $result = db()->exec("SELECT c.*, p.`title` AS parent, c.`title` AS `title`, c.`slug` AS `slug`, c.`counter` AS `counter` FROM `" . self::fmTbl() . "` c LEFT JOIN `" . self::fmTbl() . "` p ON p.id=c.parent_id ");
+        $result = db()->exec("SELECT c.*, p.`title` AS parent, c.`slug` AS `slug`, c.`counter` AS `counter` FROM `" . self::fmTbl() . "` c LEFT JOIN `" . self::fmTbl() . "` p ON p.id=c.parent_id ");
 
         return $result;
     }
+
+    static function get_opts($query)
+    {
+
+        $condition = " WHERE `title` like ? OR `slug` like ? ";
+
+        return db()->exec("SELECT `id`, `title` FROM `". self::fmTbl() ."` " . $condition . " LIMIT 30 ",
+            parent::_fixAry(array('%'. $query .'%', '%'. $query .'%')));
+    }
+
     /**
      * get a tag by tag id
      *
@@ -23,6 +33,7 @@ class fTag extends Feed
      */
     static function get_tag($cid)
     {
+        $lang = Module::_lang();
 
         $rows = db()->exec("SELECT * FROM `" . self::fmTbl() . "` WHERE `id`=? LIMIT 1 ", $cid);
 
@@ -35,6 +46,7 @@ class fTag extends Feed
             return $cu;
         }
     }
+
     /**
      * get a tag by slug
      *
@@ -44,8 +56,9 @@ class fTag extends Feed
      */
     static function get_tag_by_slug($slug)
     {
+        $lang = Module::_lang();
 
-        $rows = db()->exec("SELECT * FROM `" . self::fmTbl() . "` WHERE `slug`=? LIMIT 1 ", '/' . $slug);
+        $rows = db()->exec("SELECT * FROM `" . self::fmTbl() . "` WHERE `slug`=? LIMIT 1 ", $slug);
 
         if (count($rows) != 1) {
             return null;
@@ -56,6 +69,7 @@ class fTag extends Feed
             return $cu;
         }
     }
+
     /**
      * get tags by parent id
      *
@@ -65,6 +79,7 @@ class fTag extends Feed
      */
     static function get_tags($parent_id = - 1)
     {
+        $lang = Module::_lang();
 
         $condition = "";
 
@@ -72,6 +87,6 @@ class fTag extends Feed
             $condition = " where c.parent_id='" . $parent_id . "' ";
         }
 
-        return db()->exec("SELECT c.`id`, c.`title`, c.`slug` FROM `" . self::fmTbl() . "` c " . $condition);
+        return db()->exec("SELECT c.`id`, c.title, c.`slug` FROM `" . self::fmTbl() . "` c " . $condition);
     }
 }

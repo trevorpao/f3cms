@@ -16,3 +16,15 @@ function db() {
 function tpf() {
     return f3()->get('tpf');
 }
+
+function is_https()
+{
+    if (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) === 'on') {
+        return true;
+    } else if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+        return true;
+    } else if (isset($_SERVER['HTTP_FRONT_END_HTTPS']) && $_SERVER['HTTP_FRONT_END_HTTPS'] === 'on') {
+        return true;
+    }
+    return false;
+}

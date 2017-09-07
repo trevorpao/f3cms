@@ -34,6 +34,7 @@ class fCategory extends Feed
      */
     static function get_category($input)
     {
+        $lang = Module::_lang();
         $condition = '';
 
         if (is_numeric($input)) {
@@ -45,7 +46,7 @@ class fCategory extends Feed
         }
 
         $rows = db()->exec(
-            "SELECT c.*, p.title AS parent  FROM `". self::fmTbl() ."` c LEFT JOIN `".
+            "SELECT c.*, c.title, p.title AS parent  FROM `". self::fmTbl() ."` c LEFT JOIN `".
             self::fmTbl() . "` p ON p.id=c.parent_id ". $condition ." LIMIT 1 "
             , $input
         );
@@ -69,6 +70,7 @@ class fCategory extends Feed
      */
     static function get_categories($parent_id = - 1)
     {
+        $lang = Module::_lang();
 
         $condition = "";
 
