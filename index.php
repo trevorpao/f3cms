@@ -4,17 +4,17 @@ require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/libs/Autoload.php';
 require_once __DIR__ . '/libs/Utils.php';
 
-if (!is_https()) {
+$f3 = \Base::instance();
+
+// config
+require './config.php';
+
+if (!is_https() && $f3->get('forceHTTPS') === 1) {
     $redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
     header('HTTP/1.1 301 Moved Permanently');
     header('Location: ' . $redirect);
     exit();
 }
-
-$f3 = \Base::instance();
-
-// config
-require './config.php';
 
 $db = new \DB\SQL($f3->get('db'), $f3->get('db_account'), $f3->get('db_password'));
 $f3->set('DB', $db);
