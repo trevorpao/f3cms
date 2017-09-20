@@ -162,7 +162,7 @@ class oPost extends Outfit
 
     function do_comingsoon ($f3, $args)
     {
-        $ts = strtotime($f3()->get('siteBeginDate'));
+        $ts = strtotime($f3->get('siteBeginDate'));
         $now = time();
         if ($now < $ts) {
             parent::wrapper('comingsoon.html', 'Coming Soon', '/');
