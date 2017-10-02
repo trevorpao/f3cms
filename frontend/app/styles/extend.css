@@ -1,0 +1,123 @@
+
+
+.row-section {
+    width: 100%;
+}
+
+.row-section h2 {
+    float: left;
+    width: 100%;
+    color: #fff;
+    margin-bottom: 30px;
+    font-size: 14px;
+}
+
+.row-section h2 span {
+    font-family: 'Kumar One', cursive;
+    display: block;
+    font-size: 45px;
+    text-transform: none;
+    margin-bottom: 20px;
+    margin-top: 30px;
+}
+
+.row-section h2 a {
+    color: #d2abce;
+}
+
+.row-section .row-block {
+    position: relative;
+    background: #fff;
+    padding: 20px;
+    margin-bottom: 50px;
+}
+
+.row-section .row-block ul {
+    margin: 0;
+    padding: 0;
+}
+
+.row-section .row-block ul li {
+    list-style: none;
+    margin-bottom: 20px;
+}
+
+.row-section .row-block ul li:last-child {
+    margin-bottom: 0;
+}
+
+.row-section .row-block ul li:hover {
+    cursor: grabbing;
+}
+
+.row-section .row-block .media {
+    border: 1px solid #d5dbdd;
+    padding: 5px 20px;
+    border-radius: 5px;
+    box-shadow: 0px 2px 1px rgba(0, 0, 0, 0.04);
+    background: #fff;
+}
+
+.row-section .media .media-left img {
+    width: 75px;
+}
+
+.row-section .media .media-body p {
+    padding: 0 15px;
+    font-size: 14px;
+}
+
+.row-section .media .media-body h4 {
+    color: #6b456a;
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 0;
+    padding-left: 14px;
+    margin-top: 12px;
+}
+
+.btn-default {
+    background: #6B456A;
+    color: #fff;
+    border-radius: 30px;
+    border: none;
+    font-size: 16px;
+}
+
+.input-group-addon.primary {
+    color: rgb(255, 255, 255);
+    background-color: rgb(50, 118, 177);
+    border-color: rgb(40, 94, 142);
+}
+.input-group-addon.success {
+    color: rgb(255, 255, 255);
+    background-color: rgb(92, 184, 92);
+    border-color: rgb(76, 174, 76);
+}
+.input-group-addon.info {
+    color: rgb(255, 255, 255);
+    background-color: rgb(57, 179, 215);
+    border-color: rgb(38, 154, 188);
+}
+.input-group-addon.warning {
+    color: rgb(255, 255, 255);
+    background-color: rgb(240, 173, 78);
+    border-color: rgb(238, 162, 54);
+}
+.input-group-addon.danger {
+    color: rgb(255, 255, 255);
+    background-color: rgb(217, 83, 79);
+    border-color: rgb(212, 63, 58);
+}
+textarea {
+    height: 12vh;
+}
+.issue-btn {
+    position: absolute;
+    right: -30px;
+    bottom: 190px;
+    color: #fff;
+}
+.issue-btn:hover {
+    color: #fff;
+}

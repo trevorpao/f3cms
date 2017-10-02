@@ -637,3 +637,117 @@ ALTER TABLE `tbl_tag`
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+
+CREATE TABLE `tbl_category_lang` (
+  `id` int(11) NOT NULL,
+  `lang` varchar(5) NOT NULL DEFAULT 'tw',
+  `type` enum('Ancestor','Draft','Backup') NOT NULL DEFAULT 'Ancestor',
+  `parent_id` int(11) NOT NULL,
+  `title` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
+  `subtitle` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
+  `content` text CHARACTER SET utf8,
+  `last_ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_user` int(11) DEFAULT NULL,
+  `insert_ts` timestamp NULL DEFAULT NULL,
+  `insert_user` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+--
+-- 資料表索引 `tbl_category_lang`
+--
+ALTER TABLE `tbl_category_lang`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `lang_pid` (`type`,`lang`,`parent_id`);
+
+ALTER TABLE `tbl_category_lang`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+
+
+--
+-- 資料表結構 `tbl_menu_lang`
+--
+
+CREATE TABLE `tbl_menu_lang` (
+  `id` int(11) NOT NULL,
+  `lang` varchar(5) NOT NULL DEFAULT 'tw',
+  `type` enum('Ancestor','Draft','Backup') NOT NULL DEFAULT 'Ancestor',
+  `parent_id` int(11) NOT NULL,
+  `title` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
+  `last_ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_user` int(11) DEFAULT NULL,
+  `insert_ts` timestamp NULL DEFAULT NULL,
+  `insert_user` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
+--
+-- 資料表索引 `tbl_menu_lang`
+--
+ALTER TABLE `tbl_menu_lang`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `lang_pid` (`type`,`lang`,`parent_id`);
+
+ALTER TABLE `tbl_menu_lang`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+--
+-- 資料表結構 `tbl_post_lang`
+--
+
+CREATE TABLE `tbl_post_lang` (
+  `id` int(11) NOT NULL,
+  `type` enum('Ancestor','Draft','Backup') NOT NULL DEFAULT 'Ancestor',
+  `lang` varchar(5) NOT NULL DEFAULT 'tw',
+  `parent_id` int(11) NOT NULL,
+  `title` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
+  `content` text CHARACTER SET utf8,
+  `last_ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_user` int(11) DEFAULT NULL,
+  `insert_ts` timestamp NULL DEFAULT NULL,
+  `insert_user` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
+--
+-- 資料表索引 `tbl_post_lang`
+--
+ALTER TABLE `tbl_post_lang`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `lang_pid` (`type`,`lang`,`parent_id`);
+
+ALTER TABLE `tbl_post_lang`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+
+--
+-- 資料表結構 `tbl_press_lang`
+--
+
+CREATE TABLE `tbl_press_lang` (
+  `id` int(11) NOT NULL,
+  `type` enum('Ancestor','Draft','Backup') NOT NULL DEFAULT 'Ancestor',
+  `lang` varchar(5) NOT NULL DEFAULT 'tw',
+  `parent_id` int(11) DEFAULT NULL,
+  `title` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
+  `location` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
+  `info` varchar(255) CHARACTER SET utf8 DEFAULT NULL,
+  `content` text CHARACTER SET utf8,
+  `last_ts` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  `last_user` int(11) DEFAULT NULL,
+  `insert_ts` timestamp NULL DEFAULT NULL,
+  `insert_user` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=latin1;
+
+
+--
+-- 資料表索引 `tbl_press_lang`
+--
+ALTER TABLE `tbl_press_lang`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `lang_pid` (`type`,`lang`,`parent_id`);
+
+ALTER TABLE `tbl_press_lang`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1;
+

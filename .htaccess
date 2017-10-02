@@ -1,3 +1,14 @@
+
+<files .htaccess>
+    order allow,deny
+    deny from all
+</files>
+
+<files *.ini>
+    order allow,deny
+    deny from all
+</files>
+
 <IfModule mod_rewrite.c>
     RewriteEngine On
     RewriteCond %{REQUEST_FILENAME} !-f

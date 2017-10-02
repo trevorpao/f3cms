@@ -1,0 +1,24 @@
+{
+  "name": "frontend",
+  "private": true,
+  "dependencies": {
+    "bootstrap": "~4.0.0-alpha.6",
+    "modernizr": "~2.8.1",
+    "jquery-ui": "^1.12.1",
+    "gene-event-handler": "*",
+    "jsrender": "^0.9.84",
+    "octicons": "^6.0.1"
+  },
+  "overrides": {
+    "bootstrap": {
+      "main": [
+        "scss/bootstrap.scss",
+        "dist/js/bootstrap.js"
+      ]
+    }
+  },
+  "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^3.5.3"
+  }
+}
