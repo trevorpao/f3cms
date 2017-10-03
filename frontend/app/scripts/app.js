@@ -24,7 +24,7 @@ var app = function() {
 
         tmplStores: {},
         htmlStores: {},
-        tmplPath: '/../tmpls',
+        tmplPath: 'tmpls',
 
         errMsg: {
             'e9100': '資料庫發生錯誤',
@@ -182,7 +182,7 @@ var app = function() {
 
         redirect: function(state){
             if (!app.route) {
-                window.location.hash = state.ta;
+                window.location.hash = state.path;
             }
             else {
                 window.history.pushState(state, '', state.path);

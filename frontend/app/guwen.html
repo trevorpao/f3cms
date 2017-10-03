@@ -26,32 +26,13 @@
     <!--[if IE]>
       <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">狩野分析工具</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
-          <li class="nav-item active">
-            <a class="nav-link gee" href="javascript: ;" data-gene="click:loadMain" data-src="kano/edit-project">Create <span class="sr-only">(current)</span></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link gee" href="javascript: ;" data-gene="click:loadMain" data-src="kano/projects">List</a>
-          </li>
-        </ul>
-      </div>
-    </nav>
     <!-- Begin page content -->
     <div class="container-fluid">
-        <section class="row-section">
-            <div class="container">
-                <div class="col-md-10 mx-auto row-block" id="main-box">
+        <div class="container">
+            <div class="col-md-10 mx-auto row-block gee" id="main-box" data-gene="init:loadMain" data-src="guwen/single">
 
-                </div>
             </div>
-        </section>
+        </div>
     </div>
     <footer class="footer">
         <div class="container">
@@ -60,7 +41,7 @@
     </footer>
     <script>
     // put
-    window.mainUrl = (location.pathname+'').replace('kano.html', '');
+    window.mainUrl = (location.pathname+'').replace('guwen.html', '');
     window.apiUrl = window.mainUrl + 'api';
     </script>
     <!-- build:js scripts/vendor.js -->
@@ -93,9 +74,9 @@
     <script src="scripts/tw2cn.js"></script>
     <script src="scripts/app.js"></script>
     <!-- endbuild -->
-    <!-- build:js scripts/kano.js -->
+    <!-- build:js scripts/guwen.js -->
     <script src="scripts/modules/arena.js"></script>
-    <script src="scripts/modules/kano.js"></script>
+    <script src="scripts/modules/guwen.js"></script>
     <script src="scripts/modules/track.js"></script>
     <!-- endbuild -->
     <!-- build:js scripts/init.js -->

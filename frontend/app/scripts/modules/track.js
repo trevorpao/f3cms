@@ -1,5 +1,5 @@
 ;(function(app, gee, $){
-    "use strict";
+    'use strict';
 
     // how to use
     // <a class="track" href="linkhere" data-cate="my_cate" data-act="my_act">link txt</a>

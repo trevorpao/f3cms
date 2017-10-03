@@ -1,5 +1,3 @@
-
-
 .row-section {
     width: 100%;
 }
@@ -89,35 +87,90 @@
     background-color: rgb(50, 118, 177);
     border-color: rgb(40, 94, 142);
 }
+
 .input-group-addon.success {
     color: rgb(255, 255, 255);
     background-color: rgb(92, 184, 92);
     border-color: rgb(76, 174, 76);
 }
+
 .input-group-addon.info {
     color: rgb(255, 255, 255);
     background-color: rgb(57, 179, 215);
     border-color: rgb(38, 154, 188);
 }
+
 .input-group-addon.warning {
     color: rgb(255, 255, 255);
     background-color: rgb(240, 173, 78);
     border-color: rgb(238, 162, 54);
 }
+
 .input-group-addon.danger {
     color: rgb(255, 255, 255);
     background-color: rgb(217, 83, 79);
     border-color: rgb(212, 63, 58);
 }
+
 textarea {
     height: 12vh;
 }
+
 .issue-btn {
     position: absolute;
     right: -30px;
     bottom: 190px;
     color: #fff;
 }
+
 .issue-btn:hover {
     color: #fff;
+}
+
+
+/* GuWen */
+
+.tbrl {
+    overflow-x: scroll;
+    overflow-y: hidden;
+    width: 100%;
+    height: 90vh;
+    -ms-writing-mode: tb-rl;
+    -webkit-writing-mode: vertical-rl;
+    writing-mode: vertical-rl;
+    position: relative;
+    padding: 15px;
+    text-indent: 2rem;
+}
+
+.lineh2 {
+    line-height: 2rem;
+    font-size: 1rem;
+}
+
+.lineh3 {
+    line-height: 3rem;
+    font-size: 1.2rem;
+}
+
+.tbrl.list-group {
+    text-indent: 1rem;
+}
+
+.tbrl .list-group-item {
+    border-bottom: none;
+    border-top: none;
+    border-left: none;
+}
+
+.tbrl .list-group-item:first-child {
+    border-right: none;
+}
+
+mark {
+    background-color: yellow;
+}
+
+mark.red {
+    background-color: red;
 }

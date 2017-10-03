@@ -36,6 +36,11 @@ gulp.task('scripts', () => {
     .pipe(reload({stream: true}));
 });
 
+gulp.task('tmpls', () => {
+  return gulp.src('app/tmpls/**/*.html')
+    .pipe($.if(dev, gulp.dest('.tmp/tmpls'), gulp.dest('dist/tmpls')));
+});
+
 function lint(files) {
   return gulp.src(files)
     .pipe($.eslint({ fix: true }))
@@ -167,7 +172,7 @@ gulp.task('wiredep', () => {
     .pipe(gulp.dest('app'));
 });
 
-gulp.task('build', ['lint', 'html', 'images', 'fonts', 'extras'], () => {
+gulp.task('build', ['lint', 'html', 'images', 'fonts', 'tmpls', 'extras'], () => {
   return gulp.src('dist/**/*').pipe($.size({title: 'build', gzip: true}));
 });
 
