@@ -74,9 +74,9 @@
     });
 
     gee.hook('loadMain', function(me) {
-        var type = me.data('type');
+        var src = me.data('src');
 
-        app.loadHtml(type, 'main-box', 1);
+        app.loadHtml(src, 'main-box', 1);
     });
 
     gee.hook('loadBox', function(me) {

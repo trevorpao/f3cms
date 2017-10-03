@@ -5,6 +5,6 @@
 $(function() {
     'use strict';
 
-    app.init(['arena', 'kano', 'track']);
+    app.init(['arena', 'track']);
 
 });

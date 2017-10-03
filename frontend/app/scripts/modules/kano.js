@@ -3,23 +3,14 @@
 
     // register a module name
     app.kano = {
+        box: null,
         issues: [],
 
         init: function () {
-            app.loadHtml('kano/edit-project', 'main-box');
-
-            app.waitFor(function () {
-                return $('#sortable').length;
-            }).then(function () {
-                $('#sortable').sortable();
-                $('#sortable').disableSelection();
-
-                app.kano.render();
-            });
         },
 
         render: function () {
-            app.renderBox($('#sortable') , {'data': app.kano.issues}, 1);
+            app.renderBox(app.kano.box , {'data': app.kano.issues}, 1);
         }
     };
 
@@ -35,6 +26,19 @@
         }
         else {
             alert('題目及描述為必填');
+        }
+    });
+
+    gee.hook('initKano', function (me) {
+        var type = me.data('type');
+        switch(type){
+            case 'editor':
+            app.kano.box = $('#issue-list');
+            app.kano.box.sortable();
+            app.kano.box.disableSelection();
+            // gee.clog(app.kano.box);
+            // app.kano.render();
+            break;
         }
     });
 
