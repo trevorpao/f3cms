@@ -134,23 +134,24 @@ textarea {
     overflow-x: scroll;
     overflow-y: hidden;
     width: 100%;
-    height: 90vh;
+    height: 82vh;
     -ms-writing-mode: tb-rl;
     -webkit-writing-mode: vertical-rl;
     writing-mode: vertical-rl;
     position: relative;
     padding: 15px;
     text-indent: 2rem;
+    letter-spacing: 0.4rem;
 }
 
 .lineh2 {
     line-height: 2rem;
-    font-size: 1rem;
+    font-size: 1.2rem;
 }
 
 .lineh3 {
     line-height: 3rem;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
 }
 
 .tbrl.list-group {
@@ -173,4 +174,132 @@ mark {
 
 mark.red {
     background-color: red;
+}
+
+.fixed-footer {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    z-index: 1030;
+}
+
+.fixed-top {
+    position: fixed;
+    top: 0;
+    right: 0;
+    left: 0;
+    z-index: 1030;
+}
+
+#artilce {
+    overflow: hidden;
+}
+
+#article .post-fontsize,
+#article .post-charset {
+    float: right;
+    color: #6f6f6f;
+    height: 45px;
+    font-size: 14px;
+}
+
+#article .post-charset {
+    margin-right: 30px;
+}
+
+#article .post-charset a,
+#article .post-fontsize a {
+    text-decoration: none;
+    padding: 2px 8px;
+    color: #6f6f6f;
+    height: 45px;
+    font-size: 18px;
+}
+
+#article .post-charset a.focus,
+#article .post-fontsize a:hover {
+    background-color: #ddd;
+    color: #fff;
+    border-radius: 0px
+}
+
+#article .post-fontsize,
+#article .post-fontsize .sup {
+    vertical-align: super;
+}
+
+#article .post-fontsize .font-bg {
+    background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/PjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDU5MS44MDQgNTkxLjgwNCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNTkxLjgwNCA1OTEuODA0OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PGc+PGc+PHBhdGggZD0iTTU4MS41NDEsMjg1LjZoLTcxLjR2LTcxLjRjMC01LjcxMi00LjQ4OC0xMC4yLTEwLjItMTAuMnMtMTAuMiw0LjQ4OC0xMC4yLDEwLjJ2NzEuNGgtNzEuNGMtNS43MTIsMC0xMC4yLDQuNDg4LTEwLjIsMTAuMnM0LjQ4OCwxMC4yLDEwLjIsMTAuMmg3MS40djcxLjRjMCw1LjcxMiw0LjQ4OCwxMC4yLDEwLjIsMTAuMnMxMC4yLTQuNDg4LDEwLjItMTAuMlYzMDZoNzEuNGM1LjcxMiwwLDEwLjItNC40ODgsMTAuMi0xMC4yUzU4Ny4wNDksMjg1LjYsNTgxLjU0MSwyODUuNnoiLz48cGF0aCBkPSJNMjQ0LjEyNSw2LjMyNEMyNDIuNjk3LDIuNDQ4LDIzOC44MjEsMCwyMzQuNzQxLDBjLTQuMDgsMC03Ljk1NiwyLjY1Mi05LjU4OCw2LjUyOGwtMjI0LjQsNTcxLjJjLTIuMDQsNS4zMDQsMC42MTIsMTEuMjIsNS43MTIsMTMuMjZjNS4zMDQsMi4wNCwxMS4yMi0wLjYxMiwxMy4yNi01LjcxMmw3Ny41Mi0xOTcuNDcyaDI3NC41ODRsNzcuNTIsMTk3LjQ3MmMxLjYzMiw0LjA4LDUuNTA4LDYuNTI4LDkuNTg4LDYuNTI4YzEuMjI0LDAsMi40NDgtMC4yMDQsMy42NzItMC42MTJjNS4zMDQtMi4wNCw3Ljc1Mi03Ljk1Niw1LjcxMi0xMy4yNkwyNDQuMTI1LDYuMzI0eiBNMTA1LjQwNSwzNjcuMkwyMzQuNzQxLDM3Ljk0NEwzNjQuMDc3LDM2Ny4ySDEwNS40MDV6Ii8+PHBhdGggZD0iTTIzMC4wNDksMTEyLjJsLTg3LjEwOCwyMjEuNTQ0Yy0xLjAyLDIuNjUyLDAuMjA0LDUuNTA4LDIuODU2LDYuNTI4YzAuNjEyLDAuMjA0LDEuMjI0LDAuNDA4LDEuODM2LDAuNDA4YzIuMDQsMCwzLjg3Ni0xLjIyNCw0LjY5Mi0zLjI2NGw4Ny4xMDgtMjIxLjU0NGMxLjAyLTIuNjUyLTAuMjA0LTUuNTA4LTIuODU2LTYuNTI4QzIzMy45MjUsMTA4LjEyLDIzMS4wNjksMTA5LjU0OCwyMzAuMDQ5LDExMi4yeiIvPjxwYXRoIGQ9Ik0xMTYuODI5LDQxNC4xMmMtMi42NTItMS4wMi01LjUwOCwwLjIwNC02LjUyOCwyLjg1Nkw0Ni40NDksNTc5LjM2Yy0xLjAyLDIuNjUyLDAuMjA0LDUuNTA4LDIuODU2LDYuNTI4YzAuNjEyLDAuMjA0LDEuMjI0LDAuNDA4LDEuODM2LDAuNDA4YzIuMDQsMCwzLjg3Ni0xLjIyNCw0LjY5Mi0zLjI2NGw2My44NTItMTYyLjM4NEMxMjAuNzA1LDQxOC4yLDExOS4yNzcsNDE1LjE0LDExNi44MjksNDE0LjEyeiIvPjwvZz48L2c+PGc+PC9nPjxnPjwvZz48Zz48L2c+PGc+PC9nPjxnPjwvZz48Zz48L2c+PGc+PC9nPjxnPjwvZz48Zz48L2c+PGc+PC9nPjxnPjwvZz48Zz48L2c+PGc+PC9nPjxnPjwvZz48Zz48L2c+PC9zdmc+);
+    background-repeat: no-repeat;
+    width: 28px;
+    height: 28px;
+    display: inline-block;
+}
+
+#article .post-fontsize .font-sm {
+    background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iaXNvLTg4NTktMSI/PjxzdmcgdmVyc2lvbj0iMS4xIiBpZD0iQ2FwYV8xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4PSIwcHgiIHk9IjBweCIgdmlld0JveD0iMCAwIDU5MS44MDQgNTkxLjgwNCIgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgNTkxLjgwNCA1OTEuODA0OyIgeG1sOnNwYWNlPSJwcmVzZXJ2ZSI+PGc+PGc+PHBhdGggZD0iTTU4MS41NDEsMjg1LjZoLTE2My4yYy01LjcxMiwwLTEwLjIsNC40ODgtMTAuMiwxMC4yczQuNDg4LDEwLjIsMTAuMiwxMC4yaDE2My4yYzUuNzEyLDAsMTAuMi00LjQ4OCwxMC4yLTEwLjJTNTg3LjA0OSwyODUuNiw1ODEuNTQxLDI4NS42eiIvPjxwYXRoIGQ9Ik0yNDQuMTI1LDYuMzI0QzI0Mi42OTcsMi40NDgsMjM4LjgyMSwwLDIzNC43NDEsMGMtNC4wOCwwLTcuOTU2LDIuNjUyLTkuNTg4LDYuNTI4bC0yMjQuNCw1NzEuMmMtMi4wNCw1LjMwNCwwLjYxMiwxMS4yMiw1LjcxMiwxMy4yNmM1LjMwNCwyLjA0LDExLjIyLTAuNjEyLDEzLjI2LTUuNzEybDc3LjUyLTE5Ny40NzJoMjc0LjU4NGw3Ny41MiwxOTcuNDcyYzEuNjMyLDQuMDgsNS41MDgsNi41MjgsOS41ODgsNi41MjhjMS4yMjQsMCwyLjQ0OC0wLjIwNCwzLjY3Mi0wLjYxMmM1LjMwNC0yLjA0LDcuNzUyLTcuOTU2LDUuNzEyLTEzLjI2TDI0NC4xMjUsNi4zMjR6IE0xMDUuNDA1LDM2Ny4yTDIzNC43NDEsMzcuOTQ0TDM2NC4wNzcsMzY3LjJIMTA1LjQwNXoiLz48cGF0aCBkPSJNMjMwLjA0OSwxMTIuMmwtODcuMTA4LDIyMS41NDRjLTEuMDIsMi42NTIsMC4yMDQsNS41MDgsMi44NTYsNi41MjhjMC42MTIsMC4yMDQsMS4yMjQsMC40MDgsMS44MzYsMC40MDhjMi4wNCwwLDMuODc2LTEuMjI0LDQuNjkyLTMuMjY0bDg3LjEwOC0yMjEuNTQ0YzEuMDItMi42NTItMC4yMDQtNS41MDgtMi44NTYtNi41MjhDMjMzLjkyNSwxMDguMTIsMjMxLjA2OSwxMDkuNTQ4LDIzMC4wNDksMTEyLjJ6Ii8+PHBhdGggZD0iTTExNi44MjksNDE0LjEyYy0yLjY1Mi0xLjAyLTUuNTA4LDAuMjA0LTYuNTI4LDIuODU2TDQ2LjQ0OSw1NzkuMzZjLTEuMDIsMi42NTIsMC4yMDQsNS41MDgsMi44NTYsNi41MjhjMC42MTIsMC4yMDQsMS4yMjQsMC40MDgsMS44MzYsMC40MDhjMi4wNCwwLDMuODc2LTEuMjI0LDQuNjkyLTMuMjY0bDYzLjg1Mi0xNjIuMzg0QzEyMC43MDUsNDE4LjIsMTE5LjI3Nyw0MTUuMTQsMTE2LjgyOSw0MTQuMTJ6Ii8+PC9nPjwvZz48Zz48L2c+PGc+PC9nPjxnPjwvZz48Zz48L2c+PGc+PC9nPjxnPjwvZz48Zz48L2c+PGc+PC9nPjxnPjwvZz48Zz48L2c+PGc+PC9nPjxnPjwvZz48Zz48L2c+PGc+PC9nPjxnPjwvZz48L3N2Zz4=);
+    background-repeat: no-repeat;
+    width: 22px;
+    height: 22px;
+    display: inline-block;
+    margin: 6px 6px 0 0;
+}
+
+@media (min-width: 768px) {
+    .modal-dialog {
+        margin: 90px auto;
+    }
+    .hidden-md {
+        display: none!important;
+    }
+}
+
+@media (max-width: 767px) {
+    .hidden-sm {
+        display: none!important;
+    }
+}
+
+.goTop {
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    width: 40px;
+    height: 40px;
+    z-index: 1000;
+}
+
+.gee,
+.hide,
+.logout .show-af-login,
+.login .show-bf-login,
+.step,
+.line-it-button {
+    display: none;
+}
+
+.ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.mobile .line-it-button {
+    display: inline-block;
+    vertical-align: bottom;
+}
+
+html,
+body,
+h1,
+h1 a,
+h2,
+h2 a,
+div,
+p,
+li,
+a,
+span {
+    font-family: "Open Sans", Helvetica, Arial, "Heiti SC", "Heiti TC", Meiryo, "儷黑 Pro", "LiHei Pro", "微軟正黑體", "Microsoft JhengHei", "標楷體", DFKai-SB, sans-serif;
 }

@@ -1,8 +1,7 @@
 <div class="gee" data-gene="init:initGuwen" data-type="editor">
-    <div class="container">
         <div class="row">
             <div class="col">
-                <ul class="nav nav-tabs mt-3" id="myTab" role="tablist">
+                <ul class="nav nav-tabs mt-2" id="myTab" role="tablist">
                     <li class="nav-item">
                         <a class="nav-link active" data-toggle="tab" href="#guwen" role="tab" aria-controls="guwen">原文</a>
                     </li>
@@ -19,8 +18,17 @@
             </div>
             <div class="w-100"></div>
             <div class="col">
-                <div class="tab-content" id="myTabContent">
-                    <div class="tab-pane fade show active" id="guwen" role="tabpanel" aria-labelledby="guwen-tab">
+                <article class="tab-content" id="article">
+                    <div class="col-4 ml-auto fixed-top pt-2"><div class="post-fontsize">
+                      <a href="javascript:;" class="font-sm gee" data-gene="click:smallerFont"></a>
+                      <a href="javascript:;" class="font-bg gee" data-gene="click:largerFont"></a>
+                    </div>
+                    <!-- <div class="post-charset">
+                      <a href="javascript:;" class="ts-switch gee" data-lang="2" data-gene="click:translatePage">簡</a>
+                      <a href="javascript:;" class="ts-switch gee" data-lang="1" data-gene="click:translatePage">繁</a>
+                    </div> --></div>
+
+                    <div class="tab-pane fade show active text" id="guwen" role="tabpanel" aria-labelledby="guwen-tab">
                         <p class="tbrl lineh3">舜發於
                             <mark><a href="#" data-toggle="tooltip" title="畎，ㄑㄩㄢˇ，田間水溝；畝，田壟；「畎畝」指田間。">畎畝</a></mark>之中，傅說舉於
                             <mark><a href="#" data-toggle="tooltip" title="一種築牆工作，在兩塊牆版中，以杵把土搗實，再填入泥土夯實。">版築</a></mark>之間，膠鬲舉於魚鹽之中，管夷吾舉於
@@ -33,10 +41,10 @@
                             <mark><a href="#" data-toggle="tooltip" title="連詞，如果、若是。">則</a></mark>無法家
                             <mark><a href="#" data-toggle="tooltip" title="音ㄅㄧˋ，通「弼」，輔佐。">拂</a></mark>士，出則無敵國外患者，國恆亡。然後知生於憂患，而死於安樂也。</p>
                     </div>
-                    <div class="tab-pane fade" id="normal" role="tabpanel" aria-labelledby="normal-tab">
+                    <div class="tab-pane fade text" id="normal" role="tabpanel" aria-labelledby="normal-tab">
                         <p class="tbrl lineh2">虞舜本在歷山耕田，而被堯起用，成為天子；傅說本在傅巖替人築牆，而被殷高宗舉用為相；膠鬲本在販賣魚鹽，受到周文王的荐舉，作了紂王的大臣；管夷吾本被囚禁在監獄裡，得到鮑叔牙推荐，被齊桓公舉用為相；孫叔敖避難住在海濱，後被楚莊王舉用為相；百里奚本是市場奴隸，被秦穆公贖回來作了大夫。所以上天將要把重大責任降給這個人的時候，一定要使他的心思意志受到困苦，使他的四肢百骸受到勞累，使他的身體肌膚因飢餓而瘦弱，使他的身家窮困貧乏；在他做事的時候，又使他所作所為受到阻撓；這些遭遇，都是用來激勵他的心志，堅忍他的性情，增加他本來所欠缺的能力。人因為時常犯錯，然後才能改過；因內心常感到重大的困難，思慮受到阻塞不能順暢，然後才能奮發振作；因人家的不滿表現在臉色上，或發出聲音、說出來勸責他，然後才能夠明白通曉。在國內如果沒有守法度的大臣和輔政的賢士，在國外如果沒有敵對的國家或外來的寇患，這樣的國家常常會招致滅亡。由此可知，人在憂患中常能奮發圖強，因而得以生存；若是沉溺於安平逸樂，反而會招致滅亡。</p>
                     </div>
-                    <div class="tab-pane fade" id="sentence" role="tabpanel" aria-labelledby="sentence-tab">
+                    <div class="tab-pane fade text" id="sentence" role="tabpanel" aria-labelledby="sentence-tab">
                             <ul class="tbrl lineh2 list-group">
                                 <li class="list-group-item">舜發於畎畝之中：舜本來在歷山耕田，後來被堯重用，成為天子。發，有「起」之意；畎，ㄑㄩㄢˇ，田間水溝；畝，田壟；「畎畝」指田間。 </li>
                                 <li class="list-group-item">傅說舉於版築之間： 傅說(ㄩㄝˋ)本來在傅巖幫人築牆， 後來被殷高宗舉用為相。 版築，一種築牆工作，在兩塊牆版中， 以杵把土搗實，再填入泥土夯實。 </li>
@@ -63,11 +71,11 @@
                             </ul>
                     </div>
                     <!-- <div class="tab-pane fade" id="words" role="tabpanel" aria-labelledby="words-tab">...</div> -->
-                </div>
+                </article>
             </div>
         </div>
-    </div>
 </div>
+<div class="fixed-footer hidden-md"><img src="images/audio-sample.png" class="img-fluid"></div>
 <div class="tooltip bs-tooltip-top" role="tooltip">
     <div class="arrow"></div>
     <div class="tooltip-inner">
