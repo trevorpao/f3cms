@@ -154,6 +154,12 @@ textarea {
     font-size: 1.4rem;
 }
 
+.lineh3 .comment {
+    line-height: 1.6rem;
+    font-size: 1.2rem;
+    color: #aaa;
+}
+
 .tbrl.list-group {
     text-indent: 1rem;
 }

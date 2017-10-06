@@ -9,7 +9,7 @@
         var type = me.data('type');
 
         $('[data-toggle="tooltip"]').tooltip({placement: 'left'});
-        $('#myTab a:eq(0)').tab('show');
+        $('#myTab a:eq(3)').tab('show');
     });
 
     /**
