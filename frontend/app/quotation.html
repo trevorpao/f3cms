@@ -27,7 +27,7 @@
       <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">時數報價工具</a>
+      <a class="navbar-brand" href="#">報價計算機</a>
       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -35,7 +35,10 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav mr-auto">
           <li class="nav-item active">
-            <a class="nav-link gee" href="javascript: ;" data-gene="click:loadMain" data-src="quotation/create">Create <span class="sr-only">(current)</span></a>
+            <a class="nav-link gee" href="javascript: ;" data-gene="click:loadMain" data-src="quotation/create">依工時 <span class="sr-only">(current)</span></a>
+          </li>
+          <li class="nav-item active">
+            <a class="nav-link gee" href="javascript: ;" data-gene="click:loadMain" data-src="quotation/point">依項目難度</a>
           </li>
         </ul>
       </div>
@@ -44,7 +47,7 @@
     <div class="container-fluid">
         <section class="row-section">
             <div class="container">
-                <div class="col-md-10 mx-auto row-block" id="main-box">
+                <div class="col-md-10 mx-auto row-block gee" id="main-box" data-gene="init:loadMain" data-src="quotation/create">
 
                 </div>
             </div>
@@ -83,7 +86,8 @@
     <script src="/bower_components/bootstrap/js/dist/popover.js"></script>
     <!-- endbuild -->
     <!-- build:js scripts/app.js -->
-    <script src="/bower_components/gene-event-handler/docs/scripts/jquery.gene.min.js"></script>
+    <script src="/bower_components/gene-event-handler/app/scripts/validatr.js"></script>
+    <script src="/bower_components/gene-event-handler/app/scripts/jquery.gene.js"></script>
     <script src="scripts/extend.js"></script>
     <script src="scripts/detect.js"></script>
     <script src="scripts/sprintf.js"></script>

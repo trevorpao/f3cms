@@ -127,9 +127,9 @@ var app = function() {
                 ta.load(gee.mainUri + app.tmplPath + newPath +'.html', success);
             }
             else {
-                $('#'+ ta).html(app.htmlStores['file-'+ src]);
-                if (redirect !== '') {
-                    app.redirect({path: path, ta: redirect});
+                ta.html(app.htmlStores['file-'+ src]);
+                if (redirect === 1) {
+                    app.redirect({path: newPath, ta: ta});
                 }
                 gee.init();
             }
