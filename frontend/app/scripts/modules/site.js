@@ -6,17 +6,17 @@
         init: function () {
 
             if (app.screen === 'mobile') {
-                $(".c-layout-show-filter").show();
-                $(".main-nav").addClass("mobile-on");
+                $('.c-layout-show-filter').show();
+                $('.main-nav').addClass('mobile-on');
             }
             else {
-                $(".main-nav").removeClass("mobile-on");
-                $(".desktop-nav").show();
+                $('.main-nav').removeClass('mobile-on');
+                $('.desktop-nav').show();
             }
 
-            $("#article .text img.fr-fin, #article .text img.fr-dib").each(function() {
+            $('#article .text img.fr-fin, #article .text img.fr-dib').each(function() {
                 var $me = $(this);
-                var imageCaption = $me.attr("alt");
+                var imageCaption = $me.attr('alt');
                 if (imageCaption != '' && imageCaption != 'Image title') {
                     var img = $me.prop('outerHTML');
                     var imgWidth = $me.width();

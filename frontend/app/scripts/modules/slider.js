@@ -23,6 +23,7 @@
             }).on('closed.simplelightbox', function () {
                 app.body.removeClass('hidden-scroll');
             }).simpleLightbox({
+                close: false,
                 disableScroll: false,
                 history: false,
                 loop: false,
