@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/4.4.0/font/octicons.css" integrity="sha256-4y5taf5SyiLyIqR9jL3AoJU216Rb8uBEDuUjBHO9tsQ=" crossorigin="anonymous" />
     <!-- build:css styles/main.css -->
     <link rel="stylesheet" href="styles/main.css">
+    <link rel="stylesheet" href="styles/froala_content_min.css">
     <link rel="stylesheet" href="styles/extend.css">
     <!-- endbuild -->
     <!-- build:js scripts/vendor/modernizr.js -->
@@ -27,28 +28,11 @@
     <!--[if IE]>
       <p class="browserupgrade">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
     <![endif]-->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-      <a class="navbar-brand" href="#">狩野分析工具</a>
-      <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-
-      <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
-          <li class="nav-item active">
-            <a class="nav-link gee" href="javascript: ;" data-gene="click:loadMain" data-src="kano/edit-project">Create <span class="sr-only">(current)</span></a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link gee" href="javascript: ;" data-gene="click:loadMain" data-src="kano/projects">List</a>
-          </li>
-        </ul>
-      </div>
-    </nav>
     <!-- Begin page content -->
     <div class="container-fluid">
         <section class="row-section">
             <div class="container">
-                <div class="col-md-10 mx-auto row-block" id="main-box">
+                <div class="col-md-10 mx-auto row-block gee" id="main-box" data-gene="init:loadMain" data-src="slider/main">
 
                 </div>
             </div>
@@ -61,7 +45,7 @@
     </footer>
     <script>
     // put
-    window.mainUrl = (location.pathname+'').replace('kano.html', '');
+    window.mainUrl = (location.pathname+'').replace('slider.html', '');
     window.apiUrl = window.mainUrl + 'api';
     </script>
     <!-- build:js scripts/vendor.js -->
@@ -97,14 +81,20 @@
     <script src="scripts/tw2cn.js"></script>
     <script src="scripts/app.js"></script>
     <!-- endbuild -->
-    <!-- build:js scripts/kano.js -->
+    <!-- build:js scripts/modules.js -->
     <script src="scripts/modules/arena.js"></script>
-    <script src="scripts/modules/kano.js"></script>
     <script src="scripts/modules/track.js"></script>
+    <script src="scripts/modules/slider.js"></script>
+    <script src="scripts/modules/site.js"></script>
     <!-- endbuild -->
-    <!-- build:js scripts/init.js -->
-    <script src="scripts/init.js"></script>
-    <!-- endbuild -->
+    <script>
+        $(function() {
+            'use strict';
+
+            app.init(['arena', 'track', 'site']);
+
+        });
+    </script>
 </body>
 
 </html>

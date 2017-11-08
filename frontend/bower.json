@@ -7,7 +7,9 @@
     "jquery-ui": "^1.12.1",
     "gene-event-handler": "*",
     "jsrender": "^0.9.84",
-    "octicons": "^6.0.1"
+    "octicons": "^6.0.1",
+    "simplelightbox": "^1.11.1",
+    "Autolinker.js": "^1.6.0"
   },
   "overrides": {
     "bootstrap": {

@@ -1,7 +1,6 @@
 ;(function(app, gee, $){
     'use strict';
 
-    // register a module name
     app.guwen = {
     };
 

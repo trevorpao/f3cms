@@ -113,17 +113,28 @@
         translatePage();
     });
 
-    gee.hook('largerFont', function() {
+    gee.hook('largerFont', function(me) {
+        var taStr = me.data('ta') || '#article .text p, #article .text li';
         app.fontSize = app.fontSize * 1 + 0.1;
         setCookie('fontSize', app.fontSize, 7);
-        $('article .text p, article .text li').css('fontSize', app.fontSize + 'rem');
+        $(taStr).css('fontSize', app.fontSize + 'rem');
     });
 
-    gee.hook('smallerFont', function() {
+    gee.hook('smallerFont', function(me) {
+        var taStr = me.data('ta') || '#article .text p, #article .text li';
         app.fontSize = app.fontSize * 1 - 0.1;
         setCookie('fontSize', app.fontSize, 7);
-        $('article .text p, article .text li').css('fontSize', app.fontSize + 'rem');
+        $(taStr).css('fontSize', app.fontSize + 'rem');
     });
+
+    gee.hook('initAutolink', function(me) {
+        var html = Autolinker.link(me.html(), {
+            stripPrefix: false,
+            truncate: { length: 32, location: 'middle' }
+        });
+
+        me.html(html);
+    }, 'init');
 
     gee.hook('initSwitchery', function(me) {
         new Switchery(me[0], me.data());
