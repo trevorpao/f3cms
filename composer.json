@@ -2,13 +2,14 @@
     "name": "sense-info/f3-cms",
     "version": "0.3.0",
     "require": {
-        "bcosca/fatfree-core": "^3.5",
+        "bcosca/fatfree-core": "^3.6",
         "ikkez/f3-opauth": "dev-master",
         "phpoffice/phpexcel": "^1.8",
         "tecnickcom/tcpdf": "^6.2",
         "mailgun/mailgun-php": "^2.3",
         "php-http/curl-client": "^1.7",
         "guzzlehttp/psr7": "^1.4",
-        "aws/aws-sdk-php": "^3.36"
+        "aws/aws-sdk-php": "^3.36",
+        "intervention/image": "^2.4"
     }
 }

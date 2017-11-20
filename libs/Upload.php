@@ -1,6 +1,8 @@
 <?php
 namespace F3CMS;
 
+use Intervention\Image\ImageManagerStatic as Image;
+
 class Upload extends Helper
 {
 
@@ -8,22 +10,26 @@ class Upload extends Helper
     {
 
         $root = f3()->get('ROOT') . f3()->get('BASE');
-        $path = "/upload/img/".date("Y/m")."/";
+        $path = "/upload/img/".date('Y/m').'/';
 
         if (($files[$column]['size'] >= f3()->get('maxsize')) || ($files[$column]['size'] == 0)) {
-            Reaction::_return("2002", "File too large. File must be less than 2 megabytes.");
+            Reaction::_return('2002', 'File too large. File must be less than 2 megabytes.');
         }
 
-        if (!in_array($files[$column]['type'], f3()->get('photo_acceptable')) && !empty($files["photo"]["type"])) {
-            Reaction::_return("2003", 'Invalid file type. Only JPG, GIF and PNG types are accepted.');
+        if (!in_array($files[$column]['type'], f3()->get('photo_acceptable')) && !empty($files['photo']['type'])) {
+            Reaction::_return('2003', 'Invalid file type. Only JPG, GIF and PNG types are accepted.');
         }
 
         if ($files[$column]['error'] != 0) {
-            Reaction::_return("2004", 'other error.');
+            Reaction::_return('2004', 'other error.');
         }
 
         if (!file_exists($root . $path)) {
-            mkdir($root . $path, 0777, true);
+            mkdir($root . $path, 0775, true);
+        }
+
+        if (!file_exists($root . $path) || !is_writable($root . $path)) {
+            Reaction::_return('2006', 'failed to mkdir.');
         }
 
         $path_parts = pathinfo($files[$column]['name']);
@@ -32,18 +38,53 @@ class Upload extends Helper
 
         $filename = $path . substr(md5(uniqid(microtime(), 1)), 0, 15);
 
-        if (move_uploaded_file($files[$column]['tmp_name'], $root . $filename .".". $ext)) {
-            list($width, $height, $type, $attr) = getimagesize($root . $filename .".". $ext);
+        if (file_exists($files[$column]['tmp_name'])) {
+            Image::configure(array('driver' => 'imagick'));
 
-            $img = new \Image($filename .".". $ext, false, $root);
+            $im = Image::make($files[$column]['tmp_name']);
+            $im->interlace();
 
-            foreach ($thumbnail as $ns) {
-                $img->resize($ns[0], $ns[1], true);
-                file_put_contents($root . $filename ."_".$ns[0]."x".$ns[1].".". $ext, $img->dump());
+            $width = $im->width();
+            $height = $im->height();
+
+            if ($width > 1440) {
+                $im->save($root . $filename .'_ori.'. $ext); // save original img
+
+                // resizing to default size
+                $im->resize(1440, null, function ($constraint) {
+                    $constraint->aspectRatio(); // constraint the current aspect-ratio
+                    $constraint->upsize(); // Keep image from being upsized.
+                });
             }
 
-            $new_fn = $filename .".". $ext;
+            // TODO: watermark
+            // $im->insert('public/watermark.png', 'bottom-right', 10, 10);
+
+            $im->save($root . $filename .'.'. $ext);
+
+            foreach ($thumbnail as $ns) {
+                // cropping and resizing
+                $im->fit($ns[0], $ns[1], function ($constraint) {
+                    $constraint->upsize(); // Keep image from being upsized.
+                }, 'center'); // top-left, top, center
+
+                $im->save($root . $filename .'_'.$ns[0].'x'.$ns[1].'.'. $ext);
+            }
+
+            $new_fn = $filename .'.'. $ext;
         }
+        // if (move_uploaded_file($files[$column]['tmp_name'], $root . $filename .'.'. $ext)) {
+        //     list($width, $height, $type, $attr) = getimagesize($root . $filename .'.'. $ext);
+
+        //     $img = new \Image($filename .'.'. $ext, false, $root);
+
+        //     foreach ($thumbnail as $ns) {
+        //         $img->resize($ns[0], $ns[1], true);
+        //         file_put_contents($root . $filename .'_'.$ns[0].'x'.$ns[1].'.'. $ext, $img->dump());
+        //     }
+
+        //     $new_fn = $filename .'.'. $ext;
+        // }
         else {
             $new_fn = '';
             $width = 0;
