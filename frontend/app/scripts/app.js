@@ -56,15 +56,6 @@ var app = function() {
                 $('#sidebar-menu').find('[data-type="'+ pathArray[1] +'"]').trigger('click');
             }
 
-            translateInitilization();
-
-            var cufontSize = ( getCookie('fontSize') === null ? app.fontSize : getCookie('fontSize') );
-
-            if (app.fontSize !== cufontSize) {
-                app.fontSize = cufontSize*1;
-                $('article .text p, article .text li').css('fontSize', app.fontSize+'rem');
-            }
-
             if (modules && modules.length > 0) {
                 modules.map(function (module) {
                     if (gee.isset(app[module]) && gee.isset(app[module].init)) {

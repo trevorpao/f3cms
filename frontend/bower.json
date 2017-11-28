@@ -9,7 +9,8 @@
     "jsrender": "^0.9.84",
     "octicons": "^6.0.1",
     "simplelightbox": "^1.11.1",
-    "Autolinker.js": "^1.6.0"
+    "Autolinker.js": "^1.6.0",
+    "localforage": "^1.5.3"
   },
   "overrides": {
     "bootstrap": {

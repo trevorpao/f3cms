@@ -4,6 +4,7 @@
     // register a module name
     app.arena = {
         cuModal: null,
+        feed: null,
         init: function () {
             // app.arena.initSlider($('#slider-range1'));
             app.arena.handler();
@@ -18,6 +19,38 @@
                 });
             }
 
+            localforage.ready().then(function() {
+                app.arena.feed = localforage.createInstance({
+                    name: 'arenaBase',
+                    version: 1
+                });
+                gee.clog('-------------------------- localforage start -----------------------------');
+                app.lang.init();
+                app.arena.initFontSize();
+            }).catch(function (e) {
+                gee.clog(e);
+                app.track.send('failure', 'init_localforage', JSON.stringify(e));
+            });
+        },
+        initFontSize: function () {
+            app.arena.feed.getItem('fontSize', function(err, val){
+                if (err) {
+                    gee.clog('---------------------- localforage err -------------------------');
+                    gee.clog(err);
+                    app.track.send('failure', 'load_localforage', JSON.stringify(err));
+                }
+
+                var cufontSize = app.fontSize;
+
+                if (val) {
+                    cufontSize = val*1;
+                }
+
+                if (app.fontSize !== cufontSize) {
+                    app.fontSize = cufontSize;
+                    $('#article .text p, #article .text li').css('fontSize', app.fontSize+'rem');
+                }
+            });
         },
         handler: function () {
             var currentWindowPosition = $(window).scrollTop();
@@ -107,23 +140,17 @@
         }
     });
 
-    gee.hook('translatePage', function(me) {
-        $('.ts-switch').removeClass('focus');
-        me.addClass('focus');
-        translatePage();
-    });
-
     gee.hook('largerFont', function(me) {
         var taStr = me.data('ta') || '#article .text p, #article .text li';
         app.fontSize = app.fontSize * 1 + 0.1;
-        setCookie('fontSize', app.fontSize, 7);
+        app.arena.feed.setItem('fontSize', app.fontSize).catch( gee.clog );
         $(taStr).css('fontSize', app.fontSize + 'rem');
     });
 
     gee.hook('smallerFont', function(me) {
         var taStr = me.data('ta') || '#article .text p, #article .text li';
         app.fontSize = app.fontSize * 1 - 0.1;
-        setCookie('fontSize', app.fontSize, 7);
+        app.arena.feed.setItem('fontSize', app.fontSize).catch( gee.clog );
         $(taStr).css('fontSize', app.fontSize + 'rem');
     });
 

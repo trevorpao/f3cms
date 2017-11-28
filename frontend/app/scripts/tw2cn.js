@@ -56,6 +56,8 @@ function translatePage()
         targetEncoding = 2;
         // translateButtonObject.innerHTML = msgToTraditionalChinese;
         setCookie( targetEncodingCookie, targetEncoding, 7 );
+        app.arena.feed.setItem('pageJSEndcode', targetEncoding).catch( gee.clog );
+        gee.clog('------------------------------------ pageJSEndcode::'+ targetEncoding);
         translateBody();
     }
     else if( targetEncoding == 2 ) {
@@ -63,6 +65,8 @@ function translatePage()
         targetEncoding = 1;
         // translateButtonObject.innerHTML = msgToSimplifiedChinese;
         setCookie( targetEncodingCookie, targetEncoding, 7 );
+        app.arena.feed.setItem('pageJSEndcode', targetEncoding).catch( gee.clog );
+        gee.clog('------------------------------------ pageJSEndcode::'+ targetEncoding);
         translateBody();
     }
 }
