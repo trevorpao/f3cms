@@ -64,15 +64,15 @@ class Reaction extends Module
         $req = parent::_getReq();
         $feed = parent::_shift(get_called_class(), 'feed');
 
-        if (!isset($req['pid'])) {
+        if (!isset($req['id'])) {
             return self::_return(8004);
         }
 
-        $pid = $feed::save($req);
+        $id = $feed::save($req);
 
         $feed::handleSave($req);
 
-        return self::_return(1, array('pid' => $pid));
+        return self::_return(1, array('id' => $id));
     }
 
     /**
@@ -89,7 +89,7 @@ class Reaction extends Module
 
         $feed::draft($req);
 
-        return self::_return(1, array('pid' => $req['pid']));
+        return self::_return(1, array('id' => $req['id']));
     }
 
     /**
@@ -141,13 +141,13 @@ class Reaction extends Module
         $req = parent::_getReq();
         $feed = parent::_shift(get_called_class(), 'feed');
 
-        if (!isset($req['pid'])) {
+        if (!isset($req['id'])) {
             return self::_return(8004);
         }
 
-        $pid = $feed::save_col($req);
+        $id = $feed::save_col($req);
 
-        return self::_return(1, array('pid' => $pid));
+        return self::_return(1, array('id' => $id));
     }
 
     /**
@@ -164,11 +164,11 @@ class Reaction extends Module
 
         $req = parent::_getReq();
 
-        if (!isset($req['pid'])) {
+        if (!isset($req['id'])) {
             return self::_return(8004);
         }
 
-        $feed::del_row($req['pid']);
+        $feed::del_row($req['id']);
 
         return self::_return(1);
     }
@@ -187,16 +187,16 @@ class Reaction extends Module
 
         $req = parent::_getReq();
 
-        if (!isset($req['pid'])) {
+        if (!isset($req['id'])) {
             return self::_return(8004);
         }
 
-        if ($req['pid'] == 0) {
+        if ($req['id'] == 0) {
             // set default array
             $cu = array('id'=>0, 'title'=>'新增中…', 'status'=>'New');
         }
         else {
-            $cu = $feed::get_row($req['pid']);
+            $cu = $feed::get_row($req['id']);
         }
 
         if (empty($cu)) {

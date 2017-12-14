@@ -52,7 +52,24 @@ class Module
      */
     static function _getReq()
     {
-        return json_decode(f3()->get('BODY'), true);
+        $rtn = array();
+
+        if (f3()->get('isCORS') == 1) {
+            $str = f3()->get('BODY');
+            if (empty($str)) {
+                $str = file_get_contents('php://input');
+            }
+
+            $rtn = json_decode($str, true);
+            if (!(json_last_error() == JSON_ERROR_NONE)) {
+                parse_str($str, $rtn);
+            }
+        }
+        else {
+            $rtn = f3()->get($method);
+        }
+
+        return $rtn;
     }
 
     static function _lang($args = array())

@@ -9,6 +9,8 @@ $f3 = \Base::instance();
 // config
 require './config.php';
 
+setCORS();
+
 if (!is_https() && $f3->get('forceHTTPS') === 1) {
     $redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
     header('HTTP/1.1 301 Moved Permanently');
