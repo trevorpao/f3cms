@@ -32,7 +32,6 @@ class rStaff extends Reaction
 
     function do_login($f3, $args)
     {
-
         $req = parent::_getReq();
 
         if (!isset($req['account'])) {
@@ -50,7 +49,7 @@ class rStaff extends Reaction
         }
 
         if ($cu['pwd'] != fStaff::_setPsw($req['pwd'])) {
-            return parent::_return(8104);
+            return parent::_return(8104, ['get' => fStaff::_setPsw($req['pwd'])]);
         }
 
         if ($cu['status'] != fStaff::ST_VERIFIED) {
@@ -77,9 +76,15 @@ class rStaff extends Reaction
         return parent::_return(!self::_isLogin() , array());
     }
 
-    function do_chk_login($f3, $args)
+    function do_status($f3, $args)
     {
-        return parent::_return(self::_isLogin());
+        $rtn = [
+            'isLogin' => 0
+        ];
+        if (self::_isLogin()) {
+            $rtn['isLogin'] = 1;
+        }
+        return parent::_return(1, $rtn);
     }
 
     static function _isLogin()

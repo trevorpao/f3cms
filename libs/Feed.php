@@ -13,16 +13,16 @@ class Feed extends Module
         $that = get_called_class();
         $obj = $that::map();
 
-        if ($req['pid'] == 0) {
+        if ($req['id'] == 0) {
             $obj->insert_ts = date('Y-m-d H:i:s');
             $obj->insert_user = rStaff::_CStaff('id');
-            $obj->save();
+            // $obj->save();
         }
         else {
-            $obj->load(array('id=?', $req['pid']));
+            $obj->load(array('id=?', $req['id']));
         }
 
-        foreach ($req['data'] as $key => $value) {
+        foreach ($req as $key => $value) {
             if ($that::filterColumn($key)) {
                 switch ($key) {
                     case 'meta':
@@ -52,6 +52,8 @@ class Feed extends Module
                     case 'online_date':
                         $obj->{$key} = date('Y-m-d', strtotime($value) + 7*3600);
                         break;
+                    case 'id':
+                        break;
                     default:
                         $obj->{$key} = (is_array($value)) ? json_encode($value) : $value;
                         break;
@@ -60,9 +62,7 @@ class Feed extends Module
         }
 
         $obj->last_ts = date('Y-m-d H:i:s');
-
         $obj->last_user = rStaff::_CStaff('id');
-
         $obj->save();
 
         return $obj->id;
