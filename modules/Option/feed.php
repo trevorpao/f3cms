@@ -74,6 +74,19 @@ class fOption extends Feed
         return $rows;
     }
 
+    static function limitRows($condition = '', $page = 0, $limit = 10)
+    {
+        $lang = Module::_lang();
+
+        $filter = array();
+
+        $condition = ' WHERE 1 ';
+
+        $sql = 'SELECT id, `group`, loader, status, name, content FROM `' . self::fmTbl() . '` '. $condition .' ORDER BY `group` ASC, `name` ASC ';
+
+        return parent::paginate($sql, $filter, $page, $limit);
+    }
+
     static function getAll()
     {
 

@@ -4,6 +4,21 @@ namespace F3CMS;
 
 class rOption extends Reaction
 {
+
+    function do_list ($f3, $args)
+    {
+        $req = parent::_getReq();
+
+        $req['page'] = ($req['page']) ? $req['page'] : 1;
+
+        $rtn = fOption::limitRows('', ($req['page'] -1), 2);
+
+        foreach ($rtn['subset'] as &$row) {
+        }
+
+        return parent::_return(1, $rtn);
+    }
+
     function do_get_zipcodes($f3, $args)
     {
 
