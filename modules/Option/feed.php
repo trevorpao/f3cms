@@ -74,21 +74,38 @@ class fOption extends Feed
         return $rows;
     }
 
-    static function limitRows($condition = '', $page = 0, $limit = 10)
+    static function genQuery($queryStr = '')
+    {
+        $query = parent::genQuery($queryStr);
+
+        if (array_key_exists('all', $query)) {
+            $query['OR']['name[~]'] = $query['all'];
+            $query['OR']['group[~]'] = $query['all'];
+            unset($query['all']);
+        }
+
+        if (array_key_exists('all[!]', $query)) {
+            $query['AND']['name[!]'] = $query['all[!]'];
+            $query['AND']['group[!]'] = $query['all[!]'];
+            unset($query['all[!]']);
+        }
+
+        if (array_key_exists('all[!~]', $query)) {
+            $query['AND']['name[!~]'] = $query['all[!~]'];
+            $query['AND']['group[!~]'] = $query['all[!~]'];
+            unset($query['all[!~]']);
+        }
+
+        return $query;
+    }
+
+    static function limitRows($query = '', $page = 0, $limit = 10)
     {
         $lang = Module::_lang();
 
-        // $filter = array();
+        $filter = self::genQuery($query);
 
-        // $condition = ' WHERE 1 ';
-
-        // $sql = 'SELECT  FROM `' . self::fmTbl() . '` '. $condition .' ORDER BY `group` ASC, `name` ASC ';
-
-        return ['subset' => mh()->select(self::fmTbl(), ['id', 'group', 'loader', 'status', 'name', 'content'], $condition)];
-
-        // ->query($sql)->fetchAll()];
-
-        // return parent::paginate($sql, $filter, $page, $limit);
+        return parent::paginate(self::fmTbl(), $filter, $page, $limit, ['id', 'group', 'loader', 'status', 'name', 'content']);
     }
 
     static function getAll()

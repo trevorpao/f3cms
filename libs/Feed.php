@@ -298,7 +298,41 @@ class Feed extends Module
         }
     }
 
-    static function paginate($sql, $filter, $page = 0, $limit = 10)
+    static function paginate($tbl, $filter, $page = 0, $limit = 10, $cols = '*')
+    {
+        $total = mh()->count($tbl, $filter);
+
+        $err = mh()->error();
+
+        if (is_array($err) && $err[0] != '00000') {
+            if (f3()->get('DEBUG') === 0) {
+                return null;
+            }
+            else {
+                print_r($err);
+                die;
+            }
+        }
+
+        $count = ceil($total/$limit);
+        $page = max(0, min($page, $count-1));
+
+        $filter['LIMIT'] = [($page * $limit), $limit];
+
+        $result = mh()->select($tbl, $cols, $filter);
+
+        return array(
+            'subset' => $result,
+            'total'  => $total,
+            'limit'  => $limit,
+            'count'  => $count,
+            'pos'    => (($page < $count) ? $page : 0),
+            'filter' => $filter,
+            'sql'    => mh()->last()
+        );
+    }
+
+    static function paginate_old($sql, $filter, $page = 0, $limit = 10)
     {
         $stmt = db()->prepare($sql);
 
@@ -329,6 +363,51 @@ class Feed extends Module
             'count'  => $count,
             'pos'    => (($page < $count) ? $page : 0)
         );
+    }
+
+    static function genQuery($queryStr = '')
+    {
+        $arr = explode(',', $queryStr);
+
+        $query = array();
+
+        foreach ($arr as $val) {
+            if (!empty($val)) {
+                if (strpos($val, '<>') !== false) {
+                    list($k, $v) = explode('<>', $val);
+                    $k = (empty($k)) ? 'all' : $k;
+                    $query[$k .'[<>]'] = explode('|', $v);
+                } else if (strpos($val, '>') !== false) {
+                    list($k, $v) = explode('>', $val);
+                    $k = (empty($k)) ? 'all' : $k;
+                    $query[$k .'[>]'] = $v;
+                } else if (strpos($val, '<') !== false) {
+                    list($k, $v) = explode('<', $val);
+                    $k = (empty($k)) ? 'all' : $k;
+                    $query[$k .'[<]'] = $v;
+                } else if (strpos($val, '!~') !== false) {
+                    list($k, $v) = explode('!~', $val);
+                    $k = (empty($k)) ? 'all' : $k;
+                    $query[$k .'[!~]'] = $v;
+                } else if (strpos($val, '!') !== false) {
+                    list($k, $v) = explode('!', $val);
+                    $k = (empty($k)) ? 'all' : $k;
+                    $query[$k .'[!]'] = $v;
+                } else if (strpos($val, '~') !== false) {
+                    list($k, $v) = explode('~', $val);
+                    $k = (empty($k)) ? 'all' : $k;
+                    $query[$k .'[~]'] = $v;
+                } else if (strpos($val, ':') !== false) {
+                    list($k, $v) = explode(':', $val);
+                    $k = (empty($k)) ? 'all' : $k;
+                    $query[$k] = $v;
+                } else {
+                    $query['all'] = $val;
+                }
+            }
+        }
+
+        return $query;
     }
 
     /**

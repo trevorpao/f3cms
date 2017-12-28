@@ -11,40 +11,12 @@ class rOption extends Reaction
 
         $req['page'] = ($req['page']) ? ($req['page'] -1) : 1;
 
-        $req['query'] = explode(',', $req['query']);
-
-        $query = array();
-
-        // TODO: handle ALL, start from !,~
-
-        foreach ($req['query'] as $val) {
-            if (!empty($val)) {
-                if (strpos($val, '<>')) {
-                    list($k, $v) = explode('<>', $val);
-                    $query[$k .'[<>]'] = explode('|', $v);
-                } else if (strpos($val, '>')) {
-                    list($k, $v) = explode('>', $val);
-                    $query[$k .'[>]'] = $v;
-                } else if (strpos($val, '<')) {
-                    list($k, $v) = explode('<', $val);
-                    $query[$k .'[<]'] = $v;
-                } else if (strpos($val, '!')) {
-                    list($k, $v) = explode('!', $val);
-                    $query[$k .'[!]'] = $v;
-                } else if (strpos($val, '~')) {
-                    list($k, $v) = explode('~', $val);
-                    $query[$k .'[~]'] = $v;
-                } else {
-                    list($k, $v) = explode(':', $val);
-                    $query[$k] = $v;
-                }
-            }
-        }
-
-        $rtn = fOption::limitRows($query, $req['page'], 10);
+        $rtn = fOption::limitRows($req['query'], $req['page'], 2);
 
         foreach ($rtn['subset'] as &$row) {
         }
+
+        $rtn['query'] = $query;
 
         return parent::_return(1, $rtn);
     }
