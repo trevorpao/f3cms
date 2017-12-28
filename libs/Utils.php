@@ -13,6 +13,21 @@ function db() {
     return f3()->get('DB');
 }
 
+/**
+ * get db instance
+ * @return db obj
+ */
+function mh()
+{
+    if (!f3()->exists('MH')) {
+        $mh = \F3CMS\MHelper::init();
+        f3()->set('MH', $mh);
+    }
+
+    return f3()->get('MH');
+}
+
+
 function tpf() {
     return f3()->get('tpf');
 }

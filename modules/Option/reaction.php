@@ -9,9 +9,39 @@ class rOption extends Reaction
     {
         $req = parent::_getReq();
 
-        $req['page'] = ($req['page']) ? $req['page'] : 1;
+        $req['page'] = ($req['page']) ? ($req['page'] -1) : 1;
 
-        $rtn = fOption::limitRows('', ($req['page'] -1), 2);
+        $req['query'] = explode(',', $req['query']);
+
+        $query = array();
+
+        // TODO: handle ALL, start from !,~
+
+        foreach ($req['query'] as $val) {
+            if (!empty($val)) {
+                if (strpos($val, '<>')) {
+                    list($k, $v) = explode('<>', $val);
+                    $query[$k .'[<>]'] = explode('|', $v);
+                } else if (strpos($val, '>')) {
+                    list($k, $v) = explode('>', $val);
+                    $query[$k .'[>]'] = $v;
+                } else if (strpos($val, '<')) {
+                    list($k, $v) = explode('<', $val);
+                    $query[$k .'[<]'] = $v;
+                } else if (strpos($val, '!')) {
+                    list($k, $v) = explode('!', $val);
+                    $query[$k .'[!]'] = $v;
+                } else if (strpos($val, '~')) {
+                    list($k, $v) = explode('~', $val);
+                    $query[$k .'[~]'] = $v;
+                } else {
+                    list($k, $v) = explode(':', $val);
+                    $query[$k] = $v;
+                }
+            }
+        }
+
+        $rtn = fOption::limitRows($query, $req['page'], 10);
 
         foreach ($rtn['subset'] as &$row) {
         }

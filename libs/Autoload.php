@@ -54,11 +54,10 @@ class F3CMS_Autoloader
             $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
         }
 
-        list($type, $className) = preg_split("/(?<=[rfo])(?=[A-Z])/", $className);
+        list($type, $moduleName) = preg_split("/(?<=[rfo])(?=[A-Z])/", $className);
 
-        if ($className !== null) {
-
-            $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . DIRECTORY_SEPARATOR . self::getType()[$type] . '.php';
+        if ($moduleName !== null) {
+            $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $moduleName) . DIRECTORY_SEPARATOR . self::getType()[$type] . '.php';
 
             $fileName  = str_replace('libs', 'modules', __DIR__) . str_replace('F3CMS', '', $fileName);
         }

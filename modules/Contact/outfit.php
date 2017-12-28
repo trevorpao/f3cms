@@ -19,6 +19,11 @@ class oContact extends Outfit
         f3()->set('cu', $cu);
         f3()->set('act_link', 'contact');
 
+        // $tp = \Template::instance();
+        // $content = $tp->render('mail/edm.html');
+
+        // $sent = Sender::sendmail('edm test', $content, '<shuaib25@gmail.com>,<rosalee322@gmail.com>'); //
+
         parent::wrapper('contact.html', $cu['title'], '/contact');
     }
 }

@@ -78,13 +78,17 @@ class fOption extends Feed
     {
         $lang = Module::_lang();
 
-        $filter = array();
+        // $filter = array();
 
-        $condition = ' WHERE 1 ';
+        // $condition = ' WHERE 1 ';
 
-        $sql = 'SELECT id, `group`, loader, status, name, content FROM `' . self::fmTbl() . '` '. $condition .' ORDER BY `group` ASC, `name` ASC ';
+        // $sql = 'SELECT  FROM `' . self::fmTbl() . '` '. $condition .' ORDER BY `group` ASC, `name` ASC ';
 
-        return parent::paginate($sql, $filter, $page, $limit);
+        return ['subset' => mh()->select(self::fmTbl(), ['id', 'group', 'loader', 'status', 'name', 'content'], $condition)];
+
+        // ->query($sql)->fetchAll()];
+
+        // return parent::paginate($sql, $filter, $page, $limit);
     }
 
     static function getAll()
