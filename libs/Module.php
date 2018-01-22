@@ -65,12 +65,14 @@ class Module
                 parse_str($str, $rtn);
             }
         }
-        else {
-            $rtn = f3()->get($method);
+
+        if (empty($rtn)) {
+            $rtn = f3()->get('REQUEST');
         }
 
         return $rtn;
     }
+
 
     static function _lang($args = array())
     {

@@ -298,6 +298,17 @@ class Feed extends Module
         }
     }
 
+    static function limitRows($query = '', $page = 0, $limit = 10)
+    {
+        $that = get_called_class();
+
+        $lang = Module::_lang();
+
+        $filter = $that::genQuery($query);
+
+        return self::paginate($that::fmTbl(), $filter, $page, $limit, explode(',', $that::BE_COLS));
+    }
+
     static function paginate($tbl, $filter, $page = 0, $limit = 10, $cols = '*')
     {
         $total = mh()->count($tbl, $filter);

@@ -9,6 +9,8 @@ class fPress extends Feed
     const ST_ON = "Enabled";
     const ST_OFF = "Disabled";
 
+    const BE_COLS = 'id,title,last_ts,pic,status,slug,online_date';
+
     static function getAll()
     {
 

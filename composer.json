@@ -12,6 +12,6 @@
         "aws/aws-sdk-php": "^3.36",
         "intervention/image": "^2.4",
         "maciejczyzewski/bottomline": "^0.0.9",
-        "catfan/Medoo": "^1.4"
+        "catfan/Medoo": "^1.5"
     }
 }

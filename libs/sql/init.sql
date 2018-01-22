@@ -404,7 +404,7 @@ CREATE TABLE `tbl_staff` (
 --
 
 INSERT INTO `tbl_staff` (`id`, `status`, `account`, `pwd`, `last_ts`, `last_user`, `insert_ts`, `insert_user`) VALUES
-(1, 'Verified', 'admin', '55dee4584781bada54e4c1ce9db18a46', '2017-04-02 18:01:05', 1, '2015-08-05 04:41:20', 1);
+(1, 'Verified', 'admin', '81dc9bdb52d04dc20036dbd8313ed055', '2017-04-02 18:01:05', 1, '2015-08-05 04:41:20', 1);
 
 -- --------------------------------------------------------
 

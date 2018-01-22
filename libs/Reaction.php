@@ -49,6 +49,21 @@ class Reaction extends Module
         return self::_return(1, $result);
     }
 
+    public function do_list($f3, $args)
+    {
+        $that = get_called_class();
+        $feed = parent::_shift($that, 'feed');
+        $req = parent::_getReq();
+
+        $req['page'] = ($req['page']) ? ($req['page'] -1) : 1;
+
+        $rtn = $feed::limitRows($req['query'], $req['page']);
+
+        $rtn['query'] = $query;
+
+        return self::_return(1, $rtn);
+    }
+
     /**
      * save whole form for backend
      * @param  object $f3   - $f3
