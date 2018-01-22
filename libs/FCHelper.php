@@ -31,10 +31,13 @@ class FCHelper extends Reaction
      */
     public function do_get($f3, $args)
     {
-        $pass = '';
-        extract(parent::_escape(f3()->get('POST')), EXTR_SKIP);
+        $req = parent::_getReq();
+        extract($req, EXTR_SKIP);
 
-        switch ($name) {
+        switch ($page) {
+            case 'press/list':
+                $this->action = 'api/press/list';
+                break;
             default:
                 $this->action = 'about';
                 break;
@@ -127,7 +130,7 @@ class FCHelper extends Reaction
         . PHP_EOL . self::minify($content) . PHP_EOL . PHP_EOL;
 
         if (!file_exists($filename)) {
-            mkdir(f3()->get('abspath') . 'tmp/cache/'. $this->action, 0770, true);
+            @mkdir(f3()->get('abspath') . 'tmp/cache/'. $this->action, 0770, true);
             touch($filename);
         }
 
@@ -146,7 +149,7 @@ class FCHelper extends Reaction
      */
     protected function getFilename($cacheName)
     {
-        return f3()->get('abspath') . 'tmp/cache/'. $this->action .'/cache.' . $cacheName . '.html';
+        return f3()->get('abspath') . 'tmp/cache/'. $this->action .'/cache.' . str_replace('/', '.', $cacheName) . '.html';
     }
 
     /**
