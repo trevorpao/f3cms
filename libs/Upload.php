@@ -256,4 +256,21 @@ class Upload extends Helper
 
         return $files;
     }
+
+    public static function resizGif($source, $dist, $width = 600, $height = 600)
+    {
+        $imagick = new Imagick($source);
+
+        $imagick = $imagick->coalesceImages();
+        do {
+            $imagick->resizeImage($width, $height, Imagick::FILTER_BOX, 1);
+        } while ($imagick->nextImage());
+
+        $imagick = $imagick->deconstructImages();
+
+        $imagick->writeImages($dist, true);
+
+        $imagick->clear();
+        $imagick->destroy();
+    }
 }

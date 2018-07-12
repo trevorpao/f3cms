@@ -5,20 +5,21 @@ namespace F3CMS;
  */
 class fStaff extends Feed
 {
-    const MTB = "staff";
-    const ST_NEW = "New";
-    const ST_VERIFIED = "Verified";
-    const ST_FREEZE = "Freeze";
+    const MTB = 'staff';
+    const ST_NEW = 'New';
+    const ST_VERIFIED = 'Verified';
+    const ST_FREEZE = 'Freeze';
 
-    static function getAll()
-    {
+    const PV_R = 'use.web.config';
+    const PV_U = 'use.web.config';
+    const PV_D = 'use.web.config';
 
-        $result = db()->exec("SELECT `id`, `status`, `account` FROM `" . self::fmTbl() . "` ");
+    const BE_COLS = 'id,account,status';
 
-        return $result;
-    }
-
-    static function _setPsw($str)
+    /**
+     * @param $str
+     */
+    public static function _setPsw($str)
     {
         return md5($str);
     }
