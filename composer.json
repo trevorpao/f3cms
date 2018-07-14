@@ -1,6 +1,9 @@
 {
     "name": "sense-info/f3-cms",
     "version": "0.3.0",
+    "config": {
+        "vendor-dir": "../vendor"
+    },
     "require": {
         "bcosca/fatfree-core": "^3.6",
         "ikkez/f3-opauth": "dev-master",

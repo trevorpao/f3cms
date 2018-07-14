@@ -1,7 +1,7 @@
 <?php
-$f3->set('AUTOLOAD','./modules/;./libs/;./vendors/;');
+$f3->set('AUTOLOAD','./modules/;./libs/;../vendor/;');
 
-$f3->set('vendors','./vendors/');
+$f3->set('vendors','../vendor/');
 
 $f3->set('LOGS', $f3->get('TEMP').'logs/');
 
