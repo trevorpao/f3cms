@@ -85,26 +85,6 @@ class Reaction extends Module
     }
 
     /**
-     * draft whole form for backend
-     * @param object $f3   - $f3
-     * @param array  $args - uri params
-     */
-    public function do_draft($f3, $args)
-    {
-        $that = get_called_class();
-        $feed = parent::_shift($that, 'feed');
-
-        rStaff::_chkLogin(); // chkAuth($feed::PV_U);
-
-        $req = parent::_getReq();
-        $feed = parent::_shift(get_called_class(), 'feed');
-
-        $feed::draft($req);
-
-        return self::_return(1, array('id' => $req['id']));
-    }
-
-    /**
      * save photo
      * @param object $f3   - $f3
      * @param array  $args - uri params
@@ -168,7 +148,7 @@ class Reaction extends Module
      * @param object $f3   - $f3
      * @param array  $args - uri params
      */
-    public function do_del_row($f3, $args)
+    public function do_del($f3, $args)
     {
         $that = get_called_class();
         $feed = parent::_shift($that, 'feed');
@@ -191,7 +171,7 @@ class Reaction extends Module
      * @param object $f3   - $f3
      * @param array  $args - uri params
      */
-    public function do_get_one($f3, $args)
+    public function do_get($f3, $args)
     {
         $that = get_called_class();
         $feed = parent::_shift($that, 'feed');
@@ -206,7 +186,7 @@ class Reaction extends Module
 
         if ($req['id'] == 0) {
             // set default array
-            $cu = array('id' => 0, 'title' => '新增中…', 'status' => 'New');
+            $cu = array('id' => 0);
         } else {
             $cu = $feed::one($req['id']);
         }
@@ -237,7 +217,7 @@ class Reaction extends Module
             $req['query'] = '';
         }
 
-        $rows = $feed::get_opts($req['query']);
+        $rows = $feed::getOpts($req['query']);
 
         return self::_return(1, $rows);
     }

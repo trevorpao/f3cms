@@ -177,45 +177,6 @@ class Feed extends Module
     }
 
     /**
-     * @param $pid
-     * @param $lang
-     * @param $draft
-     * @return mixed
-     */
-    public static function load_lang($pid, $lang = '', $draft = false)
-    {
-        $that = get_called_class();
-        $rows = array();
-
-        if ($draft == ture) {
-            $type = 'Draft';
-        } else {
-            $type = 'Ancestor';
-        }
-
-        $condition = " WHERE `parent_id` = '" . $pid . "' AND `type` = '" . $type . "' ";
-        $order = ' ORDER BY `id` DESC ';
-
-        if ($lang !== '') {
-            $condition .= " AND `lang` = '" . $lang . "' ";
-            $order .= ' LIMIT 1';
-        }
-
-        $rows = db()->exec('SELECT * FROM `' . $that::fmTbl('lang') . '` ' . $condition . ' ' . $order);
-
-        if (count($rows) != 1) {
-            $langs = array();
-            foreach ($rows as $row) {
-                $langs[$row['lang']] = $row;
-            }
-
-            return $langs;
-        } else {
-            return $rows[0];
-        }
-    }
-
-    /**
      * @param  $pid
      * @param  $key
      * @return mixed
@@ -277,59 +238,6 @@ class Feed extends Module
     }
 
     /**
-     * @param $pid
-     * @param $lang
-     * @param $row
-     * @param $replace
-     * @param false $draft
-     * @return mixed
-     */
-    public static function save_lang($pid, $lang, $row, $replace = false, $draft = false)
-    {
-        $that = get_called_class();
-        $obj = $that::map('lang');
-
-        if ($draft == ture) {
-            $type = 'Draft';
-        } else {
-            $type = 'Ancestor';
-        }
-
-        if ($replace == false) {
-            $obj->insert_ts = date('Y-m-d H:i:s');
-            $obj->insert_user = rStaff::_CStaff('id');
-            $obj->parent_id = $pid;
-            $obj->lang = $lang;
-            $obj->type = $type;
-            $obj->save();
-        } else {
-            $obj->load(array(' `parent_id` = ? AND `type` = ? AND `lang` = ? ', $pid, $type, $lang));
-
-            if ($obj->lang != $lang) {
-                $obj->insert_ts = date('Y-m-d H:i:s');
-                $obj->insert_user = rStaff::_CStaff('id');
-                $obj->parent_id = $pid;
-                $obj->lang = $lang;
-                $obj->type = $type;
-                $obj->save();
-            }
-        }
-
-        $obj->last_ts = date('Y-m-d H:i:s');
-        $obj->last_user = rStaff::_CStaff('id');
-
-        foreach ($row as $key => $value) {
-            if ($that::filterColumn($key) && !in_array($key, array('type', 'lang'))) {
-                $obj->{$key} = $value;
-            }
-        }
-
-        $obj->save();
-
-        return $obj->id;
-    }
-
-    /**
      * @param  $pid
      * @param  $data
      * @param  $replace
@@ -338,7 +246,6 @@ class Feed extends Module
     public static function saveMeta($pid, $data, $replace = false)
     {
         $that = get_called_class();
-        $obj = $that::map('meta');
         $rows = [];
 
         if ($replace) {
@@ -363,29 +270,9 @@ class Feed extends Module
     }
 
     /**
-     * @param  $pid
-     * @param  $status
-     * @return mixed
-     */
-    public static function change_status($pid, $status)
-    {
-        $that = get_called_class();
-        $obj = $that::map();
-
-        $obj->load(array('id=?', $pid));
-
-        $obj->last_ts = date('Y-m-d H:i:s');
-        $obj->status = $status;
-
-        $obj->save();
-
-        return $obj->id;
-    }
-
-    /**
      * @param $query
      */
-    public static function get_opts($query = '', $column = 'title')
+    public static function getOpts($query = '', $column = 'title')
     {
         $that = get_called_class();
         $filter = array('LIMIT' => 100);
@@ -401,7 +288,7 @@ class Feed extends Module
      * delete one row
      * @param int $pid
      */
-    public static function del_row($pid, $sub_table = '')
+    public static function delRow($pid, $sub_table = '')
     {
         $that = get_called_class();
 
@@ -410,39 +297,6 @@ class Feed extends Module
         ));
 
         return $data->rowCount();
-    }
-
-    /**
-     * save one column
-     * @param  array  $req
-     */
-    static function save_col($req)
-    {
-        $that = get_called_class();
-        $obj = $that::map();
-
-        if ($req['pid'] == 0) {
-            $obj->insert_ts = date('Y-m-d H:i:s');
-            $obj->insert_user = rStaff::_CStaff('id') || rMember::_CMember();
-            $obj->save();
-        }
-        else {
-            $obj->load(array('id=?', $req['pid']));
-        }
-
-        $obj->{$req['col_name']} = $req['val'];
-
-        // if ($req['col_name'] == 'pwd') {
-        //     $obj->{$req['col_name']} = $that::_setPsw($req['val']);
-        // }
-
-        $obj->last_ts = date('Y-m-d H:i:s');
-
-        $obj->last_user = rStaff::_CStaff('id') || rMember::_CMember();
-
-        $obj->save();
-
-        return $obj->id;
     }
 
     static function limitRows($query = '', $page = 0, $limit = 10)
@@ -590,6 +444,32 @@ class Feed extends Module
     }
 
     /**
+     * save one column
+     * @param  array  $req
+     */
+    static function saveCol($req, $table = '', $pk = 'id')
+    {
+        $that = get_called_class();
+
+        $security_check = (
+            in_array($req['col'], array_merge(self::default_filtered_column(), $that::filtered_column())) ||
+            $req['col'] == $pk
+        );
+
+        if ($security_check) {
+            return false;
+        }
+
+        $rtn = mh()->update($that::fmTbl($table), [
+            $req['col'] => $req['val']
+        ], [
+            $pk => $req['pid']
+        ]);
+
+        return $rtn->rowCount();
+    }
+
+    /**
      * @param  $req
      * @return int
      */
@@ -610,18 +490,6 @@ class Feed extends Module
     {
         $that = get_called_class();
         return tpf() . $that::MTB . (($sub_table != '') ? '_' . $sub_table : '');
-    }
-
-    /**
-     * set a no [0] array
-     * @param  array $ary - target array
-     * @return array - fixed array
-     */
-    public static function _fixAry(array $ary)
-    {
-        array_unshift($ary, '');
-        unset($ary[0]);
-        return $ary;
     }
 
     public static function chkErr($rtn)
@@ -655,20 +523,5 @@ class Feed extends Module
             $sn .= substr($chars, rand(0, strlen($chars) - 1), 1);
         }
         return $sn;
-    }
-
-    /**
-     * @param  $sub_table
-     * @return mixed
-     */
-    public static function map($sub_table = '')
-    {
-        $that = get_called_class();
-        $row = new \DB\SQL\Mapper(
-            db(),
-            $that::fmTbl($sub_table)
-        );
-
-        return $row;
     }
 }
