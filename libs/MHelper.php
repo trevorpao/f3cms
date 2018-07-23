@@ -13,10 +13,10 @@ class MHelper extends Medoo
         parent::__construct([
             'database_type' => 'mysql',
             'database_name' => f3()->get('db_name'),
-            'server' => 'localhost',
-            'username' => f3()->get('db_account'),
-            'password' => f3()->get('db_password'),
-            'charset' => 'utf8'
+            'server'        => f3()->get('db_host'),
+            'username'      => f3()->get('db_account'),
+            'password'      => f3()->get('db_password'),
+            'charset'       => 'utf8'
         ]);
     }
 

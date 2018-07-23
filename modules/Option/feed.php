@@ -14,16 +14,19 @@ class fOption extends Feed
 
     static function load($group = '', $mode = 'Demand')
     {
-        $sql = 'SELECT `group`, `name`, `content` FROM `' . self::fmTbl() . '`';
-        $condition = ' WHERE `status`=? AND `loader` = ? ';
-        $params = array(self::ST_ON, $mode);
+
+        $filter = [
+            'status' => self::ST_ON,
+            'loader' => $mode,
+        ];
 
         if ($group != '') {
-            $condition .= ' AND `group` = ? ';
-            $params[] = $group;
+            $filter['group'] = $group;
         }
 
-        $rows = db()->exec($sql . $condition, parent::_fixAry($params));
+        $rows = mh()->select(self::fmTbl(), [
+            'group', 'name', 'content'
+        ], $filter);
 
         $options = array();
 
@@ -48,7 +51,7 @@ class fOption extends Feed
     static function get($name)
     {
 
-        $rows = db()->exec("SELECT * FROM `" . self::fmTbl() . "` WHERE `name`=? AND `status`='" . self::ST_ON . "' LIMIT 1 ", $name);
+        $rows = db()->query("SELECT * FROM `" . self::fmTbl() . "` WHERE `name`=? AND `status`='" . self::ST_ON . "' LIMIT 1 ", $name);
 
         if (count($rows) != 1) {
             return null;
@@ -61,7 +64,7 @@ class fOption extends Feed
     static function load_counties()
     {
 
-        $rows = db()->exec("SELECT * FROM `" . tpf() . self::COUNTYTB . "` ORDER BY `id`");
+        $rows = db()->query("SELECT * FROM `" . tpf() . self::COUNTYTB . "` ORDER BY `id`");
 
         return $rows;
     }
@@ -69,7 +72,7 @@ class fOption extends Feed
     static function load_zipcodes($county)
     {
 
-        $rows = db()->exec("SELECT `zipcode`, `town`, CONCAT(`county`, `town`) AS `full_name` FROM `" . tpf() . self::ZIPCODETB . "` WHERE `county`= ? ORDER BY `zipcode`", $county);
+        $rows = db()->query("SELECT `zipcode`, `town`, CONCAT(`county`, `town`) AS `full_name` FROM `" . tpf() . self::ZIPCODETB . "` WHERE `county`= ? ORDER BY `zipcode`", $county);
 
         return $rows;
     }
@@ -106,14 +109,6 @@ class fOption extends Feed
         $filter = self::genQuery($query);
 
         return parent::paginate(self::fmTbl(), $filter, $page, $limit, ['id', 'group', 'loader', 'status', 'name', 'content']);
-    }
-
-    static function getAll()
-    {
-
-        $result = db()->exec("SELECT id, `group`, loader, status, name, content FROM `" . self::fmTbl() . "` ");
-
-        return $result;
     }
 
     static function split($str, $cols = array())

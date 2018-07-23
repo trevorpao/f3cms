@@ -20,8 +20,9 @@ $f3->set('siteBeginDate', 'Mar 31 2099 23:59:00');
 $f3->set('abspath', dirname(__FILE__) . '/');
 
 // db setting
-$f3->set('db','mysql:host=mariadb;port=3306;dbname=');
+$f3->set('db_host','mariadb');
 $f3->set('db_name','target_db');
+$f3->set('db','mysql:host='. $f3->get('db_host') .';port=3306;dbname='. $f3->get('db_name'));
 $f3->set('db_account','root');
 $f3->set('db_password','sPes4uBrEcHUq5qE');
 $f3->set('tpf','tbl_');

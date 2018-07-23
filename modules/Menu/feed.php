@@ -26,14 +26,24 @@ class fMenu extends Feed
      */
     static function get_menus($parent_id = - 1)
     {
+        $lang = Module::_lang();
 
-        $condition = "";
+        $filter = [
+            'ORDER' => ['c.sorter' => 'ASC', 'c.id' => 'ASC'],
+            'cl.lang' => $lang,
+            'pl.lang' => $lang
+        ];
 
         if ($parent_id != - 1) {
-            $condition = " where c.parent_id='" . $parent_id . "' ";
+            $filter['c.parent_id'] = $parent_id;
         }
 
-        $rows = db()->exec("SELECT c.id, c.title, c.uri, c.parent_id, c.summary, p.title AS parent FROM `" . self::fmTbl() . "` c LEFT JOIN `" . self::fmTbl() . "` p ON p.id=c.parent_id " . $condition . " ORDER BY c.sorter, c.id ");
+        $rows = mh()->select(self::fmTbl().'(c)', [
+            '[><]'. self::fmTbl() .'(pl)' => ['c.parent_id' => 'parent_id'],
+            '[><]'. self::fmTbl() .'(cl)' => ['c.id' => 'parent_id'],
+        ], [
+            'c.id', 'cl.title', 'c.uri', 'c.parent_id', 'c.summary', 'pl.title(parent)'
+        ], $filter);
 
         return $rows;
     }

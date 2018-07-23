@@ -18,7 +18,7 @@ if (!is_https() && $f3->get('forceHTTPS') === 1) {
     exit();
 }
 
-$db = new \DB\SQL($f3->get('db').$f3->get('db_name'), $f3->get('db_account'), $f3->get('db_password'));
+$db = new \DB\SQL($f3->get('db'), $f3->get('db_account'), $f3->get('db_password'));
 $f3->set('DB', $db);
 
 $sess = new \DB\SQL\Session($db, 'sessions', true, function ($session) {

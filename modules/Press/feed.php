@@ -152,30 +152,6 @@ class fPress extends Feed
     }
 
     /**
-     * @param $limit
-     * @param $tag
-     * @param array $except
-     * @return mixed
-     */
-    public static function load_homepage_list($limit = 4, $tag = 0, $except = array())
-    {
-        $condition = " WHERE m.`status` = '" . self::ST_PUBLISHED . "' AND m.`on_homepage` = 'Yes' AND m.online_date <= '" . date('Y-m-d') . "' AND m.id NOT IN ('" . implode("', '", $except) . "') ";
-
-        if ($tag !== 0) {
-            $condition .= " AND m.`rel_tag` LIKE '%\"" . $tag . "\"%' ";
-        }
-
-        $result = db()->exec(
-            'SELECT m.`id`, m.`title`, m.`pic`, m.`slug`, m.`info`, m.`online_date`, a.`slug` AS `author_slug`, a.`title` AS `author` FROM `' . self::fmTbl() . '` m '
-
-            . ' LEFT JOIN `' . fAuthor::fmTbl() . '` a ON a.`id` = m.`author_id` '
-            . $condition . '  ORDER BY m.`online_date` DESC, m.`insert_ts` DESC LIMIT ' . $limit
-        );
-
-        return $result;
-    }
-
-    /**
      * get a next press
      *
      * @param  int      $press_id    - current

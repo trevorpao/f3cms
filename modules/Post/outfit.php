@@ -9,13 +9,6 @@ class oPost extends Outfit
 
     function do_home ($f3, $args)
     {
-        f3()->set('presses1', fPress::load_homepage_list(3));
-        $except = array_column(f3()->get('presses1'), 'id');
-        // print_r($except);
-        f3()->set('presses2', fPress::load_homepage_list(3, 2, $except));
-        $except = array_merge($except, array_column(f3()->get('presses2'), 'id'));
-        // print_r($except);
-        f3()->set('presses3', fPress::load_homepage_list(3, 4, $except));
 
         parent::wrapper('home.html', '首頁', '/');
     }
