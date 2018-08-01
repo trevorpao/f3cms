@@ -161,7 +161,7 @@ class Reaction extends Module
             return self::_return(8004);
         }
 
-        $feed::del_row($req['id']);
+        $feed::delRow($req['id']);
 
         return self::_return(1);
     }
@@ -194,6 +194,9 @@ class Reaction extends Module
         if (empty($cu)) {
             return self::_return(8106);
         } else {
+            if ($cu['id'] != 0) {
+                $cu['lang'] = $feed::lotsLang($cu['id']);
+            }
             // handleCurrentRow
             $cu = $that::handleRow($cu);
             return self::_return(1, $cu);

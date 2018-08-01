@@ -9,7 +9,7 @@ class rAdv extends Reaction
 {
     function do_click($f3, $args)
     {
-        $row = fAdv::get_row(f3()->get('GET.id'));
+        $row = fAdv::one(f3()->get('GET.id'));
 
         if ($row == null) {
             f3()->error(404);

@@ -19,7 +19,7 @@ class rStaff extends Reaction
             ));
         }
 
-        $cu = fStaff::get_row($req['pid']);
+        $cu = fStaff::one($req['pid']);
 
         if ($cu == null) {
             return parent::_return(8106);
@@ -42,7 +42,7 @@ class rStaff extends Reaction
             return parent::_return(8103);
         }
 
-        $cu = fStaff::get_row($req['account'], 'account');
+        $cu = fStaff::one($req['account'], 'account');
 
         if ($cu == null) {
             return parent::_return(8106);

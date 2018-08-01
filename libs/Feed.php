@@ -40,7 +40,7 @@ class Feed extends Module
         }
 
         if (isset($other['lang'])) {
-            // TODO: save lang
+            $that::saveLang($req['id'], $other['lang']);
         }
 
         return $rtn;
@@ -112,7 +112,7 @@ class Feed extends Module
                         break;
                     case 'slug':
                         $value = parent::_slugify($value);
-                        $value = str_replace('//', '/', $value);
+                        // $value = str_replace('//', '/', $value);
                         $data[$key] = $value;
                         break;
                     case 'pwd':
@@ -201,6 +201,32 @@ class Feed extends Module
     }
 
     /**
+     * @param  $pid
+     * @return array
+     */
+    public static function lotsLang($pid)
+    {
+        $that = get_called_class();
+
+        $result = mh()->select($that::fmTbl('lang'), '*', ['parent_id' => $pid]);
+        $filter = self::default_filtered_column();
+        $filter[] = 'parent_id';
+        $rows = [];
+
+        foreach ($result as $row) {
+            $rows[$row['lang']] = array_filter(
+                $row,
+                function ($key) use ($filter) {
+                    return !in_array($key, $filter);
+                },
+                ARRAY_FILTER_USE_KEY
+            );
+        }
+
+        return $rows;
+    }
+
+    /**
      * @param  $subTbl
      * @param  $pid
      * @param  array      $rels
@@ -270,6 +296,41 @@ class Feed extends Module
     }
 
     /**
+     * @param  $pid
+     * @param  $data
+     * @param  $replace
+     * @return int
+     */
+    public static function saveLang($pid, $data)
+    {
+        $that = get_called_class();
+
+        foreach ($data as $v) {
+            if (!empty($v[1])) {
+                $filter = [
+                    'parent_id' => $pid,
+                    'lang' => $v[0]
+                ];
+
+                $v[1]['last_ts'] = date('Y-m-d H:i:s');
+                $v[1]['last_user'] = rStaff::_CStaff('id');
+
+                if (mh()->has($that::fmTbl('lang'), $filter)) {
+                    mh()->update($that::fmTbl('lang'), $v[1], $filter);
+                }
+                else {
+                    $v[1]['insert_ts'] = date('Y-m-d H:i:s');
+                    $v[1]['insert_user'] = rStaff::_CStaff('id');
+
+                    mh()->insert($that::fmTbl('lang'), array_merge($v[1], $filter));
+                }
+            }
+        }
+
+        return 1;
+    }
+
+    /**
      * @param $query
      */
     public static function getOpts($query = '', $column = 'title')
@@ -303,11 +364,18 @@ class Feed extends Module
     {
         $that = get_called_class();
 
-        $lang = Module::_lang();
-
         $filter = $that::genQuery($query);
 
-        return self::paginate($that::fmTbl(), $filter, $page, $limit, explode(',', $that::BE_COLS));
+        $filter['l.lang'] = Module::_lang();
+
+        return self::paginate(
+            $that::fmTbl() .'(m)',
+            $filter,
+            $page,
+            $limit,
+            explode(',', $that::BE_COLS),
+            ['[>]'. $that::fmTbl('lang') .'(l)' => ['m.id' => 'parent_id']]
+        );
     }
 
     /**
@@ -342,7 +410,13 @@ class Feed extends Module
      */
     public static function paginate($tbl, $filter, $page = 0, $limit = 10, $cols = '*', $join = null)
     {
-        $total = mh()->count($tbl, $filter);
+
+        if ($join == null) {
+            $total = mh()->count($tbl, $filter);
+        }
+        else {
+            $total = mh()->count($tbl, $join, '*', $filter);
+        }
 
         $err = mh()->error();
 

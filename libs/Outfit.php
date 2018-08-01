@@ -140,6 +140,8 @@ class Outfit extends Module
 
     static function wrapper ($html, $title = "", $slug = "")
     {
+        $lang = Module::_lang();
+
         f3()->set('SESSION.csrf', 'wdfghn'); // f3()->get('sess')->csrf());
 
         f3()->set('canonical', $slug);

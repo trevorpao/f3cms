@@ -14,7 +14,7 @@ class fTag extends Feed
     const PV_U = 'see.other.press';
     const PV_D = 'see.other.press';
 
-    const BE_COLS = 'id,title,slug,counter';
+    const BE_COLS = 'm.id,l.title,m.slug,m.counter';
 
     /**
      * @param $query
@@ -38,8 +38,7 @@ class fTag extends Feed
     public static function handleSave($req)
     {
         if ($req['id'] != 0) {
-            fPress::batchRenew('tag', $req['id']);
-            fCourse::batchRenew('tag', $req['id']);
+            // fPress::batchRenew('tag', $req['id']);
         }
         return 1;
     }

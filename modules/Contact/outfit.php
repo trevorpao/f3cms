@@ -10,7 +10,7 @@ class oContact extends Outfit
     function do_contact ($f3, $args)
     {
 
-        $cu = fPost::get_row('/contact', 'slug', " AND `status`='". fPost::ST_ON ."' ");
+        $cu = fPost::one('contact', 'slug', ['status' => fPost::ST_ON]);
 
         if (empty($cu)) {
             f3()->error(404);

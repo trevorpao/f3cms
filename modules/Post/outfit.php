@@ -68,7 +68,7 @@ class oPost extends Outfit
     function do_show ($f3, $args)
     {
 
-        $row = fPost::get_row('/'. $args['slug'], 'slug', " AND `status`='". fPost::ST_ON ."' ");
+        $row = fPost::one($args['slug'], 'slug', ['status' => fPost::ST_ON]);
 
         if (empty($cu)) {
             f3()->error(404);
@@ -82,14 +82,14 @@ class oPost extends Outfit
 
         f3()->set('nav', rMenu::sort_menus(1, 0 , '', 0));
 
-        parent::wrapper('post.html', $cu['title'], '/post'. $cu['slug']);
+        parent::wrapper('post.html', $cu['title'], '/post/'. $cu['slug']);
     }
 
     function do_preview ($f3, $args)
     {
         rStaff::_chkLogin();
 
-        $cu = fPost::get_row('/'. $args['slug'], 'slug', '', true);
+        $cu = fPost::one($args['slug'], 'slug', [], true);
 
         if (empty($cu)) {
             f3()->error(404);
@@ -113,13 +113,13 @@ class oPost extends Outfit
             array('link'=>'javascript:;', 'title'=>$cu['title'])
         ));
 
-        parent::wrapper($tmpl, $cu['title'], '/post'. $cu['slug']);
+        parent::wrapper($tmpl, $cu['title'], '/post/'. $cu['slug']);
     }
 
     function do_about ($f3, $args)
     {
 
-        $cu = fPost::get_row('/about', 'slug', " AND `status`='". fPost::ST_ON ."' ");
+        $cu = fPost::one('/about', 'slug', ['status' => fPost::ST_ON]);
 
         if (empty($cu)) {
             f3()->error(404);
@@ -138,7 +138,7 @@ class oPost extends Outfit
     function do_privacy ($f3, $args)
     {
 
-        $cu = fPost::get_row('/privacy', 'slug', " AND `status`='". fPost::ST_ON ."' ");
+        $cu = fPost::one('/privacy', 'slug', ['status' => fPost::ST_ON]);
 
         if (empty($cu)) {
             f3()->error(404);
@@ -150,7 +150,7 @@ class oPost extends Outfit
             array('link'=>'javascript:;', 'title'=>$cu['title'])
         ));
 
-        parent::wrapper('post.html', $cu['title'], $cu['slug']);
+        parent::wrapper('post.html', $cu['title'], '/'. $cu['slug']);
     }
 
     function do_comingsoon ($f3, $args)

@@ -31,6 +31,8 @@ $f3->set('uri','http://f3cms.lo:8080' . $f3->get('BASE'));
 
 $f3->set('site_title', 'Demo');
 
+$f3->set('defaultLang', 'tw');
+
 // for Class:Upload
 //thumbnail
 $f3->set('post_thn', [260, 196]);
