@@ -1,4 +1,0 @@
-[submodule "backend"]
-	path = backend
-	url = https://github.com/trevorpao/gene-panel.git
-	branch = f3cms
