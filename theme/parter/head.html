@@ -4,7 +4,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
 
     <!-- Meta -->
-    <base href="{{ @uri }}/">
+    <!-- <base href="{{ @uri }}/"> -->
     <link rel='canonical' href='{{ @uri }}{{ @canonical }}' />
     <meta name="description" content="{{@page.desc}}">
     <meta name="keywords" content="{{@page.keyword}}">
@@ -14,18 +14,15 @@
     <meta property="og:image" content="{{@page.img}}" />
     <meta property="og:description" content="{{@page.desc}}" />
     <!-- Favicons -->
-    <link rel="shortcut icon" href="assets/images/favicon.ico" />
-    <link rel="apple-touch-icon" href="assets/images/apple-touch-icon.png" />
-    <link rel="apple-touch-icon" sizes="72x72" href="assets/images/apple-touch-icon-72x72.png" />
-    <link rel="apple-touch-icon" sizes="114x114" href="assets/images/apple-touch-icon-114x114.png" />
-    <link rel="apple-touch-icon" sizes="144x144" href="assets/images/apple-touch-icon-144x144.png" />
+    <link rel="shortcut icon" href="/assets/images/favicon.ico" />
+    <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/assets/images/apple-touch-icon-72x72.png" />
+    <link rel="apple-touch-icon" sizes="114x114" href="/assets/images/apple-touch-icon-114x114.png" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/assets/images/apple-touch-icon-144x144.png" />
 
-    <!--[if lte IE 8]><script src="assets/js/ie/html5shiv.js"></script><![endif]-->
-    <link rel="stylesheet" href="assets/css/main.css" />
-    <link rel="stylesheet" href="assets/css/froala_content.min.css" />
-    <!--[if lte IE 9]><link rel="stylesheet" href="assets/css/ie9.css" /><![endif]-->
-    <!--[if lte IE 8]><link rel="stylesheet" href="assets/css/ie8.css" /><![endif]-->
-    <script>
-        var baseUri = "{{@uri}}";
-    </script>
+
+    <link rel="stylesheet" href="/assets/styles/vendor.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/octicons/4.4.0/font/octicons.css" integrity="sha256-4y5taf5SyiLyIqR9jL3AoJU216Rb8uBEDuUjBHO9tsQ=" crossorigin="anonymous">
+    <link rel="stylesheet" href="/assets/styles/main.css">
+    <script src="/assets/scripts/head.js"></script>
 </head>

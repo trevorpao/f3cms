@@ -1,51 +1,35 @@
-<header id="header">
-    <h1><a href="{{ @uri }}">F3CMS</a></h1>
-    <nav class="links">
-        <ul>
-            <repeat group="{{ @menus['0']['rows'] }}" value="{{ @menu }}">
-                <li><a href="{{ @uri }}{{ @menu.slug }}">{{ @menu.title }}</a></li>
-            </repeat>
-        </ul>
-    </nav>
-    <nav class="main">
-        <ul>
-            <li class="search">
-                <a class="fa-search" href="#search">Search</a>
-                <form id="search" method="get" action="#">
-                    <input type="text" name="query" placeholder="Search" />
-                </form>
-            </li>
-            <li class="menu">
-                <a class="fa-bars" href="#menu">Menu</a>
-            </li>
-        </ul>
+<header class="">
+    <div class="navbar navbar-default visible-xs fixed-top nav-bg">
+        <button type="button" class="navbar-toggle collapsed pull-right gee" data-gene="click:site/toggleNav">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+        </button>
+        <a href="#home" class="navbar-brand"><img class="site-logo" alt="" src="/assets/images/logo.png">Operon Sample</a>
+    </div>
+    <nav class="sidebar">
+        <div class="navbar-collapse" id="navbar-collapse">
+            <div class="site-header hidden-xs">
+                <a class="site-brand" href="#home" title=""><img class="site-logo" alt="" src="/assets/images/logo.png">Operon Sample</a>
+                <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor.</p>
+            </div>
+            <ul class="nav nav-block">
+                <li><a href="#home" class="gee" data-gene="click:site/closeNav" data-nopde="1" title="">Home</a></li>
+                <li><a href="#about" class="gee" data-gene="click:site/closeNav" data-nopde="1" title="">About</a></li>
+                <li><a href="#services" class="gee" data-gene="click:site/closeNav" data-nopde="1" title="">Services</a></li>
+                <li><a href="#contact" class="gee" data-gene="click:site/closeNav" data-nopde="1" title="">Contact</a></li>
+                <li><a href="#project" class="gee" data-gene="click:site/closeNav" data-nopde="1" title="">Project</a></li>
+                <li><a href="#components" class="gee" data-gene="click:site/closeNav" data-nopde="1" title="">Components</a></li>
+            </ul>
+            <nav class="nav-footer">
+                <p class="nav-footer-social-buttons">
+                    <a class="fa-icon" href="https://www.instagram.com/" title=""><i class="fa fa-instagram"></i></a>
+                    <a class="fa-icon" href="https://dribbble.com/" title=""> <i class="fa fa-dribbble"></i> </a>
+                    <a class="fa-icon" href="https://twitter.com/" title=""> <i class="fa fa-twitter"></i> </a>
+                </p>
+                <p>© <a href="https://github.com/trevorpao/operon" title="Operon Home">Operon Sample</a> | Theme from <a href="http://www.mashup-template.com/" title="Create website with free html template">Mashup Template</a>/<a href="https://www.unsplash.com/" title="Beautiful Free Images">Unsplash</a></p>
+            </nav>
+        </div>
     </nav>
 </header>
-<!-- Menu -->
-<section id="menu">
-    <!-- Search -->
-    <section>
-        <form class="search" method="get" action="#">
-            <input type="text" name="query" placeholder="Search" />
-        </form>
-    </section>
-    <!-- Links -->
-    <section>
-        <ul class="links">
-            <repeat group="{{ @menus['1']['rows'] }}" value="{{ @menu }}">
-                <li>
-                    <a href="{{ @uri }}{{ @menu.slug }}">
-                        <h3>{{ @menu.title }}</h3>
-                        <p>{{ @menu.summary | nl2br }}</p>
-                    </a>
-                </li>
-            </repeat>
-        </ul>
-    </section>
-    <!-- Actions -->
-    <!-- <section>
-        <ul class="actions vertical">
-            <li><a href="#" class="button big fit">Log In</a></li>
-        </ul>
-    </section> -->
-</section>
