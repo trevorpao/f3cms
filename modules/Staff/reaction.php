@@ -83,6 +83,7 @@ class rStaff extends Reaction
         ];
         if (self::_isLogin()) {
             $rtn['isLogin'] = 1;
+            $rtn['user'] = f3()->get('SESSION.cs');
         }
         return parent::_return(1, $rtn);
     }
