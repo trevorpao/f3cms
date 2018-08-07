@@ -10,20 +10,15 @@ class oContact extends Outfit
     function do_contact ($f3, $args)
     {
 
-        $cu = fPost::one('contact', 'slug', ['status' => fPost::ST_ON]);
+        $row = fPost::one('contact', 'slug', ['status' => fPost::ST_ON]);
 
-        if (empty($cu)) {
+        if (empty($row)) {
             f3()->error(404);
         }
 
-        f3()->set('cu', $cu);
-        f3()->set('act_link', 'contact');
+        f3()->set('cu', $row);
+        // f3()->set('social', fOption::load('social'));
 
-        // $tp = \Template::instance();
-        // $content = $tp->render('mail/edm.html');
-
-        // $sent = Sender::sendmail('edm test', $content, '<shuaib25@gmail.com>,<rosalee322@gmail.com>'); //
-
-        parent::wrapper('contact.html', $cu['title'], '/contact');
+        parent::wrapper('contact.html', $row['title'], '/contact');
     }
 }

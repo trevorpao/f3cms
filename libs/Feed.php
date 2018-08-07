@@ -204,23 +204,40 @@ class Feed extends Module
      * @param  $pid
      * @return array
      */
-    public static function lotsLang($pid)
+    public static function lotsLang($pid, $lang = '')
     {
         $that = get_called_class();
+        $filter = ['parent_id' => $pid];
+        if ($lang != '') {
+            $filter['lang'] = $lang;
+        }
 
-        $result = mh()->select($that::fmTbl('lang'), '*', ['parent_id' => $pid]);
+        $result = mh()->select($that::fmTbl('lang'), '*', $filter);
         $filter = self::default_filtered_column();
         $filter[] = 'parent_id';
         $rows = [];
 
-        foreach ($result as $row) {
-            $rows[$row['lang']] = array_filter(
-                $row,
-                function ($key) use ($filter) {
-                    return !in_array($key, $filter);
-                },
-                ARRAY_FILTER_USE_KEY
-            );
+        if (count($result) > 0) {
+            if (count($result) > 1) {
+                foreach ($result as $row) {
+                    $rows[$row['lang']] = array_filter(
+                        $row,
+                        function ($key) use ($filter) {
+                            return !in_array($key, $filter);
+                        },
+                        ARRAY_FILTER_USE_KEY
+                    );
+                }
+            }
+            else {
+                $rows = array_filter(
+                    $result[0],
+                    function ($key) use ($filter) {
+                        return !in_array($key, $filter);
+                    },
+                    ARRAY_FILTER_USE_KEY
+                );
+            }
         }
 
         return $rows;
@@ -396,6 +413,7 @@ class Feed extends Module
         if (empty($data)) {
             return null;
         } else {
+            $data = array_merge($data, $that::lotsLang($data['id'], Module::_lang()));
             return $data;
         }
     }

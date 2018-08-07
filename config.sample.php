@@ -15,9 +15,14 @@ $f3->set('DEBUG', 2);
 
 $f3->set('forceHTTPS', 0);
 
-$f3->set('siteBeginDate', 'Mar 31 2099 23:59:00');
+$f3->set('siteBeginDate', 'Mar 31 2099 23:59:00'); // remove this after online
 
 $f3->set('abspath', dirname(__FILE__) . '/');
+
+$f3->set('fe_version', '180807001');
+
+$f3->set('cache.post', 5);
+$f3->set('cache.press', 5); // 0 : only use published static file
 
 // db setting
 $f3->set('db_host','mariadb');

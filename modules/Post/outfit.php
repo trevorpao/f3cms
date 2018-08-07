@@ -70,87 +70,25 @@ class oPost extends Outfit
 
         $row = fPost::one($args['slug'], 'slug', ['status' => fPost::ST_ON]);
 
-        if (empty($cu)) {
+        if (empty($row)) {
             f3()->error(404);
         }
 
-        f3()->set('cu', $cu);
+        f3()->set('cu', $row);
 
-        f3()->set('bc_ary', array(
-            array('link'=>'javascript:;', 'title'=>$cu['title'])
-        ));
-
-        f3()->set('nav', rMenu::sort_menus(1, 0 , '', 0));
-
-        parent::wrapper('post.html', $cu['title'], '/post/'. $cu['slug']);
-    }
-
-    function do_preview ($f3, $args)
-    {
-        rStaff::_chkLogin();
-
-        $cu = fPost::one($args['slug'], 'slug', [], true);
-
-        if (empty($cu)) {
-            f3()->error(404);
-        }
-
-        f3()->set('cu', $cu);
-
-        switch ($cu['slug']) {
-            case '/about':
-                $tmpl = 'about.html';
-                break;
-            case '/ourservice':
-                $tmpl = 'ourservice.html';
-                break;
-            default:
-                $tmpl = 'post.html';
-                break;
-        }
-
-        f3()->set('bc_ary', array(
-            array('link'=>'javascript:;', 'title'=>$cu['title'])
-        ));
-
-        parent::wrapper($tmpl, $cu['title'], '/post/'. $cu['slug']);
+        parent::wrapper('post.html', $row['title'], '/post/'. $row['slug']);
     }
 
     function do_about ($f3, $args)
     {
-
-        $cu = fPost::one('/about', 'slug', ['status' => fPost::ST_ON]);
-
-        if (empty($cu)) {
-            f3()->error(404);
-        }
-
-        f3()->set('cu', $cu);
-
-        f3()->set('bc_ary', array(
-            array('link'=>'javascript:;', 'title'=>$cu['title'])
-        ));
-        $f3->set('act_link', 'about');
-
-        parent::wrapper('about.html', $cu['title'], '/about');
+        $args['slug'] = 'about';
+        $this->do_show($f3, $args);
     }
 
     function do_privacy ($f3, $args)
     {
-
-        $cu = fPost::one('/privacy', 'slug', ['status' => fPost::ST_ON]);
-
-        if (empty($cu)) {
-            f3()->error(404);
-        }
-
-        f3()->set('cu', $cu);
-
-        f3()->set('bc_ary', array(
-            array('link'=>'javascript:;', 'title'=>$cu['title'])
-        ));
-
-        parent::wrapper('post.html', $cu['title'], '/'. $cu['slug']);
+        $args['slug'] = 'privacy';
+        $this->do_show($f3, $args);
     }
 
     function do_comingsoon ($f3, $args)
@@ -158,10 +96,21 @@ class oPost extends Outfit
         $ts = strtotime($f3->get('siteBeginDate'));
         $now = time();
         if ($now < $ts) {
-            parent::wrapper('comingsoon.html', 'Coming Soon', '/');
+            parent::wrapper('comingsoon.html', 'Coming Soon', '/comingsoon');
         }
         else {
             $f3->reroute('/home');
         }
+    }
+
+    function do_404 ($f3, $args)
+    {
+
+        f3()->set('ERROR', [
+            'code' => '404',
+            'text' => 'Not Found'
+        ]);
+
+        parent::wrapper('error.html', 'Not Found', '/404');
     }
 }

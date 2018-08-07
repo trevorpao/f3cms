@@ -142,6 +142,14 @@ class Outfit extends Module
     {
         $lang = Module::_lang();
 
+        if (f3()->exists('siteBeginDate')) {
+            $ts = strtotime(f3()->get('siteBeginDate'));
+            $now = time();
+            if ($slug != '/comingsoon' && $now < $ts) {
+                f3()->reroute(f3()->get('uri') . '/comingsoon');
+            }
+        }
+
         f3()->set('SESSION.csrf', 'wdfghn'); // f3()->get('sess')->csrf());
 
         f3()->set('canonical', $slug);

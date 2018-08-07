@@ -1,4 +1,5 @@
 <header class="">
+    <!-- mobile -->
     <div class="navbar navbar-default visible-xs fixed-top nav-bg">
         <button type="button" class="navbar-toggle collapsed pull-right gee" data-gene="click:site/toggleNav">
             <span class="sr-only">Toggle navigation</span>
@@ -6,27 +7,26 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
         </button>
-        <a href="#home" class="navbar-brand"><img class="site-logo" alt="" src="/assets/images/logo.png">Operon Sample</a>
+        <a href="{{@uri}}" class="navbar-brand"><img class="site-logo" alt="" src="/assets/images/logo.png">{{@site_title}}</a>
     </div>
     <nav class="sidebar">
         <div class="navbar-collapse" id="navbar-collapse">
+            <!-- desktop -->
             <div class="site-header hidden-xs">
-                <a class="site-brand" href="#home" title=""><img class="site-logo" alt="" src="/assets/images/logo.png">Operon Sample</a>
+                <a class="site-brand" href="{{@uri}}" title=""><img class="site-logo" alt="" src="/assets/images/logo.png">{{@site_title}}</a>
                 <p>Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor.</p>
             </div>
             <ul class="nav nav-block">
-                <li><a href="#home" class="gee" data-gene="click:site/closeNav" data-nopde="1" title="">Home</a></li>
-                <li><a href="#about" class="gee" data-gene="click:site/closeNav" data-nopde="1" title="">About</a></li>
-                <li><a href="#services" class="gee" data-gene="click:site/closeNav" data-nopde="1" title="">Services</a></li>
-                <li><a href="#contact" class="gee" data-gene="click:site/closeNav" data-nopde="1" title="">Contact</a></li>
-                <li><a href="#project" class="gee" data-gene="click:site/closeNav" data-nopde="1" title="">Project</a></li>
-                <li><a href="#components" class="gee" data-gene="click:site/closeNav" data-nopde="1" title="">Components</a></li>
+                <li><a href="/home" title="">Home</a></li>
+                <li><a href="/about" title="">About</a></li>
+                <li><a href="/err_demo" title="">404</a></li>
+                <li><a href="/contact" title="">Contact</a></li>
             </ul>
             <nav class="nav-footer">
                 <p class="nav-footer-social-buttons">
-                    <a class="fa-icon" href="https://www.instagram.com/" title=""><i class="fa fa-instagram"></i></a>
-                    <a class="fa-icon" href="https://dribbble.com/" title=""> <i class="fa fa-dribbble"></i> </a>
-                    <a class="fa-icon" href="https://twitter.com/" title=""> <i class="fa fa-twitter"></i> </a>
+                    <a class="fa-icon" href="{{ @opts.social.linkedin_page }}" title=""><i class="fa fa-linkedin"></i></a>
+                    <a class="fa-icon" href="{{ @opts.social.twitter_page }}" title=""> <i class="fa fa-twitter"></i> </a>
+                    <a class="fa-icon" href="{{ @opts.social.facebook_page }}" title=""> <i class="fa fa-facebook"></i> </a>
                 </p>
                 <p>© <a href="https://github.com/trevorpao/operon" title="Operon Home">Operon Sample</a> | Theme from <a href="http://www.mashup-template.com/" title="Create website with free html template">Mashup Template</a>/<a href="https://www.unsplash.com/" title="Beautiful Free Images">Unsplash</a></p>
             </nav>

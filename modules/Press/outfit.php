@@ -7,126 +7,116 @@ namespace F3CMS;
 class oPress extends Outfit
 {
 
-    function do_list ($f3, $args)
+    public function do_list($f3, $args)
     {
+        $req = parent::_getReq();
 
-        $subset = fPress::load_list(Pagination::findCurrentPage(), '');
+        $req['page'] = ($req['page']) ? ($req['page'] -1) : 0;
 
-        $cate = array('title' => '展覽、文章');
+        $subset = fPress::limitRows('status:'. fPress::ST_PUBLISHED, $req['page']);
 
-        $f3->set('pagebrowser', parent::paginate($subset['total'], $subset['limit'], '/presses/'. $args['slug']));
+        $subset['subset'] = \__::map($subset['subset'], function ($cu) {
+            $cu['tags'] = fPress::lotsTag($cu['id']);
+            $cu['authors'] = fPress::lotsAuthor($cu['id']);
+            $cu['metas'] = fPress::lotsMeta($cu['id']);
 
-        $f3->set('rows', $subset);
-        $f3->set('cate', $cate);
+            return $cu;
+        });
 
-        parent::wrapper('press/list.html', '展覽、文章', '/presses/' . $args['slug']);
+        $f3->set('pagebrowser', parent::paginate($subset['total'], $subset['limit'], '/presses/' . $args['slug']));
+
+        parent::wrapper('presses.html', '最新文章', '/presses');
     }
 
-    function do_tag_list ($f3, $args)
+    public function do_show($f3, $args)
     {
+        $fc = new FCHelper('press');
 
-        if (is_numeric($args['slug'])) {
-            $tag = fTag::one($args['slug'], 'id');
+        if (f3()->get('cache.press') === 0) {
+            $html = $fc->get('press_'. $args['slug']);
+
+            if (empty($html)) {
+                if (!rStaff::_isLogin()) {
+                    f3()->error(404);
+                }
+                else {
+                    $html = self::render($args['slug']);
+                }
+            }
         }
         else {
-            $tag = fTag::one($args['slug'], 'slug');
+            $html = $fc->get('press_'. $args['slug'], f3()->get('cache.press'));
+
+            if (empty($html)) {
+                $html = self::render($args['slug']);
+                $fc->save('press_'. $args['slug'], $html, f3()->get('cache.press'));
+            }
         }
 
-        if (empty($tag)) {
-            f3()->error(404);
-        }
-
-        $subset = fPress::load_list(Pagination::findCurrentPage(), $tag['slug'], 'tag');
-
-        $f3->set('pagebrowser', parent::paginate($subset['total'], $subset['limit'], '/tag/'. $tag['slug']));
-
-        $f3->set('rows', $subset);
-        $f3->set('cate', $tag);
-
-        parent::wrapper('press/list.html', $tag['title'], '/tag' . $tag['slug']);
+        echo $html;
     }
 
-    function do_author_list ($f3, $args)
+    public function do_force($f3, $args)
     {
+        $fc = new FCHelper('press');
+        $fc->ifHistory = 1;
 
-        $author = fAuthor::one($args['slug'], 'slug', ['status' => fAuthor::ST_ON]);
+        $html = self::render($args['slug']);
 
-        if (empty($author)) {
-            f3()->error(404);
-        }
-
-        $subset = fPress::load_list(Pagination::findCurrentPage(), $author['id'], 'author');
-
-        $f3->set('pagebrowser', parent::paginate($subset['total'], $subset['limit'], '/author/'. $author['slug']));
-
-        $seo = array(
-            'desc' => $author['title'] .':'. $author['info'],
-            'img' => $author['pic']
-        );
-
-        f3()->set('page', $seo);
-
-        $f3->set('rows', $subset);
-        $f3->set('cate', $author);
-
-        parent::wrapper('press/author.html', $author['title'] . '的所有文章', '/author/' . $author['slug']);
+        $fc->save('press_'. $args['slug'], $html);
     }
 
-    function do_show ($f3, $args)
+    public static function render($id = 0)
     {
 
-        $cu = fPress::one($args['slug'], 'id', ['status' => fPress::ST_ON]);
+        $cu = fPress::one($id, 'id', [
+            'status' => fPress::ST_PUBLISHED
+        ]);
 
         if (empty($cu)) {
             f3()->error(404);
         }
 
-        $cate = rCategory::breadcrumb_categories($cu['category_id']);
+        if ($cu['site_id'] == 3) {
+            f3()->set('uri', f3()->get('us_uri'));
+        }
 
-        $author = fAuthor::one($cu['author_id']);
-
-        $cu['rel_tag'] = json_decode($cu['rel_tag'], true);
+        $tags = fPress::lotsTag($cu['id']);
+        $authors = fPress::lotsAuthor($cu['id']);
+        $relateds = fPress::lotsRelated($cu['id']);
+        $metas = fPress::lotsMeta($cu['id']);
 
         $seo = array(
             'desc' => $cu['info'],
             'img' => $cu['pic'],
-            'keyword' => $cu['keyword']
+            'keyword' => $cu['keyword'],
         );
 
-        if (!empty($cu['rel_tag'])) {
-            $ary = array();
-
-            foreach ($cu['rel_tag'] as $row) {
-                $ary[] = $row['title'];
-            }
-
-            $seo['keyword'] = implode(',', $ary) .','. $seo['keyword'];
+        if (!empty($metas['seo_desc'])) {
+            $seo['desc'] = $metas['seo_desc'];
         }
 
-        $cu['rel_dict'] = json_decode($cu['rel_dict'], true);
-
-        if (!empty($cu['rel_dict'])) {
-            $ary = array();
-
-            foreach ($cu['rel_dict'] as $row) {
-                $ary[] = $row['title'];
-            }
-
-            $seo['keyword'] = implode(',', $ary) .','. $seo['keyword'];
-
-            $cu['rel_dict'] = fDictionary::load_some($cu['rel_dict']);
+        if (!empty($metas['seo_keyword'])) {
+            $seo['keyword'] = $metas['seo_keyword'];
+            $metas['seo_keyword'] = explode(',', $metas['seo_keyword']);
         }
 
         f3()->set('page', $seo);
 
         f3()->set('cu', $cu);
-        f3()->set('cate', $cate);
-        f3()->set('author', $author);
+        // f3()->set('cate', $cate);
+        f3()->set('metas', $metas);
+        f3()->set('tags', $tags);
+        f3()->set('authors', $authors);
+        f3()->set('relateds', $relateds);
+
         f3()->set('next', fPress::load_next($cu, 0, 'online_date'));
         f3()->set('prev', fPress::load_prev($cu, 0, 'online_date'));
 
         f3()->set('act_link', str_replace('/', '', $cate['slug']));
 
-        parent::wrapper('press/show.html', $cu['title'], '/p/'. $cu['id'] .'/'. $cu['slug']);
+        $html = self::wrapper('press.html', $cu['title'], '/p/'. $cu['id'] . '/' . $cu['slug'], true);
+
+        return $html;
     }
 }
