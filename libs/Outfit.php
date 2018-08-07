@@ -152,7 +152,8 @@ class Outfit extends Module
 
         f3()->set('SESSION.csrf', 'wdfghn'); // f3()->get('sess')->csrf());
 
-        f3()->set('canonical', $slug);
+        f3()->set('canonical', '/'. $lang . $slug);
+        f3()->set('lang', Module::_lang());
 
         $page = fOption::load('page');
 

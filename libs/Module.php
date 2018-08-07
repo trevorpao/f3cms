@@ -76,12 +76,19 @@ class Module
 
     static function _lang($args = array())
     {
+        if (f3()->exists('COOKIE.user_lang')) {
+            f3()->set('lang', f3()->get('COOKIE.user_lang'));
+        }
+
         if (!empty($args)) {
             f3()->set('lang', (empty($args['lang'])) ? f3()->get('defaultLang') : $args['lang'] );
         }
-        else {
-            return (f3()->exists('lang')) ? f3()->get('lang') : f3()->get('defaultLang') ;
+
+        if (!f3()->exists('lang')) {
+            f3()->set('lang', f3()->get('defaultLang'));
         }
+
+        return f3()->get('lang');
     }
 
     static function _mobile_user_agent(){
