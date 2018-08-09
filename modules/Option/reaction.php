@@ -11,7 +11,7 @@ class rOption extends Reaction
 
         $req['page'] = ($req['page']) ? ($req['page'] -1) : 1;
 
-        $rtn = fOption::limitRows($req['query'], $req['page'], 2);
+        $rtn = fOption::limitRows($req['query'], $req['page'], 10);
 
         foreach ($rtn['subset'] as &$row) {
         }

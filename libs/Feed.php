@@ -401,11 +401,11 @@ class Feed extends Module
      * @param  mixed   $val - condition
      * @return array
      */
-    public static function one($val, $col = 'id', $condition = array(), $draft = false)
+    public static function one($val, $col = 'id', $condition = array(), $multilang = true)
     {
         $that = get_called_class();
 
-        $data = mh()->get($that::fmTbl((($draft) ? 'draft' : '')), '*', array_merge(array(
+        $data = mh()->get($that::fmTbl(), '*', array_merge(array(
             $col    => $val,
             'ORDER' => array($col => 'DESC')
         ), $condition));
@@ -413,7 +413,12 @@ class Feed extends Module
         if (empty($data)) {
             return null;
         } else {
-            $data = array_merge($data, $that::lotsLang($data['id'], Module::_lang()));
+            if (!$multilang) {
+                $data = array_merge($data, $that::lotsLang($data['id'], Module::_lang()));
+            }
+            else {
+                $data['lang'] = $that::lotsLang($data['id']);
+            }
             return $data;
         }
     }
