@@ -176,8 +176,9 @@ class Feed extends Module
         $filter['l.lang'] = Module::_lang();
 
         return mh()->select($that::fmTbl('tag') . '(r)',
-            ['[>]'.tpf().fTag::MTB.'(t)' => ['r.tag_id' => 'id'],
-            '[>]'.fTag::fmTbl('lang').'(l)' => ['t.id' => 'parent_id']], ['t.id', 't.slug', 'l.title', 't.counter'] , $filter);
+            ['[>]'. tpf().fTag::MTB .'(t)' => ['r.tag_id' => 'id'],
+            '[>]'. fTag::fmTbl('lang') .'(l)' => ['t.id' => 'parent_id']],
+            ['t.id', 't.slug', 'l.title', 't.counter'] , $filter);
     }
 
     /**

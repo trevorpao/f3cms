@@ -116,19 +116,31 @@ class Module
 
     static public function _slugify($text)
     {
+        $text = str_replace('//', '/', $text);
+
+        $is_encoded = preg_match('~%[0-9A-F]{2}~i', $text);
+
+        if (!$is_encoded) {
+            // transliterate
+            $text = rawurlencode($text);
+
+            $text = str_replace('%2F', '/', $text);
+        }
+
         // replace non letter or digits by -
-        $text = preg_replace('~[^\\pL\d]+~u', '-', $text);
+        $text = preg_replace('~[^\\pL\d%/-]+~u', '-', $text);
+
         // trim
         $text = trim($text, '-');
 
         // transliterate
-        $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
+        // $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
 
         // lowercase
         $text = strtolower($text);
 
         // remove unwanted characters
-        $text = preg_replace('~[^-\w]+~', '', $text);
+        // $text = preg_replace('~[^-\w]+~', '', $text);
 
         if (empty($text)) {
             return 'n-a';
