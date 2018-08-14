@@ -67,7 +67,7 @@ class oPost extends Outfit
 
     function do_show ($f3, $args)
     {
-        $row = fPost::one($args['slug'], 'slug', ['status' => fPost::ST_ON]);
+        $row = fPost::one($args['slug'], 'slug', ['status' => fPost::ST_ON], false);
 
         if (empty($row)) {
             f3()->error(404);

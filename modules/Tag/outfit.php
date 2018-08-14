@@ -10,9 +10,9 @@ class oTag extends Outfit
     function do_show($f3, $args)
     {
         if (is_numeric($args['slug'])) {
-            $tag = fTag::one($args['slug'], 'id', ['status' => fTag::ST_ON]);
+            $tag = fTag::one($args['slug'], 'id', ['status' => fTag::ST_ON], false);
         } else {
-            $tag = fTag::one(parent::_slugify($args['slug']), 'slug', ['status' => fTag::ST_ON]);
+            $tag = fTag::one(parent::_slugify($args['slug']), 'slug', ['status' => fTag::ST_ON], false);
         }
 
         if (empty($tag)) {

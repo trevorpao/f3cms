@@ -71,7 +71,7 @@ class oPress extends Outfit
 
         $cu = fPress::one($id, 'id', [
             'status' => fPress::ST_PUBLISHED
-        ]);
+        ], false);
 
         if (empty($cu)) {
             f3()->error(404);

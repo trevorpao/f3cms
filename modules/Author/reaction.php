@@ -7,10 +7,10 @@ namespace F3CMS;
  */
 class rAuthor extends Reaction
 {
-
     static function handleRow($row = array())
     {
-        $row['rel_tag'] = json_decode($row['rel_tag']);
+        $row['tags'] = fAuthor::lotsTag($row['id']);
+        // echo mh()->last();
         return $row;
     }
 }

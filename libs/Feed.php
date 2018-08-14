@@ -173,7 +173,11 @@ class Feed extends Module
             't.status' => fTag::ST_ON
         );
 
-        return mh()->select($that::fmTbl('tag') . '(r)', ['[>]'.tpf().fTag::MTB.'(t)' => ['r.tag_id' => 'id']], ['t.id', 't.slug', 't.title', 't.counter'] , $filter);
+        $filter['l.lang'] = Module::_lang();
+
+        return mh()->select($that::fmTbl('tag') . '(r)',
+            ['[>]'.tpf().fTag::MTB.'(t)' => ['r.tag_id' => 'id'],
+            '[>]'.fTag::fmTbl('lang').'(l)' => ['t.id' => 'parent_id']], ['t.id', 't.slug', 'l.title', 't.counter'] , $filter);
     }
 
     /**
@@ -355,11 +359,14 @@ class Feed extends Module
         $that = get_called_class();
         $filter = array('LIMIT' => 100);
 
+        $filter['l.lang'] = Module::_lang();
+
         if ($query != '') {
-            $filter['title[~]'] = $query;
+            $filter['l.title[~]'] = $query;
         }
 
-        return mh()->select($that::fmTbl(), ['id', $column], $filter);
+        return mh()->select($that::fmTbl().'(m)',
+            ['[><]'. $that::fmTbl('lang') .'(l)' => ['m.id' => 'parent_id']], ['m.id', $column .'(title)'], $filter);
     }
 
     /**

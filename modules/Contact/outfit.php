@@ -10,7 +10,7 @@ class oContact extends Outfit
     function do_contact ($f3, $args)
     {
 
-        $row = fPost::one('contact', 'slug', ['status' => fPost::ST_ON]);
+        $row = fPost::one('contact', 'slug', ['status' => fPost::ST_ON], false);
 
         if (empty($row)) {
             f3()->error(404);

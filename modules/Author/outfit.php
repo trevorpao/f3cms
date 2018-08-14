@@ -9,7 +9,7 @@ class oAuthor extends Outfit
 
     function do_list ($f3, $args)
     {
-        $author = fAuthor::one(parent::_slugify($args['slug']), 'slug', ['status' => fAuthor::ST_ON]);
+        $author = fAuthor::one(parent::_slugify($args['slug']), 'slug', ['status' => fAuthor::ST_ON], false);
 
         if (empty($author)) {
             f3()->error(404);

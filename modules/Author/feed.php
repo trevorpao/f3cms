@@ -9,11 +9,10 @@ class fAuthor extends Feed
     const ST_ON = "Enabled";
     const ST_OFF = "Disabled";
 
-    static function getAll()
-    {
+    const PV_R = 'see.other.press';
+    const PV_U = 'see.other.press';
+    const PV_D = 'see.other.press';
 
-        $result = db()->exec("SELECT a.* FROM `" . self::fmTbl() . "` a ");
+    const BE_COLS = 'm.id,l.title,m.status,m.slug,m.cover,m.last_ts';
 
-        return $result;
-    }
 }

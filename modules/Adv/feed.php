@@ -9,6 +9,8 @@ class fAdv extends Feed
     const ST_ON = "Enabled";
     const ST_OFF = "Disabled";
 
+    const BE_COLS = 'm.id,l.title,m.position_id,m.weight,m.start_date,m.end_date,m.counter,m.exposure,m.status,m.last_ts';
+
     static function getAll()
     {
 
