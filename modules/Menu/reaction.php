@@ -9,6 +9,35 @@ class rMenu extends Reaction
 {
 
     /**
+     * save whole form for backend
+     * @param object $f3   - $f3
+     * @param array  $args - uri params
+     */
+    public function do_save($f3, $args)
+    {
+
+        rStaff::_chkLogin(); // chkAuth($feed::PV_U);
+
+        $req = parent::_getReq();
+
+        if (!isset($req['id'])) {
+            return self::_return(8004);
+        }
+
+        if ($req['id'] != 0  && $req['id'] == $req['parent_id']) {
+            return self::_return(8004);
+        }
+
+        if ($req['id'] != 0  && $req['parent_id'] == 0) {
+            return self::_return(8004);
+        }
+
+        $id = fMenu::save($req);
+
+        return self::_return(1, array('id' => $id));
+    }
+
+    /**
      * get menus in option mode
      *
      * @param int $parent_id - parent type id
@@ -17,13 +46,13 @@ class rMenu extends Reaction
      *
      * @return array
      */
-    static function sort_menus($parent_id = 0, $level = 0, $level_mod = '', $flatten = 1)
+    static function sort_menus($parent_id = 0, $level = 0, $level_mod = '', $flatten = 1, $force = 0)
     {
 
         $menus = f3()->get('menus');
 
         if (empty($menus)) {
-            $menus = fMenu::get_menus();
+            $menus = fMenu::get_menus(-1, $force);
             f3()->set('menus', $menus);
         }
 
@@ -56,6 +85,25 @@ class rMenu extends Reaction
         return $cates;
     }
 
+    public function do_lotsMenu($f3, $args)
+    {
+        $req = parent::_getReq();
+
+        $fc = new FCHelper('menu');
+
+        $rtn = $fc->get('menu_'. $req['menuID'], 1); // 1 mins
+
+        if (empty($rtn)) {
+            $rtn = rMenu::sort_menus($req['menuID'], 0 , '', 0);
+            $fc->save('menu_'. $req['menuID'], json_encode($rtn));
+        }
+        else {
+            $rtn = json_decode(preg_replace('/<!--(?!\s*(?:\[if [^\]]+]|<!|>))(?:(?!-->).)*-->/s', '', $rtn), true);
+        }
+
+        return parent::_return(1, $rtn);
+    }
+
     /**
      * save sorter
      * @param  object $f3   - $f3
@@ -64,12 +112,13 @@ class rMenu extends Reaction
      */
     function do_update_sorter($f3, $args)
     {
-        rStaff::_chkLogin();
+
+        rStaff::_chkLogin(); // chkAuth($feed::PV_U);
 
         $req = parent::_getReq();
 
-        foreach ($req['data'] as $row) {
-            fMenu::update_sorter($row['id'], $row['sorter']);
+        if (is_array($req['data']) && !empty($req['data'])) {
+            self::recursion($req['data'], 0);
         }
 
         return parent::_return(1, $req);
@@ -77,7 +126,20 @@ class rMenu extends Reaction
 
     static function handleRow($row = array())
     {
-        $row['menus'] = self::sort_menus(0, 0 , '~');
+        $row['tags'] = fMenu::lotsTag($row['id']);
         return $row;
+    }
+
+    public static function recursion($rows, $parent = 0)
+    {
+        foreach ($rows as $row) {
+            if (!in_array($row['id'], fMenu::freezeNode()) && $row['id'] != $parent) {
+                fMenu::update_sorter($row['id'], $row['sorter'], $parent);
+            }
+
+            if (!empty($row['children'])) {
+                self::recursion($row['children'], $row['id']);
+            }
+        }
     }
 }

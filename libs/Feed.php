@@ -39,7 +39,7 @@ class Feed extends Module
             $that::saveMany('tag', $req['id'], $other['tags']);
         }
 
-        if (isset($other['lang'])) {
+        if (isset($other['lang']) && !empty($other['lang'])) {
             $that::saveLang($req['id'], $other['lang']);
         }
 
@@ -479,7 +479,7 @@ class Feed extends Module
             'count'  => $count,
             'pos'    => (($page < $count) ? $page : 0),
             'filter' => $filter,
-            'sql'    => mh()->last()
+            'sql'    => ((f3()->get('DEBUG') === 0) ? '', mh()->last())
         );
     }
 
