@@ -26,7 +26,7 @@ class fMenu extends Feed
             'subset' => rMenu::sort_menus(0, 0, '', 0, 1),
             'limit'  => $limit,
             'pos'    => 0,
-            'sql'    => ((f3()->get('DEBUG') === 0) ? '', mh()->last())
+            'sql'    => ((f3()->get('DEBUG') === 0) ? '': mh()->last())
         );
     }
 

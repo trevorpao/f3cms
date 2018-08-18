@@ -479,7 +479,7 @@ class Feed extends Module
             'count'  => $count,
             'pos'    => (($page < $count) ? $page : 0),
             'filter' => $filter,
-            'sql'    => ((f3()->get('DEBUG') === 0) ? '', mh()->last())
+            'sql'    => ((f3()->get('DEBUG') === 0) ? '': mh()->last())
         );
     }
 
