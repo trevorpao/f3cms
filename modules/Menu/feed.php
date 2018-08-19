@@ -62,12 +62,26 @@ class fMenu extends Feed
      * @param $pid
      * @param $value
      */
-    public static function update_sorter($pid, $sorter, $parent = 0)
+    public static function update_sorter($pid, $sorter)
     {
         mh()->query(
-            'UPDATE `' . self::fmTbl() . '` SET `sorter`=:sorter, `parent_id`=:parent_id WHERE `id`=:id',
+            'UPDATE `' . self::fmTbl() . '` SET `sorter`=:sorter WHERE `id`=:id',
             [
                 ':sorter' => $sorter,
+                ':id' => $pid
+            ]
+        );
+    }
+
+    /**
+     * @param $pid
+     * @param $value
+     */
+    public static function update_parent($pid, $parent = 0)
+    {
+        mh()->query(
+            'UPDATE `' . self::fmTbl() . '` SET `parent_id`=:parent_id WHERE `id`=:id',
+            [
                 ':parent_id' => $parent,
                 ':id' => $pid
             ]

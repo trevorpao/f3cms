@@ -117,9 +117,13 @@ class rMenu extends Reaction
 
         $req = parent::_getReq();
 
-        if (is_array($req['data']) && !empty($req['data'])) {
-            self::recursion($req['data'], 0);
+        if (is_array($req['sort']) && !empty($req['sort'])) {
+            foreach ($req['sort'] as $row) {
+                fMenu::update_sorter($row['id'], $row['sorter']);
+            }
         }
+
+        fMenu::update_parent($req['itemID'], $req['parentID']);
 
         return parent::_return(1, $req);
     }
