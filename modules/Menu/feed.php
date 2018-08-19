@@ -89,62 +89,11 @@ class fMenu extends Feed
     }
 
     /**
-     * save whole form for backend
-     * @param array $req
-     */
-    public static function save($req, $tbl = '')
-    {
-        if (isset($req['pics'])) {
-            if (!empty($req['pics'])) {
-                $req['pic'] = $req['pics'];
-            }
-            unset($req['pics']);
-        }
-
-        list($data, $other)  = self::_handleColumn($req);
-
-        $rtn = null;
-
-        if ($req['id'] == 0) {
-            $data['parent_id'] = 1;
-            $data['insert_ts'] = date('Y-m-d H:i:s');
-            $data['insert_user'] = rStaff::_CStaff('id');
-
-            mh()->insert(self::fmTbl($tbl), $data);
-
-            $req['id'] = mh()->id();
-
-            $rtn = self::chkErr($req['id']);
-        } else {
-
-            $rtn = mh()->update(self::fmTbl($tbl), $data, array(
-                'id' => $req['id']
-            ));
-
-            $rtn = self::chkErr($rtn->rowCount());
-        }
-
-        if (isset($other['meta']) && !empty($other['meta'])) {
-            self::saveMeta($req['id'], $other['meta'], true);
-        }
-
-        if (isset($other['tags']) && !empty($other['tags'])) {
-            self::saveMany('tag', $req['id'], $other['tags']);
-        }
-
-        if (isset($other['lang']) && !empty($other['lang'])) {
-            self::saveLang($req['id'], $other['lang']);
-        }
-
-        return $rtn;
-    }
-
-    /**
      * @param $query
      * @param $page
      * @param $limit
      */
-    public static function get_opts($query = '', $column = 'title')
+    public static function getOpts($query = '', $column = 'title')
     {
         $menus = rMenu::sort_menus(0, 0, '--', 0);
         $rtn = [];
