@@ -9,7 +9,7 @@ class rPress extends Reaction
         $row['tags'] = fPress::lotsTag($row['id']);
         $row['authors'] = fPress::lotsSub('author', $row['id']);
         $row['relateds'] = fPress::lotsRelated($row['id']);
-        $row['meta'] = []; // fPress::lotsMeta($row['id']);
+        $row['meta'] = fPress::lotsMeta($row['id']);
 
         $ts = strtotime($row['online_date']);
         $ts = $ts - $ts % 300; // deduct the seconds that is not a multiple of 5 minutes

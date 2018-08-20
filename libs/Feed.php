@@ -153,8 +153,17 @@ class Feed extends Module
         $fk = $subTbl . '_id';
 
         $filter = array($pk => $pid);
+        $filter['l.lang'] = Module::_lang();
 
-        return mh()->select($that::fmTbl($subTbl) . '(r)', ['[>]'.tpf().$sub::MTB.'(t)' => ['r.'. $fk => 'id']], ['t.id', 't.title'], $filter);
+        return mh()->select(
+            $that::fmTbl($subTbl) . '(r)',
+            [
+                '[>]'. $sub::fmTbl() .'(t)' => ['r.'. $fk => 'id'],
+                '[>]'. $sub::fmTbl('lang') .'(l)' => ['t.id' => 'parent_id']
+            ],
+            ['t.id', 'l.title'],
+            $filter
+        );
     }
 
     /**

@@ -20,7 +20,7 @@ class fPress extends Feed
 
     const PV_SOP = 'see.other.press';
 
-    const BE_COLS = 'm.id,m.title,m.last_ts,m.pic,m.cover,m.status,m.slug,m.online_date,m.label_clr,m.highlight,s.account';
+    const BE_COLS = 'm.id,l.title,m.last_ts,m.cover,m.status,m.slug,m.online_date,s.account';
 
     /**
      * @param $query
@@ -36,9 +36,14 @@ class fPress extends Feed
         //     $filter['m.insert_user'] = rStaff::_CStaff();
         // }
 
+        $filter['l.lang'] = Module::_lang();
+
         $filter['ORDER'] = ['m.online_date' => 'DESC', 'm.insert_ts' => 'DESC'];
 
-        $join = ['[>]' . fStaff::fmTbl() . '(s)' => ['m.insert_user' => 'id']];
+        $join = [
+            '[>]' . fStaff::fmTbl() . '(s)' => ['m.insert_user' => 'id'],
+            '[>]'. self::fmTbl('lang') .'(l)' => ['m.id' => 'parent_id']
+        ];
 
         return self::paginate(self::fmTbl() . '(m)', $filter, $page, $limit, explode(',', self::BE_COLS), $join);
     }
@@ -215,45 +220,6 @@ class fPress extends Feed
     }
 
     /**
-     * insert press
-     *
-     * @return array
-     */
-    public static function insert($data = [])
-    {
-        $now = date('Y-m-d H:i:s');
-        $obj = self::map();
-
-        foreach ($data as $k => $v) {
-            $obj[$k] = $v;
-        }
-
-        $obj->last_ts = $now;
-        $obj->insert_ts = $now;
-        $obj->save();
-
-        return $obj->id;
-    }
-
-    /**
-     * insert press
-     *
-     * @return array
-     */
-    public static function insert_category_rel($data = [])
-    {
-        $obj = self::map(self::CATEGORYTB);
-
-        foreach ($data as $k => $v) {
-            $obj[$k] = $v;
-        }
-
-        $obj->save();
-
-        return $obj->press_id;
-    }
-
-    /**
      * save whole form for backend
      * @param array $req
      */
@@ -296,12 +262,16 @@ class fPress extends Feed
             $rtn = self::chkErr($rtn->rowCount());
         }
 
+        if (isset($other['meta']) && !empty($other['meta'])) {
+            self::saveMeta($req['id'], $other['meta'], true);
+        }
+
         if (isset($other['tags']) && !empty($other['tags'])) {
             self::saveMany('tag', $req['id'], $other['tags']);
         }
 
-        if (isset($other['meta']) && !empty($other['meta'])) {
-            self::saveMeta($req['id'], $other['meta'], true);
+        if (isset($other['lang']) && !empty($other['lang'])) {
+            self::saveLang($req['id'], $other['lang']);
         }
 
         if (isset($authors) && !empty($authors)) {
