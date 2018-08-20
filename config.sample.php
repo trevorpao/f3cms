@@ -71,8 +71,9 @@ if ($_SERVER['SERVER_NAME']!='f3cms.lo' && php_sapi_name() != 'cli') {
     $f3->set('DEBUG', 0);
     $f3->set('forceHTTPS', 1);
 
-    $f3->set('db','mysql:host=f3cms.lo;port=3306;dbname=');
+    $f3->set('db_host','localhost');
     $f3->set('db_name','target_db');
+    $f3->set('db','mysql:host='. $f3->get('db_host') .';port=3306;dbname='. $f3->get('db_name'));
     $f3->set('db_account','your_account');
     $f3->set('db_password','your_password');
     $f3->set('uri','https://domain.com' . $f3->get('BASE'));
