@@ -7,7 +7,7 @@ namespace F3CMS;
 class oPress extends Outfit
 {
 
-    public function do_list($f3, $args)
+    protected static function do_list($args)
     {
         $req = parent::_getReq();
 
@@ -28,7 +28,7 @@ class oPress extends Outfit
         parent::wrapper('presses.html', '最新文章', '/presses');
     }
 
-    public function do_show($f3, $args)
+    protected static function do_show($args)
     {
         $fc = new FCHelper('press');
 
@@ -56,7 +56,7 @@ class oPress extends Outfit
         echo $html;
     }
 
-    public function do_force($f3, $args)
+    protected static function do_force($args)
     {
         $fc = new FCHelper('press');
         $fc->ifHistory = 1;

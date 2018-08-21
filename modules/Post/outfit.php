@@ -6,14 +6,18 @@ namespace F3CMS;
 */
 class oPost extends Outfit
 {
-
-    function do_home ($f3, $args)
+    public static function middleware($args, $next)
     {
+        Module::_lang($args[1]);
+        return parent::middleware($args, $next);
+    }
 
+    protected static function do_home ($args)
+    {
         parent::wrapper('home.html', '首頁', '/');
     }
 
-    function do_sitemap ($f3, $args)
+    protected static function do_sitemap ($args)
     {
 
         $subset = fPress::load_list(0, '', 'author', 500);
@@ -48,7 +52,7 @@ class oPost extends Outfit
         echo \Template::instance()->render('sitemap.xml','application/xml');
     }
 
-    function do_rss ($f3, $args)
+    protected static function do_rss ($args)
     {
 
         $subset = fPress::load_list(0, '', 'author', 50);
@@ -65,7 +69,7 @@ class oPost extends Outfit
         echo $tp->render('rss.xml','application/xml');
     }
 
-    function do_show ($f3, $args)
+    protected static function do_show ($args)
     {
         $row = fPost::one($args['slug'], 'slug', ['status' => fPost::ST_ON], false);
 
@@ -78,19 +82,19 @@ class oPost extends Outfit
         parent::wrapper('post.html', $row['title'], '/post/'. $row['slug']);
     }
 
-    function do_about ($f3, $args)
+    protected static function do_about ($args)
     {
         $args['slug'] = 'about';
-        $this->do_show($f3, $args);
+        self::do_show($args);
     }
 
-    function do_privacy ($f3, $args)
+    protected static function do_privacy ($args)
     {
         $args['slug'] = 'privacy';
-        $this->do_show($f3, $args);
+        self::do_show($args);
     }
 
-    function do_comingsoon ($f3, $args)
+    protected static function do_comingsoon ($args)
     {
         $ts = strtotime($f3->get('siteBeginDate'));
         $now = time();
@@ -102,9 +106,8 @@ class oPost extends Outfit
         }
     }
 
-    function do_404 ($f3, $args)
+    protected static function do_404 ($args)
     {
-
         f3()->set('ERROR', [
             'code' => '404',
             'text' => 'Not Found'

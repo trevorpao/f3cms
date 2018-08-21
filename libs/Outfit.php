@@ -3,6 +3,27 @@ namespace F3CMS;
 
 class Outfit extends Module
 {
+    public function __call($method, $args)
+    {
+        $args[1]['time_start'] = microtime(true);
+        $that = get_called_class();
+
+        return $that::middleware($args[1], $method);
+    }
+
+    public static function middleware($args, $next)
+    {
+        $response = call_user_func_array(array(get_called_class(), $next), [$args]);
+
+        $time_end = microtime(true);
+
+        $spent = $time_end - $args['time_start'];
+
+        echo '<!-- spent: '. $spent .' -->';
+
+        return $response;
+    }
+
     /**
      * set excel header
      * @param string $filename - file name to user
@@ -138,7 +159,7 @@ class Outfit extends Module
         return $buffer;
     }
 
-    static function wrapper ($html, $title = "", $slug = "")
+    static function wrapper ($html, $title = "", $slug = "", $rtn = false)
     {
         $lang = Module::_lang();
 
@@ -181,6 +202,10 @@ class Outfit extends Module
         $tp->filter('str2tbl','\F3CMS\Outfit::str2tbl');
         $tp->filter('thumbnail','\F3CMS\Outfit::thumbnail');
 
-        echo self::minify($tp->render($html));
+        if (!$rtn) {
+            echo self::minify($tp->render($html));
+        } else {
+            return self::minify($tp->render($html));
+        }
     }
 }

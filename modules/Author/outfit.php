@@ -7,7 +7,7 @@ namespace F3CMS;
 class oAuthor extends Outfit
 {
 
-    function do_list ($f3, $args)
+    protected static function do_list ($args)
     {
         $author = fAuthor::one(parent::_slugify($args['slug']), 'slug', ['status' => fAuthor::ST_ON], false);
 
