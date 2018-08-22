@@ -165,13 +165,11 @@ class fPress extends Feed
      */
     public static function load_next($cu, $category_id = 0, $col = 'id')
     {
-        $condition = " WHERE `status` = '" . self::ST_PUBLISHED . "' AND online_date <= '" . date('Y-m-d') . "' AND `" . $col . "` >= '" . $cu[$col] . "' AND `id` != '" . $cu['id'] . "' ";
+        $condition = " WHERE m.`status` = '" . self::ST_PUBLISHED . "' AND online_date <= '" . date('Y-m-d') . "' AND m.`" . $col . "` >= '" . $cu[$col] . "' AND m.`id` != '" . $cu['id'] . "' ";
 
-        if ($category_id != 0) {
-            $condition .= " AND `category_id`='" . $category_id . "' ";
-        }
+        $join = " LEFT JOIN `". self::fmTbl('lang') ."` l ON l.`parent_id`=m.`id` AND l.`lang` = '". Module::_lang() ."' ";
 
-        $rows = db()->exec('SELECT `id`, `slug`, `title` FROM `' . self::fmTbl() . '` ' . $condition . ' ORDER BY `' . $col . '` ASC, `id` DESC  LIMIT 1 ');
+        $rows = db()->exec('SELECT m.`id`, m.`slug`, l.`title` FROM `'. self::fmTbl() .'` m '. $join .' '. $condition .' ORDER BY m.`' . $col . '` ASC, m.`id` DESC  LIMIT 1 ');
 
         if (count($rows) != 1) {
             return null;
@@ -189,13 +187,11 @@ class fPress extends Feed
      */
     public static function load_prev($cu, $category_id = 0, $col = 'id')
     {
-        $condition = " WHERE `status` = '" . self::ST_PUBLISHED . "' AND online_date <= '" . date('Y-m-d') . "' AND `" . $col . "` <= '" . $cu[$col] . "' AND `id` != '" . $cu['id'] . "' ";
+        $condition = " WHERE m.`status` = '" . self::ST_PUBLISHED . "' AND online_date <= '" . date('Y-m-d') . "' AND m.`" . $col . "` <= '" . $cu[$col] . "' AND m.`id` != '" . $cu['id'] . "' ";
 
-        if ($category_id != 0) {
-            $condition .= " AND `category_id`='" . $category_id . "' ";
-        }
+        $join = " LEFT JOIN `". self::fmTbl('lang') ."` l ON l.`parent_id`=m.`id` AND l.`lang` = '". Module::_lang() ."' ";
 
-        $rows = db()->exec('SELECT `id`, `slug`, `title` FROM `' . self::fmTbl() . '` ' . $condition . ' ORDER BY `' . $col . '` DESC, `id` DESC LIMIT 1 ');
+        $rows = db()->exec('SELECT m.`id`, m.`slug`, l.`title` FROM `'. self::fmTbl() .'` m '. $join .' '. $condition .' ORDER BY m.`' . $col . '` DESC, m.`id` DESC LIMIT 1 ');
 
         if (count($rows) != 1) {
             return null;

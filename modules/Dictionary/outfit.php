@@ -7,7 +7,7 @@ namespace F3CMS;
 class oDictionary extends Outfit
 {
 
-    protected static function do_show ($args)
+    public static function show ($args)
     {
 
         $cu = fDictionary::one($args['slug'], 'id', ['status' => fDictionary::ST_ON]);

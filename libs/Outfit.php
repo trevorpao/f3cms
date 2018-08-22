@@ -8,12 +8,19 @@ class Outfit extends Module
         $args[1]['time_start'] = microtime(true);
         $that = get_called_class();
 
-        return $that::middleware($args[1], $method);
+        return $that::_middleware($args[1], $method);
     }
 
-    public static function middleware($args, $next)
+    public static function _middleware($args, string $next)
     {
-        $response = call_user_func_array(array(get_called_class(), $next), [$args]);
+        $class = get_called_class();
+        $method = str_replace('do_', '', $next);
+
+        if (!method_exists($class, $method)) {
+            throw new \Exception('(1004) '. $class .'::'. $next .' not found');
+        }
+
+        $response = call_user_func_array(array($class, $method), [$args]);
 
         $time_end = microtime(true);
 

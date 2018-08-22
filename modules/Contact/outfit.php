@@ -7,7 +7,7 @@ namespace F3CMS;
 class oContact extends Outfit
 {
 
-    protected static function do_contact ($args)
+    public static function contact ($args)
     {
 
         $row = fPost::one('contact', 'slug', ['status' => fPost::ST_ON], false);

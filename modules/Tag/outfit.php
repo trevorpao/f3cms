@@ -7,7 +7,7 @@ namespace F3CMS;
 class oTag extends Outfit
 {
 
-    protected static function do_show($args)
+    public static function show($args)
     {
         if (is_numeric($args['slug'])) {
             $tag = fTag::one($args['slug'], 'id', ['status' => fTag::ST_ON], false);

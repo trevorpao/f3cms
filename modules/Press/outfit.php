@@ -7,7 +7,7 @@ namespace F3CMS;
 class oPress extends Outfit
 {
 
-    protected static function do_list($args)
+    public static function list($args)
     {
         $req = parent::_getReq();
 
@@ -28,7 +28,7 @@ class oPress extends Outfit
         parent::wrapper('presses.html', '最新文章', '/presses');
     }
 
-    protected static function do_show($args)
+    public static function show($args)
     {
         $fc = new FCHelper('press');
 
@@ -40,7 +40,7 @@ class oPress extends Outfit
                     f3()->error(404);
                 }
                 else {
-                    $html = self::render($args['slug']);
+                    $html = self::_render($args['slug']);
                 }
             }
         }
@@ -48,7 +48,7 @@ class oPress extends Outfit
             $html = $fc->get('press_'. $args['slug'], f3()->get('cache.press'));
 
             if (empty($html)) {
-                $html = self::render($args['slug']);
+                $html = self::_render($args['slug']);
                 $fc->save('press_'. $args['slug'], $html, f3()->get('cache.press'));
             }
         }
@@ -56,17 +56,17 @@ class oPress extends Outfit
         echo $html;
     }
 
-    protected static function do_force($args)
+    public static function force($args)
     {
         $fc = new FCHelper('press');
         $fc->ifHistory = 1;
 
-        $html = self::render($args['slug']);
+        $html = self::_render($args['slug']);
 
         $fc->save('press_'. $args['slug'], $html);
     }
 
-    public static function render($id = 0)
+    public static function _render($id = 0)
     {
 
         $cu = fPress::one($id, 'id', [

@@ -4,6 +4,7 @@ tmp/
 backend/
 upload/img/
 html/
+cache/
 assets/images/
 assets/scripts/
 assets/styles/

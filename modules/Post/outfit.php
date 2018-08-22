@@ -6,18 +6,18 @@ namespace F3CMS;
 */
 class oPost extends Outfit
 {
-    public static function middleware($args, $next)
+    public static function _middleware($args, string $next)
     {
         Module::_lang($args[1]);
-        return parent::middleware($args, $next);
+        return parent::_middleware($args, $next);
     }
 
-    protected static function do_home ($args)
+    public static function home ($args)
     {
         parent::wrapper('home.html', '首頁', '/');
     }
 
-    protected static function do_sitemap ($args)
+    public static function sitemap ($args)
     {
 
         $subset = fPress::load_list(0, '', 'author', 500);
@@ -52,7 +52,7 @@ class oPost extends Outfit
         echo \Template::instance()->render('sitemap.xml','application/xml');
     }
 
-    protected static function do_rss ($args)
+    public static function rss ($args)
     {
 
         $subset = fPress::load_list(0, '', 'author', 50);
@@ -69,7 +69,7 @@ class oPost extends Outfit
         echo $tp->render('rss.xml','application/xml');
     }
 
-    protected static function do_show ($args)
+    public static function show ($args)
     {
         $row = fPost::one($args['slug'], 'slug', ['status' => fPost::ST_ON], false);
 
@@ -82,19 +82,19 @@ class oPost extends Outfit
         parent::wrapper('post.html', $row['title'], '/post/'. $row['slug']);
     }
 
-    protected static function do_about ($args)
+    public static function about ($args)
     {
         $args['slug'] = 'about';
-        self::do_show($args);
+        self::show($args);
     }
 
-    protected static function do_privacy ($args)
+    public static function privacy ($args)
     {
         $args['slug'] = 'privacy';
-        self::do_show($args);
+        self::show($args);
     }
 
-    protected static function do_comingsoon ($args)
+    public static function comingsoon ($args)
     {
         $ts = strtotime($f3->get('siteBeginDate'));
         $now = time();
@@ -106,7 +106,7 @@ class oPost extends Outfit
         }
     }
 
-    protected static function do_404 ($args)
+    public static function notfound ($args)
     {
         f3()->set('ERROR', [
             'code' => '404',
