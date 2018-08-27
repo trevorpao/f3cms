@@ -6,15 +6,9 @@ namespace F3CMS;
 */
 class oPost extends Outfit
 {
-    public static function _middleware($args, string $next)
-    {
-        Module::_lang($args[1]);
-        return parent::_middleware($args, $next);
-    }
-
     public static function home ($args)
     {
-        parent::wrapper('home.html', '首頁', '/');
+        parent::wrapper(f3()->get('theme') .'/home.html', '首頁', '/');
     }
 
     public static function sitemap ($args)
@@ -79,7 +73,7 @@ class oPost extends Outfit
 
         f3()->set('cu', $row);
 
-        parent::wrapper('post.html', $row['title'], '/post/'. $row['slug']);
+        parent::wrapper(f3()->get('theme') .'/post.html', $row['title'], '/post/'. $row['slug']);
     }
 
     public static function about ($args)
@@ -113,6 +107,6 @@ class oPost extends Outfit
             'text' => 'Not Found'
         ]);
 
-        parent::wrapper('error.html', 'Not Found', '/404');
+        parent::wrapper(f3()->get('theme') .'/error.html', 'Not Found', '/404');
     }
 }

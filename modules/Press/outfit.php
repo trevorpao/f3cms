@@ -115,7 +115,7 @@ class oPress extends Outfit
 
         f3()->set('act_link', str_replace('/', '', $cate['slug']));
 
-        $html = self::wrapper('press.html', $cu['title'], '/p/'. $cu['id'] . '/' . $cu['slug'], true);
+        $html = self::wrapper(f3()->get('theme') .'/press.html', $cu['title'], '/p/'. $cu['id'] . '/' . $cu['slug'], true);
 
         return $html;
     }

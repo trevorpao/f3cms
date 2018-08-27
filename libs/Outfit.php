@@ -20,6 +20,8 @@ class Outfit extends Module
             throw new \Exception('(1004) '. $class .'::'. $next .' not found');
         }
 
+        Module::_lang($args);
+
         $response = call_user_func_array(array($class, $method), [$args]);
 
         $time_end = microtime(true);

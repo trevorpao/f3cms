@@ -19,6 +19,6 @@ class oContact extends Outfit
         f3()->set('cu', $row);
         // f3()->set('social', fOption::load('social'));
 
-        parent::wrapper('contact.html', $row['title'], '/contact');
+        parent::wrapper(f3()->get('theme') .'/contact.html', $row['title'], '/contact');
     }
 }
