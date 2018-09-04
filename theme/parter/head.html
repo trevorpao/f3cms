@@ -5,7 +5,10 @@
 
     <!-- Meta -->
     <!-- <base href="{{ @uri }}/"> -->
-    <link rel='canonical' href='{{ @uri }}{{ @canonical }}' />
+    <link rel='canonical' href='{{ @uri }}/{{ @lang }}{{ @canonical }}' />
+
+    <!-- {{ @page.alternate }} -->
+
     <meta name="description" content="{{@page.desc}}">
     <meta name="keywords" content="{{@page.keyword}}">
     <meta property="og:title" content="{{@page.title}}" />
@@ -15,10 +18,7 @@
     <meta property="og:description" content="{{@page.desc}}" />
     <!-- Favicons -->
     <link rel="shortcut icon" href="/assets/images/favicon.ico" />
-    <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png" />
-    <link rel="apple-touch-icon" sizes="72x72" href="/assets/images/apple-touch-icon-72x72.png" />
-    <link rel="apple-touch-icon" sizes="114x114" href="/assets/images/apple-touch-icon-114x114.png" />
-    <link rel="apple-touch-icon" sizes="144x144" href="/assets/images/apple-touch-icon-144x144.png" />
+    <link rel="apple-touch-icon" sizes="300x300" href="/assets/images/touch-icon.png" />
 
 
     <link rel="stylesheet" href="/assets/styles/vendor.css?ver={{ @fe_version }}">

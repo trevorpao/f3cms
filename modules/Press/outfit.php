@@ -66,7 +66,7 @@ class oPress extends Outfit
         $fc->save('press_'. $args['slug'], $html);
     }
 
-    public static function _render($id = 0)
+    private static function _render($id = 0)
     {
 
         $cu = fPress::one($id, 'id', [

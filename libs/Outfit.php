@@ -5,10 +5,43 @@ class Outfit extends Module
 {
     public function __call($method, $args)
     {
-        $args[1]['time_start'] = microtime(true);
+        $time_start = microtime(true);
         $that = get_called_class();
 
-        return $that::_middleware($args[1], $method);
+        $that::_beforeRoute($args[1]);
+
+        $response = $that::_middleware($args[1], $method);
+
+        $that::_afterRoute($args[1]);
+
+        $time_end = microtime(true);
+
+        $spent = $time_end - $time_start;
+
+        echo '<!-- spent: '. $spent .' -->';
+
+        return $response;
+    }
+
+    public static function _beforeRoute($args)
+    {
+        if (f3()->exists('siteBeginDate')) {
+            $ts = strtotime(f3()->get('siteBeginDate'));
+            $now = time();
+            if ($slug != '/comingsoon' && $now < $ts) {
+                f3()->reroute(f3()->get('uri') . '/comingsoon');
+            }
+        }
+
+        parent::_mobile_user_agent();
+        Module::_lang($args);
+        f3()->set('lang', Module::_lang());
+        f3()->set('SESSION.csrf', 'wdfghn'); // f3()->get('sess')->csrf());
+    }
+
+    public static function _afterRoute($args)
+    {
+
     }
 
     public static function _middleware($args, string $next)
@@ -20,17 +53,7 @@ class Outfit extends Module
             throw new \Exception('(1004) '. $class .'::'. $next .' not found');
         }
 
-        Module::_lang($args);
-
-        $response = call_user_func_array(array($class, $method), [$args]);
-
-        $time_end = microtime(true);
-
-        $spent = $time_end - $args['time_start'];
-
-        echo '<!-- spent: '. $spent .' -->';
-
-        return $response;
+        return call_user_func_array(array($class, $method), [$args]);
     }
 
     /**
@@ -146,8 +169,9 @@ class Outfit extends Module
 
     static function minify($buffer)
     {
-
-        //return $buffer;
+        if (f3()->get('DEBUG') > 0) {
+            return $buffer;
+        }
 
         $search = array(
             '/\>[^\S ]+/s',  // strip whitespaces after tags, except space
@@ -168,41 +192,15 @@ class Outfit extends Module
         return $buffer;
     }
 
-    static function wrapper ($html, $title = "", $slug = "", $rtn = false)
+    static function wrapper($html, $title = "", $slug = "", $rtn = false)
     {
-        $lang = Module::_lang();
+        $that = get_called_class();
 
-        if (f3()->exists('siteBeginDate')) {
-            $ts = strtotime(f3()->get('siteBeginDate'));
-            $now = time();
-            if ($slug != '/comingsoon' && $now < $ts) {
-                f3()->reroute(f3()->get('uri') . '/comingsoon');
-            }
-        }
-
-        f3()->set('SESSION.csrf', 'wdfghn'); // f3()->get('sess')->csrf());
-
-        f3()->set('canonical', '/'. $lang . $slug);
-        f3()->set('lang', Module::_lang());
-
-        $page = fOption::load('page');
-
-        if (f3()->exists('page')) {
-            $new = f3()->get('page', $page);
-            $page = array_merge($page, $new);
-        }
-
-        f3()->set('page', $page);
-
-        f3()->set('site.title', $page['title']);
-        f3()->set('page.title', $title .(($title!='') ? ' | ' : ''). $page['title']);
-
-        f3()->set('social', fOption::load('social'));
-
+        f3()->set('canonical', $slug);
         f3()->set('nav', rMenu::sort_menus(1, 0 , '', 0));
         f3()->set('footernav', rMenu::sort_menus(85, 0 , '', 0));
 
-        parent::_mobile_user_agent();
+        $that::_seoMeta($title);
 
         $tp = \Template::instance();
         $tp->filter('nl2br','\F3CMS\Outfit::nl2br');
@@ -217,4 +215,31 @@ class Outfit extends Module
             return self::minify($tp->render($html));
         }
     }
+
+    public static function _seoMeta($title = '')
+    {
+
+        $page = fOption::load('page');
+
+        if (f3()->exists('page')) {
+            $new = f3()->get('page', $page);
+            $page = array_merge($page, $new);
+        }
+
+        f3()->set('page', $page);
+
+        f3()->set('site.title', $page['title']);
+        f3()->set('page.title', $title .(($title!='') ? ' | ' : ''). $page['title']);
+
+        f3()->set('social', fOption::load('social'));
+    }
+
+    public static function _setAlternate($slug = '')
+    {
+        // TODO:
+        f3()->set('page.alternate', '<1-- <link rel="alternate" href="'. $slug .'" hreflang="zh-tw" />'.
+            '<link rel="alternate" href="'. $slug .'" hreflang="en" /> -->');
+    }
+
+
 }
