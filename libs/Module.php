@@ -73,19 +73,20 @@ class Module
         return $rtn;
     }
 
-
     static function _lang($args = array())
     {
-        if (f3()->exists('COOKIE.user_lang')) {
-            f3()->set('lang', f3()->get('COOKIE.user_lang'));
-        }
+        if (!f3()->exists('lang') || !empty($args)) {
+            $lang = f3()->get('defaultLang');
 
-        if (!empty($args)) {
-            f3()->set('lang', (empty($args['lang'])) ? f3()->get('defaultLang') : $args['lang'] );
-        }
+            if (f3()->exists('COOKIE.user_lang')) {
+                $lang = f3()->get('COOKIE.user_lang');
+            }
 
-        if (!f3()->exists('lang')) {
-            f3()->set('lang', f3()->get('defaultLang'));
+            if (!empty($args) && !empty($args['lang'])) {
+                $lang = $args['lang'];
+            }
+
+            f3()->set('lang', $lang);
         }
 
         return f3()->get('lang');
