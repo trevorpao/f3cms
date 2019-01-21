@@ -1,18 +1,32 @@
 <?php
 namespace F3CMS;
 
-class Mession extends MHelper {
+class Mession extends MHelper
+{
+    /**
+     * @var Session ID
+     */
+    protected $sid;
 
-    //! Session ID
-    protected $sid,
-        //! Anti-CSRF token
-        $_csrf,
-        //! User agent
-        $_agent,
-        //! IP,
-        $_ip,
-        //! Suspect callback
-        $onsuspect;
+    /**
+     * @var Anti-CSRF token
+     */
+    protected $_csrf;
+
+    /**
+     * @var User agent
+     */
+    protected $_agent;
+
+    /**
+     * @var IP
+     */
+    protected $_ip;
+
+    /**
+     * @var Suspect callback
+     */
+    protected $onsuspect;
 
     /**
      *   Open session
@@ -45,21 +59,12 @@ class Mession extends MHelper {
         $this->sid = $id;
 
         $this->writeLog('select------::' . $id);
-        $this->rtn = $this->get($this->tbl, '*', ['session_id' => $id]);
+        $this->rtn = $this->get($this->tbl, '*', array('session_id' => $id));
         $this->writeLog('data:' . json_encode($this->rtn));
 
         if ($this->dry()) {
             return '';
         }
-
-        // IP check ?
-        // if ($this->rtn['ip'] != $this->_ip || $this->rtn['agent'] != $this->_agent) {
-        //     f3()->call($this->onsuspect,[$this, $id]);
-        //     $this->destroy($id);
-        //     $this->close();
-        //     unset(f3()->{'COOKIE.'.session_name()});
-        //     f3()->error(403);
-        // }
 
         return $this->rtn['data'];
     }
@@ -75,27 +80,26 @@ class Mession extends MHelper {
         $logger = new \Log('session.log');
         if ($this->dry()) {
             $this->writeLog('insert------start');
-            $this->insert($this->tbl, [
+            $this->insert($this->tbl, array(
                 'session_id' => $id,
-                'data' => $data,
-                'ip' => $this->_ip,
-                'agent' => $this->_agent,
-                'stamp' => time()
-            ]);
-            $this->writeLog('insert------::'. $this->id());
-        }
-        else {
+                'data'       => $data,
+                'ip'         => $this->_ip,
+                'agent'      => $this->_agent,
+                'stamp'      => time()
+            ));
+            $this->writeLog('insert------::' . $this->id());
+        } else {
             $this->writeLog('update------start');
             $this->writeLog('data:' . $data);
 
-            $this->update($this->tbl, [
-                'data' => $data,
-                'ip' => $this->_ip,
+            $this->update($this->tbl, array(
+                'data'  => $data,
+                'ip'    => $this->_ip,
                 'agent' => $this->_agent,
                 'stamp' => time()
-            ], [
+            ), array(
                 'session_id' => $id
-            ]);
+            ));
         }
 
         return true;
@@ -108,9 +112,9 @@ class Mession extends MHelper {
      */
     public function destroy($id)
     {
-        $this->delete($this->tbl, [
+        $this->delete($this->tbl, array(
             'session_id' => $id
-        ]);
+        ));
 
         return true;
     }
@@ -122,9 +126,9 @@ class Mession extends MHelper {
      */
     public function cleanup($max)
     {
-        $this->delete($this->tbl, [
+        $this->delete($this->tbl, array(
             'stamp[<]' => time() - 86400 * 30
-        ]);
+        ));
 
         return true;
     }
@@ -179,13 +183,17 @@ class Mession extends MHelper {
     }
 
     /**
-    *   Return TRUE if current cursor position is not mapped to any record
-    *   @return bool
-    **/
-    public function dry() {
+     *   Return TRUE if current cursor position is not mapped to any record
+     * @return bool
+     */
+    public function dry()
+    {
         return empty($this->rtn) ? true : false;
     }
 
+    /**
+     * @param $str
+     */
     public function writeLog($str)
     {
         ($this->debug) ? $this->logger->write($str) : '';

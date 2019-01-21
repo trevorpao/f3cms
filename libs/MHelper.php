@@ -5,19 +5,22 @@ use \Medoo\Medoo as Medoo;
 
 class MHelper extends Medoo
 {
+    /**
+     * @var mixed
+     */
     private static $_instance = false;
 
     public function __construct()
     {
         // $this->pdo = f3()->get('DB')->pdo();
-        parent::__construct([
+        parent::__construct(array(
             'database_type' => 'mysql',
             'database_name' => f3()->get('db_name'),
             'server'        => f3()->get('db_host'),
             'username'      => f3()->get('db_account'),
             'password'      => f3()->get('db_password'),
             'charset'       => 'utf8'
-        ]);
+        ));
     }
 
     public static function init()
@@ -28,76 +31,34 @@ class MHelper extends Medoo
 
         return self::$_instance;
     }
+
     /**
      *   Begin SQL transaction
-     *   @return bool
-     *
+     * @return bool
      */
-    function begin()
+    public function begin()
     {
         $out = $this->pdo->begintransaction();
         return $out;
     }
+
     /**
      *   Rollback SQL transaction
-     *   @return bool
-     *
+     * @return bool
      */
-    function rollback()
+    public function rollback()
     {
         $out = $this->pdo->rollback();
         return $out;
     }
+
     /**
      *   Commit SQL transaction
-     *   @return bool
-     *
+     * @return bool
      */
-    function commit()
+    public function commit()
     {
         $out = $this->pdo->commit();
         return $out;
     }
-
-    // public function exec($query)
-    // {
-    //     if ($this->debug_mode) {
-    //         echo $query;
-    //         $this->debug_mode = false;
-    //         return false;
-    //     }
-
-    //     $stmt = $this->pdo->prepare($query);
-    //     $stmt->execute();
-    //     $error = $stmt->errorinfo();
-    //     if ($error[0] != \PDO::ERR_NONE) {
-    //         throw new PDOException($error[2], $error[0]);
-    //         return false;
-    //     }
-    //     else {
-    //         array_push($this->logs, $query);
-    //         return $stmt->rowcount();
-    //     }
-    // }
-
-    // public function query($query)
-    // {
-    //     if ($this->debug_mode) {
-    //         echo $query;
-    //         $this->debug_mode = false;
-    //         return false;
-    //     }
-
-    //     $stmt = $this->pdo->prepare($query);
-    //     $stmt->execute();
-    //     $error = $stmt->errorinfo();
-    //     if ($error[0] != \PDO::ERR_NONE) {
-    //         throw new PDOException($error[2], $error[0]);
-    //         return false;
-    //     }
-    //     else {
-    //         array_push($this->logs, $query);
-    //         return $stmt->fetchall(\PDO::FETCH_ASSOC);
-    //     }
-    // }
 }

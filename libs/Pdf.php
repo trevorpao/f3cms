@@ -5,23 +5,22 @@ require_once 'tcpdf/tcpdf.php';
 
 class Pdf extends Helper
 {
-
     /**
      * create a Pdf by html
      * @param  string $title    title
      * @param  string $uri      html uri
      * @param  string $fileName pdf filename
-     * @return string           file path
+     * @return string file path
      */
-    static function createPdf($title, $uri, $fileName)
+    public static function createPdf($title, $uri, $fileName)
     {
         $pdfPath = '/upload/doc/';
         $font = 'simfang';
         $lang = array(
-            'a_meta_charset' => 'UTF-8',
-            'a_meta_dir' => 'ltr',
+            'a_meta_charset'  => 'UTF-8',
+            'a_meta_dir'      => 'ltr',
             'a_meta_language' => 'zh',
-            'w_page' => '頁面'
+            'w_page'          => '頁面'
         );
 
         if (!file_exists($pdfPath)) {
@@ -42,8 +41,8 @@ class Pdf extends Helper
         // $pdf->SetHeaderData('logo.png', '10', $title, '');
 
         // set header and footer fonts
-        $pdf->setHeaderFont(Array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
-        $pdf->setFooterFont(Array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
+        $pdf->setHeaderFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
+        $pdf->setFooterFont(array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
 
         // set default monospaced font
         $pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);
@@ -82,8 +81,8 @@ class Pdf extends Helper
         // ---------------------------------------------------------
 
         //Close and output PDF document
-        $pdf->Output($pdfPath . $file_name .'.pdf', 'FD');
+        $pdf->Output($pdfPath . $file_name . '.pdf', 'FD');
 
-        return $pdfPath . $file_name .'.pdf';
+        return $pdfPath . $file_name . '.pdf';
     }
 }

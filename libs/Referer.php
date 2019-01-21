@@ -11,10 +11,10 @@ class Referer extends Module
         $referer = $_SERVER['HTTP_REFERER'];
 
         if (!empty($referer)) {
-            // $parse = parse_url($referer);
-            $uri = $referer; // $parse['path'] . ((!empty($parse['query']))? '?' . $parse['query'] : '');
+            $uri = $referer;
         } else {
-            $uri = '/';
+            $parse = parse_url($_SERVER['REQUEST_URI']);
+            $uri = ((!empty($parse['query'])) ? $parse['query'] : '/');
         }
 
         f3()->set('SESSION.referer', $uri);

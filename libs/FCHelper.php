@@ -6,7 +6,13 @@ namespace F3CMS;
  */
 class FCHelper extends Reaction
 {
+    /**
+     * @var int
+     */
     public $ifHistory = 0;
+    /**
+     * @var string
+     */
     private $base = 'cache';
 
     /**
@@ -47,7 +53,7 @@ class FCHelper extends Reaction
 
             $this->writeFile(
                 $this->path . '/history.log',
-                '|'. date('Y-m-d H:i:s') .PHP_EOL.'變動人：' . (($staff) ?: remote_ip()) .PHP_EOL. $bakname .PHP_EOL,
+                '|' . date('Y-m-d H:i:s') . PHP_EOL . '變動人：' . (($staff) ?: remote_ip()) . PHP_EOL . $bakname . PHP_EOL,
                 'a+'
             );
         }
@@ -119,6 +125,9 @@ class FCHelper extends Reaction
         }
     }
 
+    /**
+     * @param $cacheName
+     */
     public function getLog($cacheName)
     {
         $filename = $this->getFilename($cacheName);
@@ -132,23 +141,27 @@ class FCHelper extends Reaction
         }
     }
 
+    /**
+     * @param $cacheName
+     * @return mixed
+     */
     public function requestSet($cacheName)
     {
         $curl = curl_init();
 
         curl_setopt_array($curl, array(
-            CURLOPT_URL => f3()->get('uri') . '/' . $this->action,
+            CURLOPT_URL            => f3()->get('uri') . '/' . $this->action,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER => false,
             CURLOPT_SSL_VERIFYHOST => false,
-            CURLOPT_ENCODING => '',
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 30,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => 'GET',
-            CURLOPT_HTTPHEADER => array(
-                'cache-control: no-cache',
-            ),
+            CURLOPT_ENCODING       => '',
+            CURLOPT_MAXREDIRS      => 10,
+            CURLOPT_TIMEOUT        => 30,
+            CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
+            CURLOPT_CUSTOMREQUEST  => 'GET',
+            CURLOPT_HTTPHEADER     => array(
+                'cache-control: no-cache'
+            )
         ));
 
         $response = curl_exec($curl);
@@ -163,6 +176,11 @@ class FCHelper extends Reaction
         }
     }
 
+    /**
+     * @param $path
+     * @param $content
+     * @param $mode
+     */
     private function writeFile($path, $content, $mode = 'w+')
     {
         if (!file_exists($this->base . $path)) {
@@ -182,13 +200,13 @@ class FCHelper extends Reaction
      */
     protected function getFilename($cacheName)
     {
-        $this->path = '/'.$this->action .'/'. md5($cacheName);
+        $this->path = '/' . $this->action . '/' . md5($cacheName);
 
         if (!file_exists($this->base . $this->path)) {
             mkdir($this->base . $this->path, 0770, true);
         }
 
-        return $this->path .'/index.html';
+        return $this->path . '/index.html';
     }
 
     /**
@@ -198,7 +216,7 @@ class FCHelper extends Reaction
      */
     protected function getBackupFilename()
     {
-        return $this->path .'/'. date('ymdHis') .'.html';
+        return $this->path . '/' . date('ymdHis') . '.html';
     }
 
     /**
@@ -208,7 +226,7 @@ class FCHelper extends Reaction
      */
     protected function removeFiles($pattern)
     {
-        $directory = $this->base .'/'. $this->action . '/';
+        $directory = $this->base . '/' . $this->action . '/';
 
         foreach (glob($directory . $pattern) as $filename) {
             @unlink($filename);
@@ -240,7 +258,7 @@ class FCHelper extends Reaction
         }
 
         // maxlifetime expired
-        if ($maxLifetime > 0 && (time() - $mtime) > $maxLifetime*60) {
+        if ($maxLifetime > 0 && (time() - $mtime) > $maxLifetime * 60) {
             return true;
         }
 
@@ -257,7 +275,6 @@ class FCHelper extends Reaction
      */
     protected function readCache($cacheName, $filename)
     {
-
         if (!file_exists($this->base . $filename)) {
             return '';
         }
@@ -298,7 +315,7 @@ class FCHelper extends Reaction
     }
 
     /**
-     * @param $buffer
+     * @param  $buffer
      * @return mixed
      */
     public static function minify($buffer)
@@ -308,13 +325,13 @@ class FCHelper extends Reaction
         $search = array(
             '/\>[^\S ]+/s', // strip whitespaces after tags, except space
             '/[^\S ]+\</s', // strip whitespaces before tags, except space
-            '/(\s)+/s', // shorten multiple whitespace sequences
+            '/(\s)+/s' // shorten multiple whitespace sequences
         );
 
         $replace = array(
             '>',
             '<',
-            '\\1',
+            '\\1'
         );
 
         $buffer = preg_replace($search, $replace, $buffer);

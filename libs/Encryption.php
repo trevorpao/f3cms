@@ -7,7 +7,7 @@ class Encryption extends Module
 
     /**
      * get random string
-     * @param  [integer] $len [string length max is 32 char]
+     * @param  [integer]  $len [string length max is 32 char]
      * @return [string]
      */
     public static function salt($len = 22)
@@ -21,8 +21,8 @@ class Encryption extends Module
 
     /**
      * hash string
-     * @param  [string] $input [origin]
-     * @param  [string] $salt  [22 char string]
+     * @param  [string]   $input [origin]
+     * @param  [string]   $salt  [22 char string]
      * @return [string]
      */
     public static function hash($input, $salt)
@@ -43,7 +43,7 @@ class Encryption extends Module
 
     /**
      * encode string
-     * @param  [string] $input [be encode string]
+     * @param  [string]   $input [be encode string]
      * @return [string]
      */
     public static function encode($input)
@@ -64,7 +64,7 @@ class Encryption extends Module
 
             if (is_nan($chr2) || $chr2 == 0) {
                 $enc3 = $enc4 = 64;
-            } elseif (is_nan($chr3) || $chr3 == 0) {
+            } else if (is_nan($chr3) || $chr3 == 0) {
                 $enc4 = 64;
             }
 
@@ -79,12 +79,12 @@ class Encryption extends Module
 
     /**
      * decode string
-     * @param  [string] $input [be decode string]
+     * @param  [string]   $input [be decode string]
      * @return [string]
      */
     public static function decode($input)
     {
-        $output = "";
+        $output = '';
         $chr1 = $chr2 = $chr3 = $enc1 = $enc2 = $enc3 = $enc4 = null;
         $i = 0;
 
@@ -125,6 +125,9 @@ class Encryption extends Module
         return $output;
     }
 
+    /**
+     * @param $w
+     */
     private static function mimeEncode($w)
     {
         if ($w >= 0) {

@@ -28,32 +28,28 @@ class WHelper extends PhpWord
     {
         $margin = Converter::cmToTwip(1);
 
-        // $width = Converter::cmToTwip(19);
-        // echo $width;
-        // die;
-
         $page = self::$_instance->addSection(array(
             'orientation'  => 'portrait', // [portrait|landscape]
             'marginTop'    => $margin,
             'marginLeft'   => $margin,
             'marginRight'  => $margin,
             'marginBottom' => $margin,
-            'pageSizeW' => 11906,
-            'pageSizeH' => 16838
+            'pageSizeW'    => 11906,
+            'pageSizeH'    => 16838
         ));
 
         return $page;
     }
 
     /**
-     * @param $company
+     * @param  $company
      * @return mixed
      */
-    public function newCert($company)
+    public function newCert($company, $year)
     {
         // header('Content-type: image/png');
 
-        $year = date('Y') - 1911;
+        // $year = date('Y') - 1911;
         $root = f3()->get('ROOT') . f3()->get('BASE');
         $path = '/upload/cert/' . $year . '/';
         $filename = date('mdHis') . '.png';
@@ -71,23 +67,19 @@ class WHelper extends PhpWord
         $color = imagecolorallocate($image, 0, 0, 0);
         $font = $root . '/font/msjh.ttf';
 
-        imagettftext($image, 12, 0, 180, 630, $color, $font, $company);
+        imagettftext($image, 22, 0, 245, 630, $color, $font, $company);
         imagettftext($image, 18, 0, 370, 710, $color, $font, $year);
         imagettftext($image, 12, 0, 505, 1268, $color, $font, $year);
-        imagettftext($image, 12, 0, 580, 1268, $color, $font, '3');
+        imagettftext($image, 12, 0, 577, 1268, $color, $font, '12');
 
         imagepng($image, $root . $path . $filename);
-
-        // imagepng($image);
-        // imagedestroy($image);
-        // die;
 
         return $root . $path . $filename;
     }
 
     /**
      * @param $filename
-     * @param $type [ODText|Word2007]
+     * @param $type       [ODText|Word2007]
      */
     public function done($filename, $type = 'ODText')
     {
@@ -104,16 +96,23 @@ class WHelper extends PhpWord
 
         $objWriter = IOFactory::createWriter(self::$_instance, $type);
         $objWriter->save($root . $path . $filename);
+    }
 
-        // header("Content-Description: File Transfer");
-        // header('Content-Disposition: attachment; filename="' . $filename . '"');
-        // header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
-        // header('Content-Transfer-Encoding: binary');
-        // header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
-        // header('Expires: 0');
+    /**
+     * @param $filename
+     * @param $type       [ODText|Word2007]
+     */
+    public function output($filename, $type = 'ODText')
+    {
+        header('Content-Description: File Transfer');
+        header('Content-Disposition: attachment; filename="' . $filename . '"');
+        header('Content-Type: application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+        header('Content-Transfer-Encoding: binary');
+        header('Cache-Control: must-revalidate, post-check=0, pre-check=0');
+        header('Expires: 0');
 
-        // $xmlWriter = IOFactory::createWriter(self::$_instance, 'Word2007');
-        // $xmlWriter->save("php://output");
+        $objWriter = IOFactory::createWriter(self::$_instance, $type);
+        $objWriter->save('php://output');
     }
 
 }

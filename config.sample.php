@@ -40,12 +40,13 @@ $f3->set('theme', 'default');
 
 $f3->set('defaultLang', 'tw');
 
+$f3->set('acceptLang', ['tw', 'en']);
+
 // for Class:Upload
 //thumbnail
 $f3->set('post_thn', [260, 196]);
-$f3->set('media_thn', [260, 196]);
 $f3->set('author_thn', [400, 300]);
-$f3->set('press_thn', [128, 128]);
+$f3->set('default_thn', [300, 300]);
 $f3->set('adv_thn', [293, 293]);
 $f3->set('all_thn', [128, 128]);
 // acceptable file type

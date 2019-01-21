@@ -1,10 +1,12 @@
 <?php
 
-function f3() {
+function f3()
+{
     return \Base::instance();
 }
 
-function db() {
+function db()
+{
     if (!f3()->exists('DB')) {
         $db = new \DB\SQL(f3()->get('db'), f3()->get('db_account'), f3()->get('db_password'));
         f3()->set('DB', $db);
@@ -27,8 +29,8 @@ function mh()
     return f3()->get('MH');
 }
 
-
-function tpf() {
+function tpf()
+{
     return f3()->get('tpf');
 }
 
@@ -36,7 +38,7 @@ function tpf() {
  * Two-Phase Switcher
  * @param  [string] $default default string
  * @param  [string] $other   other string
- * @return [string]          string
+ * @return [string] string
  */
 function langTPS($default, $other)
 {
@@ -55,13 +57,15 @@ function is_https()
     return false;
 }
 
-
-
+/**
+ * @param $default
+ * @return mixed
+ */
 function detectBrowserLang($default = 'en')
 {
     $rtn = $default;
 
-    switch (strtolower(substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2))){
+    switch (strtolower(substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2))) {
         case 'zh':
         case 'cn':
         case 'tw':
@@ -73,6 +77,9 @@ function detectBrowserLang($default = 'en')
     return $rtn;
 }
 
+/**
+ * @param array $allowedOrigins
+ */
 function setCORS($allowedOrigins = array())
 {
     $allowedOrigins = array_merge($allowedOrigins, array('http://127.0.0.1', 'http://localhost'));
@@ -81,7 +88,7 @@ function setCORS($allowedOrigins = array())
         f3()->set('isCORS', 1);
         if (
             in_array($_SERVER['HTTP_ORIGIN'], $allowedOrigins) // for localhost testing
-            || $_SERVER['SERVER_NAME'] == 'demo.sense-info.co' // for demosite testing
+             || $_SERVER['SERVER_NAME'] == 'demo.sense-info.co' // for demosite testing
         ) {
             f3()->set('CORS.origin', $_SERVER['HTTP_ORIGIN']);
             f3()->set('CORS.credentials', true);
@@ -89,8 +96,7 @@ function setCORS($allowedOrigins = array())
             // f3()->set('CORS.expose', 'true');
             f3()->set('CORS.ttl', '86400');
         }
-    }
-    else {
+    } else {
         f3()->set('isCORS', 0);
     }
 }
@@ -102,30 +108,36 @@ function fQuery()
 
 /**
  * renderUniqueNo
- * @param string $length - serial_no length
- * @param string $chars  - available char in serial_no
+ * @param  string   $length - serial_no length
+ * @param  string   $chars  - available char in serial_no
  * @return string
  */
 function renderUniqueNo($length = 6, $chars = '3456789ACDFGHJKLMNPQRSTWXY')
 {
     $sn = '';
     for ($i = 0; $i < $length; $i++) {
-        $sn.= substr($chars, rand(0, strlen($chars) - 1) , 1);
+        $sn .= substr($chars, rand(0, strlen($chars) - 1), 1);
     }
     return $sn;
 }
 
+/**
+ * @param $str
+ */
 function decodeUnicode($str)
 {
-  return preg_replace_callback('/\\\\u([0-9a-f]{4})/i', create_function( '$matches', 'return mb_convert_encoding(pack("H*", $matches[1]), "UTF-8", "UCS-2BE");' ), $str);
+    return preg_replace_callback('/\\\\u([0-9a-f]{4})/i', create_function('$matches', 'return mb_convert_encoding(pack("H*", $matches[1]), "UTF-8", "UCS-2BE");'), $str);
 }
 
+/**
+ * @param $str
+ * @param $mode
+ */
 function chkRegisterID($str, $mode = 'strict')
 {
     if ($mode == 'strict') {
         return preg_match('/^[A]-\d{4}-[a-z]-\d{3}$/i', $str, $output);
-    }
-    else {
+    } else {
         return preg_match('/^[A]-\d{4}-[a-z]-\d{3}\D{0,4}$/i', $str, $output);
     }
 }

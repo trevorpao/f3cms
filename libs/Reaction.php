@@ -65,7 +65,6 @@ class Reaction extends Module
      */
     public function do_save($f3, $args)
     {
-
         rStaff::_chkLogin(); // chkAuth($feed::PV_U);
 
         $req = parent::_getReq();
@@ -221,7 +220,7 @@ class Reaction extends Module
     }
 
     /**
-     * @param array $params
+     * @param  array   $params
      * @return mixed
      */
     public static function beforeSave($params = array())
@@ -230,7 +229,7 @@ class Reaction extends Module
     }
 
     /**
-     * @param array $row
+     * @param  array   $row
      * @return mixed
      */
     public static function handleRow($row = array())
@@ -258,11 +257,10 @@ class Reaction extends Module
 
         // detect jsonp or json
         if (f3()->get('GET.callback') &&
-            (strpos(f3()->get('GET.callback'), '__jp') === 0 || strpos(f3()->get('GET.callback'), 'ng_jsonp_callback_') === 0 )) {
+            (strpos(f3()->get('GET.callback'), '__jp') === 0 || strpos(f3()->get('GET.callback'), 'ng_jsonp_callback_') === 0)) {
             header('Content-Type: application/javascript; charset=utf-8');
-            die(f3()->get('GET.callback') . ' (' .json_encode($return) . ');');
-        }
-        else {
+            die(f3()->get('GET.callback') . ' (' . json_encode($return) . ');');
+        } else {
             header('Content-Type: application/json; charset=utf-8');
             die(json_encode($return));
         }

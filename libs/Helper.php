@@ -1,9 +1,8 @@
 <?php
 namespace F3CMS;
 
-class Helper {
+class Helper
+{
     //! Instantiate class
-    function __construct() {
-
-    }
+    public function __construct() {}
 }

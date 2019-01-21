@@ -5,31 +5,27 @@ class Module
 {
     /**
      * _escape
-     * @param mixed $array - obj need to escape
+     * @param  mixed   $array - obj need to escape
      * @return mixed
      */
-    static protected function _escape($array, $quote = true)
+    protected static function _escape($array, $quote = true)
     {
         if (is_array($array)) {
             foreach ($array as $k => $v) {
                 if (is_string($v)) {
                     if ($quote) {
-                        $array[$k] =  f3()->get('DB')->quote(self::protectedXss($v));
+                        $array[$k] = f3()->get('DB')->quote(self::protectedXss($v));
+                    } else {
+                        $array[$k] = self::protectedXss($v);
                     }
-                    else {
-                        $array[$k] =  self::protectedXss($v);
-                    }
-                }
-                else if (is_array($v)) {
+                } else if (is_array($v)) {
                     $array[$k] = self::_escape($v, $quote);
                 }
             }
-        }
-        else {
+        } else {
             if ($quote) {
                 $array = f3()->get('DB')->quote(self::protectedXss($array));
-            }
-            else {
+            } else {
                 $array = self::protectedXss($array);
             }
         }
@@ -37,16 +33,23 @@ class Module
         return $array;
     }
 
+    /**
+     * @param $str
+     */
     private static function protectedXss($str)
     {
         return htmlentities($str, ENT_QUOTES, 'UTF-8');
     }
 
-    static function _shift($name, $target)
+    /**
+     * @param $name
+     * @param $target
+     */
+    public static function _shift($name, $target)
     {
         $name = str_replace(array('F3CMS\\', '\\'), array('', ''), $name);
 
-        list($type, $className) = preg_split("/(?<=[rfo])(?=[A-Z])/", $name);
+        list($type, $className) = preg_split('/(?<=[rfo])(?=[A-Z])/', $name);
 
         return '\\F3CMS\\' . \F3CMS_Autoloader::getPrefix()[$target] . $className;
     }
@@ -55,7 +58,7 @@ class Module
      * handle angular post data
      * @return array - post data
      */
-    static function _getReq()
+    public static function _getReq()
     {
         $rtn = array();
 
@@ -78,7 +81,10 @@ class Module
         return $rtn;
     }
 
-    static function _lang($args = array())
+    /**
+     * @param array $args
+     */
+    public static function _lang($args = array())
     {
         if (!f3()->exists('lang') || !empty($args)) {
             $lang = f3()->get('defaultLang');
@@ -97,42 +103,40 @@ class Module
         return f3()->get('lang');
     }
 
-    static function _mobile_user_agent(){
+    /**
+     * @return mixed
+     */
+    public static function _mobile_user_agent()
+    {
         if (!f3()->exists('device')) {
             $device = 'unknown';
 
-            if( stristr($_SERVER['HTTP_USER_AGENT'],'ipad') ) {
-                $device = "ipad";
-            } else if( stristr($_SERVER['HTTP_USER_AGENT'],'iphone') || strstr($_SERVER['HTTP_USER_AGENT'],'iphone') ) {
-                $device = "iphone";
-            } else if( stristr($_SERVER['HTTP_USER_AGENT'],'blackberry') ) {
-                $device = "blackberry";
-            } else if( stristr($_SERVER['HTTP_USER_AGENT'],'android') ) {
-                $device = "android";
+            if (stristr($_SERVER['HTTP_USER_AGENT'], 'ipad')) {
+                $device = 'ipad';
+            } else if (stristr($_SERVER['HTTP_USER_AGENT'], 'iphone') || strstr($_SERVER['HTTP_USER_AGENT'], 'iphone')) {
+                $device = 'iphone';
+            } else if (stristr($_SERVER['HTTP_USER_AGENT'], 'blackberry')) {
+                $device = 'blackberry';
+            } else if (stristr($_SERVER['HTTP_USER_AGENT'], 'android')) {
+                $device = 'android';
             }
 
             f3()->set('device', $device);
-        }
-        else {
+        } else {
             $device = f3()->get('device');
         }
 
         return $device;
     }
 
-    static public function _slugify($text)
+    /**
+     * @param $text
+     * @return mixed
+     */
+    public static function _slugify($text)
     {
         $text = str_replace('//', '/', $text);
         $text = str_replace(' ', '-', $text);
-
-        // $is_encoded = preg_match('~%[0-9A-F]{2}~i', $text);
-
-        // if (!$is_encoded) {
-        //     // transliterate
-        //     $text = rawurlencode($text);
-
-        //     $text = str_replace('%2F', '/', $text);
-        // }
 
         // replace non letter or digits by -
         $text = preg_replace('~[^\\pL\d%/-]+~u', '-', $text);
