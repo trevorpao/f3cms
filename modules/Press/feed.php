@@ -12,6 +12,7 @@ class fPress extends Feed
     const ST_DRAFT = 'Draft';
     const ST_PUBLISHED = 'Published';
     const ST_SCHEDULED = 'Scheduled';
+    const ST_CHANGED = 'Changed';
     const ST_OFFLINED = 'Offlined';
 
     const PV_R = 'use.cms';
@@ -20,7 +21,7 @@ class fPress extends Feed
 
     const PV_SOP = 'see.other.press';
 
-    const BE_COLS = 'm.id,l.title,m.last_ts,m.cover,m.status,m.slug,m.online_date,s.account';
+    const BE_COLS = 'm.id,l.title,l.info,m.last_ts,m.cover,m.status,m.slug,m.online_date,s.account';
 
     /**
      * @param $query
@@ -48,47 +49,23 @@ class fPress extends Feed
         return self::paginate(self::fmTbl() . '(m)', $filter, $page, $limit, explode(',', self::BE_COLS), $join);
     }
 
-    public static function lotsByTag($id, $page = 0, $limit = 6)
+    public static function lotsByID($ids, $page = 0, $limit = 6, $cols = '')
     {
 
-        if (is_array($id)) {
-            // $presses = mh()->select(self::fmTbl('tag') . '(r)',
-            //     ['[>]' . self::fmTbl('tag') . '(s)' => ['r.press_id' => 'press_id']],
-            //     ['r.press_id'],
-            //     ['r.tag_id=' => $id[0], 's.tag_id' => $id[1]]
-            // );
-            $condi = [];
-            foreach ($id as $row) {
-                $condi[] = ' SELECT `press_id` FROM `tbl_press_tag` WHERE `tag_id`='. intval($row) .' ';
-            }
+        $filter['m.id'] = $ids;
 
-            $presses = mh()->query('SELECT `press_id`, COUNT(`press_id`) AS `cnt` FROM ('.(implode(' UNION ALL ', $condi)).') u GROUP by `press_id` HAVING `cnt` > '. (sizeof($condi) - 1) .' ')->fetchAll(\PDO::FETCH_ASSOC);
-        }
-        else {
-            $presses = mh()->select(self::fmTbl('tag') . '(r)', ['r.press_id'], ['r.tag_id' => $id]);
-        }
+        $filter['m.status'] = self::ST_PUBLISHED;
 
-        return self::lotsByID(\__::pluck($presses, 'press_id'), $page, $limit);
+        $filter['l.lang'] = Module::_lang();
 
-        // $filter['m.id'] = \__::pluck($presses, 'press_id');
+        $filter['ORDER'] = ['m.insert_ts' => 'DESC'];
 
-        // $filter['ORDER'] = ['m.online_date' => 'DESC', 'm.insert_ts' => 'DESC'];
+        $join = [
+            '[>]' . fStaff::fmTbl() . '(s)' => ['m.insert_user' => 'id'],
+            '[>]'. self::fmTbl('lang') .'(l)' => ['m.id' => 'parent_id']
+        ];
 
-        // $join = ['[>]' . fStaff::fmTbl() . '(s)' => ['m.insert_user' => 'id']];
-
-        // return self::paginate(self::fmTbl() . '(m)', $filter, $page, $limit, explode(',', self::BE_COLS), $join);
-
-        // $filter = array(
-        //     ':tag' => $id,
-        //     ':status' => self::ST_PUBLISHED,
-        //     ':date' => date('Y-m-d'),
-        // );
-
-        // mh()->query(
-        //     'SELECT `s`.* FROM `'. self::fmTbl('tag') .'` AS `r` '.
-        //     'INNER JOIN `'. self::fmTbl() .'` AS `s` ON `r`.`press_id` = `s`.`id` '.
-        //     'WHERE `r`.`tag_id` = :tag AND  s.`status` = :status  AND s.online_date <= :date', $filter
-        // )->fetchAll(\PDO::FETCH_ASSOC);
+        return self::paginate(self::fmTbl() . '(m)', $filter, $page, $limit, explode(',', self::BE_COLS . $cols), $join);
     }
 
     public static function lotsBySearch($id, $page = 0, $limit = 6)
@@ -105,57 +82,6 @@ class fPress extends Feed
         return self::lotsByID(\__::pluck($presses, 'press_id'), $page, $limit);
     }
 
-    public static function lotsByID($ids, $page = 0, $limit = 6)
-    {
-
-        $filter['m.id'] = $ids;
-
-        $filter['m.status'] = self::ST_PUBLISHED;
-        $filter['m.site_id'] = f3()->get('site_id');
-
-        $filter['ORDER'] = ['m.online_date' => 'DESC', 'm.insert_ts' => 'DESC'];
-
-        $join = ['[>]' . fStaff::fmTbl() . '(s)' => ['m.insert_user' => 'id']];
-
-        return self::paginate(self::fmTbl() . '(m)', $filter, $page, $limit, explode(',', self::BE_COLS), $join);
-    }
-
-    /**
-     * @param $page
-     * @param $slug
-     * @param $type
-     * @param $limit
-     */
-    public static function load_list($page, $slug, $type = 'author', $limit = 9)
-    {
-        $filter = array(
-            ':status' => self::ST_PUBLISHED,
-            ':date' => date('Y-m-d'),
-        );
-
-        $condition = ' WHERE m.`status` = :status  AND m.online_date <= :date ';
-
-        if (!empty($slug)) {
-            if ($type == 'author') {
-                $filter[':author'] = $slug;
-                $condition .= ' AND m.`author_id` = :author ';
-            } else {
-                $tag = fTag::get_tag_by_slug($slug);
-                if ($tag) {
-                    $condition .= " AND m.`rel_tag` LIKE '%\"" . $tag['id'] . "\"%' ";
-                }
-            }
-        }
-
-        $sql = 'SELECT m.`id`, m.`author_id`, m.`status`, m.`slug`, m.`rel_tag`, m.`rel_dict`, m.`online_date`, m.`title`, m.`keyword`, m.`pic`, m.`info`, m.`last_ts`, a.`title` AS `author`, a.`slug` AS `author_slug` FROM `' . self::fmTbl() . '` m '
-        . ' LEFT JOIN `' . fAuthor::fmTbl() . '` a ON a.`id` = m.`author_id` '
-            . $condition . ' ORDER BY m.`online_date` DESC ';
-
-        // die($sql);
-
-        return self::paginate($sql, $filter, $page - 1, $limit);
-    }
-
     /**
      * get a next press
      *
@@ -169,9 +95,9 @@ class fPress extends Feed
 
         $join = " LEFT JOIN `". self::fmTbl('lang') ."` l ON l.`parent_id`=m.`id` AND l.`lang` = '". Module::_lang() ."' ";
 
-        $rows = db()->exec('SELECT m.`id`, m.`slug`, l.`title` FROM `'. self::fmTbl() .'` m '. $join .' '. $condition .' ORDER BY m.`' . $col . '` ASC, m.`id` DESC  LIMIT 1 ');
+        $rows = mh()->query('SELECT m.`id`, m.`slug`, l.`title` FROM `'. self::fmTbl() .'` m '. $join .' '. $condition .' ORDER BY m.`' . $col . '` ASC, m.`id` DESC  LIMIT 1 ')->fetch(\PDO::FETCH_ASSOC);
 
-        if (count($rows) != 1) {
+        if (empty($rows)) {
             return null;
         } else {
             return array('id' => $rows[0]['id'], 'title' => $rows[0]['title']);
@@ -191,9 +117,9 @@ class fPress extends Feed
 
         $join = " LEFT JOIN `". self::fmTbl('lang') ."` l ON l.`parent_id`=m.`id` AND l.`lang` = '". Module::_lang() ."' ";
 
-        $rows = db()->exec('SELECT m.`id`, m.`slug`, l.`title` FROM `'. self::fmTbl() .'` m '. $join .' '. $condition .' ORDER BY m.`' . $col . '` DESC, m.`id` DESC LIMIT 1 ');
+        $rows = mh()->query('SELECT m.`id`, m.`slug`, l.`title` FROM `'. self::fmTbl() .'` m '. $join .' '. $condition .' ORDER BY m.`' . $col . '` DESC, m.`id` DESC LIMIT 1 ')->fetch(\PDO::FETCH_ASSOC);
 
-        if (count($rows) != 1) {
+        if (empty($rows)) {
             return null;
         } else {
             return array('id' => $rows[0]['id'], 'title' => $rows[0]['title']);
@@ -221,13 +147,6 @@ class fPress extends Feed
      */
     public static function save($req, $tbl = '')
     {
-        if (isset($req['pics'])) {
-            if (!empty($req['pics'])) {
-                $req['pic'] = $req['pics'];
-            }
-            unset($req['pics']);
-        }
-
         $authors = explode(',', $req['authors']);
         unset($req['authors']);
 
@@ -258,25 +177,11 @@ class fPress extends Feed
             $rtn = self::chkErr($rtn->rowCount());
         }
 
-        if (isset($other['meta']) && !empty($other['meta'])) {
-            self::saveMeta($req['id'], $other['meta'], true);
-        }
-
-        if (isset($other['tags']) && !empty($other['tags'])) {
-            self::saveMany('tag', $req['id'], $other['tags']);
-        }
-
-        if (isset($other['lang']) && !empty($other['lang'])) {
-            self::saveLang($req['id'], $other['lang']);
-        }
-
-        if (isset($authors) && !empty($authors)) {
-            self::saveMany('author', $req['id'], $authors);
-        }
-
-        if (isset($relateds) && !empty($relateds)) {
-            self::saveMany('related', $req['id'], $relateds);
-        }
+        self::saveMeta($req['id'], $other['meta'], true);
+        self::saveMany('tag', $req['id'], $other['tags']);
+        self::saveLang($req['id'], $other['lang']);
+        self::saveMany('author', $req['id'], $authors, false, true);
+        self::saveMany('related', $req['id'], $relateds, false, true);
 
         return $rtn;
     }
@@ -293,10 +198,15 @@ class fPress extends Feed
 
         $filter = array(
             'r.' . $pk => $pid,
-            't.status' => self::ST_PUBLISHED,
+            'm.status' => self::ST_PUBLISHED,
+            't.lang' => Module::_lang(),
+            'ORDER' => 'r.sorter',
         );
 
-        return mh()->select(self::fmTbl('related') . '(r)', ['[>]' . self::fmTbl() . '(t)' => ['r.related_id' => 'id']], ['t.id', 't.slug', 't.site_id', 't.title'], $filter);
+        return mh()->select(self::fmTbl('related') . '(r)', [
+            '[>]' . self::fmTbl('lang') . '(t)' => ['r.related_id' => 'parent_id'],
+            '[>]' . self::fmTbl() . '(m)' => ['r.related_id' => 'id']
+        ], ['t.parent_id(id)', 't.title'], $filter);
     }
 
     /**
@@ -311,10 +221,18 @@ class fPress extends Feed
 
         $filter = array(
             'r.' . $pk => $pid,
-            't.status' => fAuthor::ST_ON,
+            'p.status' => fAuthor::ST_ON,
+            't.lang' => Module::_lang(),
+            'ORDER' => 'r.sorter'
         );
 
-        return mh()->select(self::fmTbl('author') . '(r)', ['[>]' . fAuthor::fmTbl() . '(t)' => ['r.author_id' => 'id']], ['t.id', 't.pic', 't.content', 't.slug', 't.title'], $filter);
+        return mh()->select(
+            self::fmTbl('author') . '(r)',
+            [
+                '[>]' . fAuthor::fmTbl('lang') . '(t)' => ['r.author_id' => 'parent_id'],
+                '[>]' . fAuthor::fmTbl() . '(p)' => ['r.author_id' => 'id']
+            ], ['p.id', 'p.cover', 't.title'], $filter
+        );
     }
 
     public static function filtered_column()
@@ -326,13 +244,40 @@ class fPress extends Feed
      * @param $queryStr
      * @return mixed
      */
+
+    /**
+     * @param $queryStr
+     * @return mixed
+     */
     public static function genQuery($queryStr = '')
     {
         $query = parent::genQuery($queryStr);
         $new = array();
 
         foreach ($query as $key => $value) {
-            $new['m.' . $key] = $value;
+            if ($key == 'tag') {
+                $filter = array(
+                    'l.title[~]' => $value,
+                    'm.status' => fTag::ST_ON
+                );
+
+                $tag = mh()->get(fTag::fmTbl().'(m)',
+                    ['[><]'. fTag::fmTbl('lang') .'(l)' => ['m.id' => 'parent_id']], ['m.id'], $filter);
+
+                if (!empty($tag)) {
+                    $presses = mh()->select(self::fmTbl('tag') . '(r)', ['r.'. self::MTB .'_id'], ['r.tag_id' => $tag['id']]);
+                }
+
+                if (!empty($presses)) {
+                    $new['m.id'] = \__::pluck($presses, 'press_id');
+                }
+                else {
+                    $new['m.id'] = -1;
+                }
+            }
+            else {
+                $new[$key] = $value;
+            }
         }
 
         return $new;

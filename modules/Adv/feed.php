@@ -55,4 +55,101 @@ class fAdv extends Feed
 
         return (1 === $limit && !empty($result)) ? $result[0] : $result;
     }
+
+    public static function addCounter($id = 0)
+    {
+        mh()->update(self::fmTbl(), array(
+            'counter[+]' => 1
+        ), array(
+            'id' => $id
+        ));
+    }
+
+    public static function addExposure($ids = [])
+    {
+        mh()->update(self::fmTbl(), array(
+            'exposure[+]' => 1
+        ), array(
+            'id' => $ids
+        ));
+    }
+
+
+    /**
+     * @param $position_id
+     * @param $limit
+     * @param $orderby
+     */
+    public static function getResources($position_id, $limit = 10, $orderby = ' rand() ')
+    {
+        if ($limit > 26) {
+            return [];
+        }
+
+        $condition = " WHERE m.`position_id` = '" . $position_id . "' AND m.`status` = '" . self::ST_ON . "' ";
+        $condition .= " AND m.`end_date` > '" . date('Y-m-d') . "' ";
+
+        $select = 'SELECT m.`id`, l.`title`, m.`status`, m.`weight`, m.`cover`, m.`uri`, m.`theme`, m.`background`, l.`subtitle`, l.`content`';
+        $from  = ' FROM `' . self::fmTbl() . '` AS m INNER JOIN `' . self::fmTbl('lang') . '` AS l ON l.`parent_id` = m.`id` AND l.`lang`="'. parent::_lang() .'" ' . $condition;
+
+        $order = '';
+        $useRand = false;
+        if (trim($orderby) != 'rand()') {
+            $order = ' ORDER BY '. $orderby . ', m.`id` DESC';
+        } else {
+            $useRand = true;
+        }
+
+        if ($useRand) {
+            $result = db()->exec($select . $from . ' LIMIT 26 ');
+
+            if ($result) {
+                $result = self::_randomByWeight($result, $limit);
+            }
+        }
+        else {
+            $result = db()->exec($select . $from . $order .' LIMIT '. $limit);
+        }
+
+        return (empty($result)) ? [] : $result;
+    }
+
+    private static function _randomByWeight($ary, $limit = 4)
+    {
+        if (count($ary) > 26) {
+            return [];
+        }
+
+        $tmp = '';
+        $rtn = [];
+
+        foreach ($ary as $k => $row) {
+            $tmp .= str_repeat(chr($k + 65), $row['weight']);
+        }
+
+        $tmp = str_split($tmp);
+        shuffle($tmp);
+
+        $tmp = array_values(array_unique($tmp));
+        foreach ($tmp as $i => $v) {
+            if ($i < $limit) {
+                $rtn[] = $ary[(ord($v) - 65)];
+            }
+        }
+
+        return $rtn;
+    }
+
+    public static function filtered_column()
+    {
+        return ['sh', 'sm', 'eh', 'em'];
+    }
+
+    public static function _handleColumn($req)
+    {
+        $req['start_date'] = $req['start_date'] .' '. $req['sh'] .':'. $req['sm'] .':00';
+        $req['end_date'] = $req['end_date'] .' '. $req['eh'] .':'. $req['em'] .':00';
+
+        return parent::_handleColumn($req);
+    }
 }

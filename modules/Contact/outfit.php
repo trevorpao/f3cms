@@ -17,7 +17,7 @@ class oContact extends Outfit
         }
 
         f3()->set('cu', $row);
-        // f3()->set('social', fOption::load('social'));
+        f3()->set('breadcrumb_sire', ['title' => '首頁', 'slug' => '/home']);
 
         parent::wrapper(f3()->get('theme') .'/contact.html', $row['title'], '/contact');
     }

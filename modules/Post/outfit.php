@@ -8,54 +8,38 @@ class oPost extends Outfit
 {
     public static function home ($args)
     {
+        $contact = fPost::one('contact', 'slug', ['status' => fPost::ST_ON], 0);
+
+        f3()->set('contact', $contact);
+
         parent::wrapper(f3()->get('theme') .'/home.html', '首頁', '/');
     }
 
     public static function sitemap ($args)
     {
-
-        $subset = fPress::load_list(0, '', 'author', 500);
-
-        foreach ($subset['subset'] as &$row) {
-            if (!empty($row['rel_tag'])) {
-                $row['rel_tag'] = json_decode($row['rel_tag'], true);
-                $ary = array();
-
-                foreach ($row['rel_tag'] as $tmp) {
-                    $ary[] = $tmp['title'];
-                }
-
-                $row['keyword'] = implode(',', $ary) .','. $row['keyword'];
-            }
-            if (!empty($row['rel_dict'])) {
-                $row['rel_dict'] = json_decode($row['rel_dict'], true);
-                $ary = array();
-
-                foreach ($row['rel_dict'] as $tmp) {
-                    $ary[] = $tmp['title'];
-                }
-
-                $row['keyword'] = implode(',', $ary) .','. $row['keyword'];
-            }
-        }
+        $subset = fPress::limitRows('status:'. fPress::ST_PUBLISHED, 0, 1000);
 
         f3()->set('rows', $subset);
 
         f3()->set('page', fOption::load('page'));
 
-        echo \Template::instance()->render('sitemap.xml','application/xml');
+        $tp = \Template::instance();
+        $tp->filter('date','\F3CMS\Outfit::date');
+
+        echo $tp->render('sitemap.xml','application/xml');
     }
 
     public static function rss ($args)
     {
+        // TODO: mutil lang
 
-        $subset = fPress::load_list(0, '', 'author', 50);
+        $subset = fPress::limitRows('status:'. fPress::ST_PUBLISHED, 0, 100);
 
         f3()->set('rows', $subset);
 
         f3()->set('page', fOption::load('page'));
 
-        f3()->set('contact_mail', fOption::get('contact_mail'));
+        f3()->set('contact_mail', fOption::one('contact_mail', 'name'));
 
         $tp = \Template::instance();
         $tp->filter('date','\F3CMS\Outfit::date');
@@ -63,15 +47,53 @@ class oPost extends Outfit
         echo $tp->render('rss.xml','application/xml');
     }
 
+    function do_lineXml ($f3, $args)
+    {
+
+        $subset = fPress::limitRows('status:'. fPress::ST_PUBLISHED, 0, 100);
+
+        foreach ($subset['subset'] as &$row) {
+            $row['rel_tag'] = json_decode($row['rel_tag'], true);
+
+            if (!empty($row['rel_tag'])) {
+                $ary = array();
+
+                foreach ($row['rel_tag'] as $n) {
+                    $ary[] = $n['title'];
+                }
+
+                $row['keyword'] = implode(',', $ary) .','. $row['keyword'];
+            }
+
+            $row['online_ts'] = strtotime($row['online_date']) . '000';
+            $row['online_ts'] = strtotime($row['last_ts']) . '000';
+        }
+
+        f3()->set('rows', $subset);
+
+        f3()->set('page', fOption::load('page'));
+
+        f3()->set('time', time() . '000');
+
+        f3()->set('contact_mail', fOption::get('contact_mail'));
+
+        $tp = \Template::instance();
+        $tp->filter('date','\F3CMS\Outfit::date');
+
+        echo self::utf8Xml($tp->render('lineXml.xml', 'application/xml'));
+    }
+
     public static function show ($args)
     {
-        $row = fPost::one($args['slug'], 'slug', ['status' => fPost::ST_ON], false);
+        $row = fPost::one($args['slug'], 'slug', ['status' => fPost::ST_ON], 0);
 
         if (empty($row)) {
             f3()->error(404);
         }
 
         f3()->set('cu', $row);
+
+        f3()->set('breadcrumb_sire', ['title' => '首頁', 'slug' => '/home']);
 
         parent::wrapper(f3()->get('theme') .'/post.html', $row['title'], '/post/'. $row['slug']);
     }
@@ -108,5 +130,71 @@ class oPost extends Outfit
         ]);
 
         parent::wrapper(f3()->get('theme') .'/error.html', 'Not Found', '/404');
+    }
+
+    public static function word ($args)
+    {
+
+        $phpWord = WHelper::init();
+        $page = $phpWord->newPage();
+
+        $cert = $phpWord->newCert('三思資訊');
+        $page->addImage($cert, [
+            'wrappingStyle' => 'behind',
+            'width'         => 637,
+            'height'        => 923,
+            'marginTop'     => -1,
+            'marginLeft'    => -1
+        ]);
+
+        // \PhpOffice\PhpWord\Shared\Html::addHtml($section, '<table style="width:100%"><tr><td><img src="https://www.gettyimages.ca/gi-resources/images/Homepage/Hero/UK/CMS_Creative_164657191_Kingfisher.jpg" width="200"/></td><td>text</td></tr></table>');
+
+        // $header = $page->addHeader();
+        // $header->addWatermark(f3()->get('ROOT') . f3()->get('BASE') . '/upload/img/bg.png', array('marginTop' => 200, 'marginLeft' => 55));
+
+        // $fontStyleName = 'oneUserDefinedStyle';
+        // $phpWord->addFontStyle(
+        //     $fontStyleName,
+        //     array('name' => 'Tahoma', 'size' => 10, 'color' => '1B2232', 'bold' => true)
+        // );
+
+        // $textbox = $page->addTextBox(
+        //     array(
+        //         'alignment'   => \PhpOffice\PhpWord\SimpleType\Jc::CENTER,
+        //         'width'       => 400,
+        //         'height'      => 150,
+        //         'borderSize'  => 1,
+        //         // 'borderColor' => '#FF0000',
+        //         'background-color' => '#FF0000'
+        //     )
+        // );
+        // $textbox->addText('Text box content in section.');
+        // $textbox->addText('Another line.');
+
+        // $page->addText(
+        //     '"Learn from yesterday, live for today, hope for tomorrow. '
+        //         . 'The important thing is not to stop questioning." '
+        //         . '(Albert Einstein)',
+        //     $fontStyleName
+        // );
+
+        // $page->addText(
+        //     '"Great achievement is usually born of great sacrifice, '
+        //         . 'and is never the result of selfishness." '
+        //         . '(Napoleon Hill)',
+        //     $fontStyleName
+        // );
+
+        // $page->addTextBreak(2);
+
+        // $page->addText(
+        //     '"The greatest accomplishment is not in never falling, '
+        //         . 'but in rising again after you fall." '
+        //         . '(Vince Lombardi)',
+        //     $fontStyleName
+        // );
+
+        $phpWord->done('certification_' . date('YmdHis').'.odt');
+        // $phpWord->done('certification_' . date('YmdHis').'.docx', 'Word2007');
     }
 }

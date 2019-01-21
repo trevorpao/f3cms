@@ -76,16 +76,6 @@ class fTag extends Feed
         return mh()->select(self::fmTbl(), ['id', $column], $filter);
     }
 
-    public static function lotsByID($ids)
-    {
-
-        $filter['id'] = $ids;
-
-        $filter['status'] = self::ST_ON;
-
-        return mh()->select(self::fmTbl(), ['id', 'title', 'slug'], $filter);
-    }
-
     /**
      * get detail by tag id
      *

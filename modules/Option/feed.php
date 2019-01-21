@@ -102,7 +102,7 @@ class fOption extends Feed
         return $query;
     }
 
-    static function limitRows($query = '', $page = 0, $limit = 10)
+    static function limitRows($query = '', $page = 0, $limit = 10, $cols = '')
     {
         $lang = Module::_lang();
 

@@ -29,9 +29,9 @@ class oTag extends Outfit
             return $cu;
         });
 
-        $f3->set('rows', $subset);
-        $f3->set('cate', $tag);
+        f3()->set('rows', $subset);
+        f3()->set('cate', $tag);
 
-        parent::wrapper('presses.html', $tag['title'], '/tag/' . $tag['slug']);
+        parent::wrapper(f3()->get('theme') .'/presses.html', $tag['title'], '/tag/' . $tag['slug']);
     }
 }

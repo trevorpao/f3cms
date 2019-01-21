@@ -7,32 +7,30 @@ namespace F3CMS;
  */
 class fContact extends Feed
 {
-    const MTB           = "contact";
+    const MTB        = 'contact';
+    const MULTILANG = 0;
 
-    static function getAll()
-    {
+    const ST_NEW     = 'New';
+    const ST_Process = 'Process';
+    const ST_DONE    = 'Done';
 
-        $result = db()->exec(
-            "SELECT `id`, `status`, `name`, `phone`, `email`, `last_ts` FROM `".
-            self::fmTbl() ."` ORDER BY insert_ts DESC "
-        );
-
-        return $result;
-    }
+    const BE_COLS = 'id,status,name,email,insert_ts,last_ts';
 
     static function insert($req)
     {
-
         $now = date('Y-m-d H:i:s');
-        $obj = self::map();
 
-        $obj->name = $req['cname'];
-        $obj->email = $req['cemail'];
-        $obj->message = $req['cmessage'];
-        $obj->last_ts = $now;
-        $obj->insert_ts = $now;
-        $obj->save();
+        $data = [
+            'name'      => $req['name'],
+            'email'     => $req['email'],
+            'message'   => $req['message'],
+            'status'    => self::ST_NEW,
+            'last_ts'   => $now,
+            'insert_ts' => $now
+        ];
 
-        return $obj->id;
+        mh()->insert(self::fmTbl(), $data);
+
+        return mh()->id();
     }
 }

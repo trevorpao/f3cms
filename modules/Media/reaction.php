@@ -16,6 +16,22 @@ class rMedia extends Reaction
         f3()->reroute($cu['pic']);
     }
 
+    public function do_renewParent($f3, $args)
+    {
+        rStaff::_chkLogin();
+
+        $req = parent::_getReq();
+
+
+        $rtn = mh()->update(fMedia::fmTbl(), array(
+            'parent_id' => $req['pid']
+        ), array(
+            'id' => $req['img'],
+            'target' => $req['target']
+        ));
+
+        return self::_return(1, ['cnt' => $rtn->rowCount()]);
+    }
 
     /**
      * save photo

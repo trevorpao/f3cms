@@ -87,15 +87,18 @@ class rMenu extends Reaction
 
     public function do_lotsMenu($f3, $args)
     {
+        parent::_lang($args);
+        f3()->set('lang', parent::_lang());
+
         $req = parent::_getReq();
 
         $fc = new FCHelper('menu');
 
-        $rtn = $fc->get('menu_'. $req['menuID'], 1); // 1 mins
+        $rtn = $fc->get('menu_'. parent::_lang() .'_'. $req['menuID'], 1); // 1 mins
 
         if (empty($rtn)) {
             $rtn = rMenu::sort_menus($req['menuID'], 0 , '', 0);
-            $fc->save('menu_'. $req['menuID'], json_encode($rtn));
+            $fc->save('menu_'. parent::_lang() .'_'. $req['menuID'], json_encode($rtn));
         }
         else {
             $rtn = json_decode(preg_replace('/<!--(?!\s*(?:\[if [^\]]+]|<!|>))(?:(?!-->).)*-->/s', '', $rtn), true);

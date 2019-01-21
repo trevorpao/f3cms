@@ -20,7 +20,7 @@ class fMenu extends Feed
      * @param $page
      * @param $limit
      */
-    public static function limitRows($query = '', $page = 0, $limit = 1000)
+    public static function limitRows($query = '', $page = 0, $limit = 1000, $cols = '')
     {
         return array(
             'subset' => rMenu::sort_menus(0, 0, '', 0, 1),
@@ -53,7 +53,7 @@ class fMenu extends Feed
 
         $join .= ' LEFT JOIN `' . self::fmTbl('lang') . '` l1 ON l1.parent_id=c.id AND l1.lang = \''. $lang .'\' ';
 
-        $rows = mh()->query('SELECT c.id, l1.title, c.uri, c.theme, l1.badge, c.color, c.parent_id, l2.title AS parent FROM `' . self::fmTbl() . '` c ' . $join . $condition . ' ORDER BY c.sorter, c.id ')->fetchAll(\PDO::FETCH_ASSOC);
+        $rows = mh()->query('SELECT c.id, l1.title, c.uri, c.theme, c.blank, l1.badge, c.color, c.parent_id, l2.title AS parent FROM `' . self::fmTbl() . '` c ' . $join . $condition . ' ORDER BY c.sorter, c.id ')->fetchAll(\PDO::FETCH_ASSOC);
 
         return $rows;
     }
