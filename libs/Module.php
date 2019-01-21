@@ -11,30 +11,35 @@ class Module
     static protected function _escape($array, $quote = true)
     {
         if (is_array($array)) {
-            while (list($k,$v) = each($array)) {
+            foreach ($array as $k => $v) {
                 if (is_string($v)) {
                     if ($quote) {
-                        $array[$k] =  f3()->get('DB')->quote(htmlspecialchars(trim($v)));
+                        $array[$k] =  f3()->get('DB')->quote(self::protectedXss($v));
                     }
                     else {
-                        $array[$k] =  htmlspecialchars(trim($v));
+                        $array[$k] =  self::protectedXss($v);
                     }
                 }
                 else if (is_array($v)) {
-                    $array[$k] = $this->_escape($v, $quote);
+                    $array[$k] = self::_escape($v, $quote);
                 }
             }
         }
         else {
             if ($quote) {
-                $array = f3()->get('DB')->quote(htmlspecialchars(trim($array)));
+                $array = f3()->get('DB')->quote(self::protectedXss($array));
             }
             else {
-                $array = htmlspecialchars(trim($array));
+                $array = self::protectedXss($array);
             }
         }
 
         return $array;
+    }
+
+    private static function protectedXss($str)
+    {
+        return htmlentities($str, ENT_QUOTES, 'UTF-8');
     }
 
     static function _shift($name, $target)
@@ -118,15 +123,16 @@ class Module
     static public function _slugify($text)
     {
         $text = str_replace('//', '/', $text);
+        $text = str_replace(' ', '-', $text);
 
-        $is_encoded = preg_match('~%[0-9A-F]{2}~i', $text);
+        // $is_encoded = preg_match('~%[0-9A-F]{2}~i', $text);
 
-        if (!$is_encoded) {
-            // transliterate
-            $text = rawurlencode($text);
+        // if (!$is_encoded) {
+        //     // transliterate
+        //     $text = rawurlencode($text);
 
-            $text = str_replace('%2F', '/', $text);
-        }
+        //     $text = str_replace('%2F', '/', $text);
+        // }
 
         // replace non letter or digits by -
         $text = preg_replace('~[^\\pL\d%/-]+~u', '-', $text);

@@ -11,6 +11,8 @@ class Reaction extends Module
     public function do_rerouter($f3, $args)
     {
         try {
+            $args = parent::_escape($args, false);
+
             // Create an instance of the module class.
             $class = '\F3CMS\r' . ucfirst($args['module']);
 
@@ -42,12 +44,10 @@ class Reaction extends Module
      */
     public function do_list($f3, $args)
     {
-        $that = get_called_class();
-        $feed = parent::_shift($that, 'feed');
-
         rStaff::_chkLogin(); // chkAuth($feed::PV_R);
 
         $req = parent::_getReq();
+        $feed = parent::_shift(get_called_class(), 'feed');
 
         $req['page'] = ($req['page']) ? ($req['page'] - 1) : 1;
 
@@ -65,8 +65,6 @@ class Reaction extends Module
      */
     public function do_save($f3, $args)
     {
-        $that = get_called_class();
-        $feed = parent::_shift($that, 'feed');
 
         rStaff::_chkLogin(); // chkAuth($feed::PV_U);
 
@@ -99,7 +97,7 @@ class Reaction extends Module
 
         $thumb_str = strtolower($className) . '_thn';
 
-        $default = f3()->get($thumb_str) ? f3()->get($thumb_str) : f3()->get('default_thn');
+        $default = f3()->exists($thumb_str) ? f3()->get($thumb_str) : f3()->get('default_thn');
 
         list($filename, $width, $height) = Upload::savePhoto(
             f3()->get('FILES'), array($default, f3()->get('all_thn'))
@@ -259,7 +257,8 @@ class Reaction extends Module
         $return['csrf'] = f3()->get('SESSION.csrf');
 
         // detect jsonp or json
-        if (f3()->get('GET.callback') && strpos(f3()->get('GET.callback'), 'jQuery') === 0) {
+        if (f3()->get('GET.callback') &&
+            (strpos(f3()->get('GET.callback'), '__jp') === 0 || strpos(f3()->get('GET.callback'), 'ng_jsonp_callback_') === 0 )) {
             header('Content-Type: application/javascript; charset=utf-8');
             die(f3()->get('GET.callback') . ' (' .json_encode($return) . ');');
         }

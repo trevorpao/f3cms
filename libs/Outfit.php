@@ -36,7 +36,8 @@ class Outfit extends Module
         parent::_mobile_user_agent();
         Module::_lang($args);
         f3()->set('lang', Module::_lang());
-        f3()->set('SESSION.csrf', 'wdfghn'); // f3()->get('sess')->csrf());
+
+        f3()->set('SESSION.csrf', f3()->get('sess')->csrf());
     }
 
     public static function _afterRoute($args)
@@ -52,6 +53,8 @@ class Outfit extends Module
         if (!method_exists($class, $method)) {
             throw new \Exception('(1004) '. $class .'::'. $next .' not found');
         }
+
+        $args = parent::_escape($args, false);
 
         return call_user_func_array(array($class, $method), [$args]);
     }
@@ -70,6 +73,11 @@ class Outfit extends Module
         header("Content-type:application/vnd.ms-excel; charset=UTF-8");
         header("Content-Language:content=zh-tw");
         echo "<META HTTP-EQUIV=\"Content-Type\" CONTENT=\"text/html; CHARSET=UTF-8\">";
+    }
+
+    static function utf8Xml($string)
+    {
+        return preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', ' ', $string);
     }
 
     /**
@@ -114,13 +122,14 @@ class Outfit extends Module
     static function paginate ($total, $limit = 10, $link = "", $current = -1, $range = 5)
     {
         $pages = new Pagination($total, $limit);
-        $pages->setTemplate('parter/pagination.html');
+        $pages->setTemplate(f3()->get('theme') .'/parter/pagination.html');
         if (!empty($link)) {
             $pages->setLinkPath($link);
         }
         if ($current!=-1) {
             $pages->setCurrent($current);
         }
+        $pages->setRouteKeyPrefix('?page=');
         $pages->setRange($range);
         return $pages->serve();
     }

@@ -39,7 +39,7 @@ class Upload extends Helper
         $filename = $path . substr(md5(uniqid(microtime(), 1)), 0, 15);
 
         if (file_exists($files[$column]['tmp_name'])) {
-            Image::configure(array('driver' => 'imagick'));
+            Image::configure(array('driver' => 'imagick')); // imagick|gd
 
             $im = Image::make($files[$column]['tmp_name']);
             $im->interlace();

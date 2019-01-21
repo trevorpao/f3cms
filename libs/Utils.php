@@ -32,6 +32,17 @@ function tpf() {
     return f3()->get('tpf');
 }
 
+/**
+ * Two-Phase Switcher
+ * @param  [string] $default default string
+ * @param  [string] $other   other string
+ * @return [string]          string
+ */
+function langTPS($default, $other)
+{
+    return ((\F3CMS\Module::_lang() == f3()->get('defaultLang')) ? $default : $other);
+}
+
 function is_https()
 {
     if (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) === 'on') {
@@ -84,3 +95,37 @@ function setCORS($allowedOrigins = array())
     }
 }
 
+function fQuery()
+{
+    die(mh()->last());
+}
+
+/**
+ * renderUniqueNo
+ * @param string $length - serial_no length
+ * @param string $chars  - available char in serial_no
+ * @return string
+ */
+function renderUniqueNo($length = 6, $chars = '3456789ACDFGHJKLMNPQRSTWXY')
+{
+    $sn = '';
+    for ($i = 0; $i < $length; $i++) {
+        $sn.= substr($chars, rand(0, strlen($chars) - 1) , 1);
+    }
+    return $sn;
+}
+
+function decodeUnicode($str)
+{
+  return preg_replace_callback('/\\\\u([0-9a-f]{4})/i', create_function( '$matches', 'return mb_convert_encoding(pack("H*", $matches[1]), "UTF-8", "UCS-2BE");' ), $str);
+}
+
+function chkRegisterID($str, $mode = 'strict')
+{
+    if ($mode == 'strict') {
+        return preg_match('/^[A]-\d{4}-[a-z]-\d{3}$/i', $str, $output);
+    }
+    else {
+        return preg_match('/^[A]-\d{4}-[a-z]-\d{3}\D{0,4}$/i', $str, $output);
+    }
+}

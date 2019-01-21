@@ -71,7 +71,7 @@ class Sender extends Helper
         return 'Done';
     }
 
-    public function send($receiver, $subject, $body)
+    public static function send($receiver, $subject, $body)
     {
         $to_address = ($receiver == "") ? f3()->get('webmaster') : $receiver;
         $mgClient = new Mailgun(self::MAILGUN_KEY);
