@@ -146,13 +146,12 @@ class Feed extends Module
         $fk = $subTbl . '_id';
 
         $filter = array($pk => $pid);
-        $filter['l.lang'] = Module::_lang();
 
         return mh()->select(
             $that::fmTbl($subTbl) . '(r)',
             array(
                 '[>]' . $sub::fmTbl() . '(t)'       => array('r.' . $fk => 'id'),
-                '[>]' . $sub::fmTbl('lang') . '(l)' => array('t.id' => 'parent_id')
+                '[>]' . $sub::fmTbl('lang') . '(l)' => array('t.id' => 'parent_id', 'l.lang' => '[SV]'. Module::_lang())
             ),
             array('t.id', 'l.title'),
             $filter
@@ -175,11 +174,9 @@ class Feed extends Module
             't.status' => fTag::ST_ON
         );
 
-        $filter['l.lang'] = Module::_lang();
-
         return mh()->select($that::fmTbl('tag') . '(r)',
             array('[>]' . tpf() . fTag::MTB . '(t)'  => array('r.tag_id' => 'id'),
-                '[>]' . fTag::fmTbl('lang') . '(l)' => array('t.id' => 'parent_id')),
+                '[>]' . fTag::fmTbl('lang') . '(l)' => array('t.id' => 'parent_id', 'l.lang' => '[SV]'. Module::_lang())),
             array('t.id', 't.slug', 'l.title', 't.counter'), $filter);
     }
 
@@ -380,14 +377,12 @@ class Feed extends Module
         $that = get_called_class();
         $filter = array('LIMIT' => 100);
 
-        $filter['l.lang'] = Module::_lang();
-
         if ($query != '') {
             $filter['l.title[~]'] = $query;
         }
 
         return mh()->select($that::fmTbl() . '(m)',
-            array('[><]' . $that::fmTbl('lang') . '(l)' => array('m.id' => 'parent_id')), array('m.id', $column . '(title)'), $filter);
+            array('[><]' . $that::fmTbl('lang') . '(l)' => array('m.id' => 'parent_id'), 'l.lang' => '[SV]'. Module::_lang()), array('m.id', $column . '(title)'), $filter);
     }
 
     /**
@@ -418,8 +413,7 @@ class Feed extends Module
         $filter = $that::genQuery($query);
 
         if ($that::MULTILANG) {
-            $filter['l.lang'] = Module::_lang();
-            $join = array('[>]' . $that::fmTbl('lang') . '(l)' => array('m.id' => 'parent_id'));
+            $join = array('[>]' . $that::fmTbl('lang') . '(l)' => array('m.id' => 'parent_id', 'l.lang' => '[SV]'. Module::_lang()));
         } else {
             $join = null;
         }
@@ -510,13 +504,11 @@ class Feed extends Module
 
         $filter['m.status'] = $that::ST_ON;
 
-        $filter['l.lang'] = Module::_lang();
-
         $filter['ORDER'] = array('m.insert_ts' => 'DESC');
 
         $join = array(
             '[>]' . fStaff::fmTbl() . '(s)'      => array('m.insert_user' => 'id'),
-            '[>]' . $that::fmTbl('lang') . '(l)' => array('m.id' => 'parent_id')
+            '[>]' . $that::fmTbl('lang') . '(l)' => array('m.id' => 'parent_id', 'l.lang' => '[SV]'. Module::_lang())
         );
 
         return $that::paginate($that::fmTbl() . '(m)', $filter, $page, $limit, explode(',', $that::BE_COLS . $cols), $join);

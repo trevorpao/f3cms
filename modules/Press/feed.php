@@ -37,13 +37,11 @@ class fPress extends Feed
         //     $filter['m.insert_user'] = rStaff::_CStaff();
         // }
 
-        $filter['l.lang'] = Module::_lang();
-
         $filter['ORDER'] = ['m.online_date' => 'DESC', 'm.insert_ts' => 'DESC'];
 
         $join = [
             '[>]' . fStaff::fmTbl() . '(s)' => ['m.insert_user' => 'id'],
-            '[>]'. self::fmTbl('lang') .'(l)' => ['m.id' => 'parent_id']
+            '[>]'. self::fmTbl('lang') .'(l)' => ['m.id' => 'parent_id', 'l.lang' => '[SV]'. Module::_lang()]
         ];
 
         return self::paginate(self::fmTbl() . '(m)', $filter, $page, $limit, explode(',', self::BE_COLS), $join);
@@ -56,13 +54,11 @@ class fPress extends Feed
 
         $filter['m.status'] = self::ST_PUBLISHED;
 
-        $filter['l.lang'] = Module::_lang();
-
         $filter['ORDER'] = ['m.insert_ts' => 'DESC'];
 
         $join = [
             '[>]' . fStaff::fmTbl() . '(s)' => ['m.insert_user' => 'id'],
-            '[>]'. self::fmTbl('lang') .'(l)' => ['m.id' => 'parent_id']
+            '[>]'. self::fmTbl('lang') .'(l)' => ['m.id' => 'parent_id', 'l.lang' => '[SV]'. Module::_lang()]
         ];
 
         return self::paginate(self::fmTbl() . '(m)', $filter, $page, $limit, explode(',', self::BE_COLS . $cols), $join);
@@ -199,12 +195,11 @@ class fPress extends Feed
         $filter = array(
             'r.' . $pk => $pid,
             'm.status' => self::ST_PUBLISHED,
-            't.lang' => Module::_lang(),
             'ORDER' => 'r.sorter',
         );
 
         return mh()->select(self::fmTbl('related') . '(r)', [
-            '[>]' . self::fmTbl('lang') . '(t)' => ['r.related_id' => 'parent_id'],
+            '[>]' . self::fmTbl('lang') . '(t)' => ['r.related_id' => 'parent_id', 't.lang' => '[SV]'. Module::_lang()],
             '[>]' . self::fmTbl() . '(m)' => ['r.related_id' => 'id']
         ], ['t.parent_id(id)', 't.title'], $filter);
     }
@@ -222,14 +217,13 @@ class fPress extends Feed
         $filter = array(
             'r.' . $pk => $pid,
             'p.status' => fAuthor::ST_ON,
-            't.lang' => Module::_lang(),
             'ORDER' => 'r.sorter'
         );
 
         return mh()->select(
             self::fmTbl('author') . '(r)',
             [
-                '[>]' . fAuthor::fmTbl('lang') . '(t)' => ['r.author_id' => 'parent_id'],
+                '[>]' . fAuthor::fmTbl('lang') . '(t)' => ['r.author_id' => 'parent_id', 't.lang' => '[SV]'. Module::_lang()],
                 '[>]' . fAuthor::fmTbl() . '(p)' => ['r.author_id' => 'id']
             ], ['p.id', 'p.cover', 't.title'], $filter
         );
@@ -262,7 +256,7 @@ class fPress extends Feed
                 );
 
                 $tag = mh()->get(fTag::fmTbl().'(m)',
-                    ['[><]'. fTag::fmTbl('lang') .'(l)' => ['m.id' => 'parent_id']], ['m.id'], $filter);
+                    ['[><]'. fTag::fmTbl('lang') .'(l)' => ['m.id' => 'parent_id', 'l.lang' => '[SV]'. Module::_lang()]], ['m.id'], $filter);
 
                 if (!empty($tag)) {
                     $presses = mh()->select(self::fmTbl('tag') . '(r)', ['r.'. self::MTB .'_id'], ['r.tag_id' => $tag['id']]);

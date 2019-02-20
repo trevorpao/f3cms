@@ -66,12 +66,11 @@ class fProject extends Feed
         $filter = array(
             'r.' . $pk => $pid,
             't.status' => self::ST_ON,
-            'l.lang' => Module::_lang(),
         );
 
         return mh()->select(self::fmTbl('related') . '(r)', [
             '[>]' . self::fmTbl() . '(t)' => ['r.related_id' => 'id'],
-            '[>]' . self::fmTbl('lang') . '(l)' => ['r.related_id' => 'parent_id']
+            '[>]' . self::fmTbl('lang') . '(l)' => ['r.related_id' => 'parent_id', 'l.lang' => '[SV]'. Module::_lang()]
         ], [
             't.id', 't.slug', 't.cover', 'l.subtitle', 'l.title'], $filter);
     }
