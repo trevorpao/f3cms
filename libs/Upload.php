@@ -16,23 +16,19 @@ class Upload extends Helper
         $path = '/upload/img/' . date('Y/m') . '/';
 
         if (($files[$column]['size'] >= f3()->get('maxsize')) || ($files[$column]['size'] == 0)) {
-            Reaction::_return('2002', 'File too large. File must be less than 2 megabytes.');
+            Reaction::_return('2002', array('msg' => 'File too large. File must be less than 2 megabytes.'));
         }
 
         if (!in_array($files[$column]['type'], f3()->get('photo_acceptable')) && !empty($files['photo']['type'])) {
-            Reaction::_return('2003', 'Invalid file type. Only JPG, GIF and PNG types are accepted.');
+            Reaction::_return('2003', array('msg' => 'Invalid file type. Only JPG, GIF and PNG types are accepted.'));
         }
 
         if ($files[$column]['error'] != 0) {
-            Reaction::_return('2004', 'other error.');
+            Reaction::_return('2004', array('msg' => 'other error.'));
         }
 
-        if (!file_exists($root . $path)) {
-            mkdir($root . $path, 0775, true);
-        }
-
-        if (!file_exists($root . $path) || !is_writable($root . $path)) {
-            Reaction::_return('2006', 'failed to mkdir.');
+        if (!self::mkdir($root . $path) || !is_writable($root . $path)) {
+            Reaction::_return('2006', array('msg' => 'failed to mkdir.'));
         }
 
         $path_parts = pathinfo($files[$column]['name']);
@@ -111,8 +107,8 @@ class Upload extends Helper
             Reaction::_return('2004', array('msg' => 'other error.'));
         }
 
-        if (!file_exists($root . $path)) {
-            mkdir($root . $path, 0777, true);
+        if (!self::mkdir($root . $path) || !is_writable($root . $path)) {
+            Reaction::_return('2006', array('msg' => 'failed to mkdir.'));
         }
 
         $path_parts = pathinfo($files['file']['name']);
@@ -139,8 +135,8 @@ class Upload extends Helper
         $root = f3()->get('ROOT') . f3()->get('BASE');
         $path = '/upload/screenshot/' . date('Y/m') . '/';
 
-        if (!file_exists($root . $path)) {
-            mkdir($root . $path, 0777, true);
+        if (!self::mkdir($root . $path) || !is_writable($root . $path)) {
+            Reaction::_return('2006', array('msg' => 'failed to mkdir.'));
         }
 
         $filename = $path . substr(md5(uniqid(microtime(), 1)), 0, 15);
@@ -269,5 +265,22 @@ class Upload extends Helper
 
         $imagick->clear();
         $imagick->destroy();
+    }
+
+    /**
+     * Creates directory
+     *
+     * @param  string  $path     Path to create
+     * @param  integer $mode     Optional permissions
+     * @return boolean Success
+     */
+    public static function mkdir($path, $mode = 0775)
+    {
+        if (!file_exists($path)) {
+            umask(0027);
+            return @mkdir($path, $mode, true);
+        } else {
+            return true;
+        }
     }
 }

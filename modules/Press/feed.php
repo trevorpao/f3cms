@@ -256,7 +256,7 @@ class fPress extends Feed
                 );
 
                 $tag = mh()->get(fTag::fmTbl().'(m)',
-                    ['[><]'. fTag::fmTbl('lang') .'(l)' => ['m.id' => 'parent_id', 'l.lang' => '[SV]'. Module::_lang()]], ['m.id'], $filter);
+                    ['[><]'. fTag::fmTbl('lang') .'(l)' => ['m.id' => 'parent_id']], ['m.id'], $filter);
 
                 if (!empty($tag)) {
                     $presses = mh()->select(self::fmTbl('tag') . '(r)', ['r.'. self::MTB .'_id'], ['r.tag_id' => $tag['id']]);
