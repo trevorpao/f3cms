@@ -112,13 +112,13 @@ class oPost extends Outfit
 
     public static function comingsoon ($args)
     {
-        $ts = strtotime($f3->get('siteBeginDate'));
+        $ts = strtotime(f3()->get('siteBeginDate'));
         $now = time();
         if ($now < $ts) {
             parent::wrapper('comingsoon.html', 'Coming Soon', '/comingsoon');
         }
         else {
-            $f3->reroute('/home');
+            f3()->reroute('/home');
         }
     }
 

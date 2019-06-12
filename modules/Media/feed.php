@@ -39,28 +39,4 @@ class fMedia extends Feed
 
         return self::paginate(self::fmTbl() . '(m)', $filter, $page, $limit, explode(',', self::BE_COLS), $join);
     }
-
-    /**
-     * @param  $req
-     * @return mixed
-     */
-    public static function insert($req)
-    {
-        $now = date('Y-m-d H:i:s');
-
-        $obj = self::map();
-        $obj->insert_ts = $now;
-        $obj->insert_user = rStaff::_CStaff('id');
-        $obj->last_ts = $now;
-        $obj->last_user = rStaff::_CStaff('id');
-
-        $obj->status = self::ST_ON;
-        $obj->title = $title;
-        $obj->pic = $filename;
-        $obj->slug = parent::_slugify($title);
-
-        $obj->save();
-
-        return $obj->id;
-    }
 }
