@@ -7,14 +7,16 @@ namespace F3CMS;
  */
 class fExcel extends Feed
 {
-    const MTB = "excel";
+    const MTB = 'excel';
 
-    static function getAll()
+    /**
+     * @return mixed
+     */
+    public static function getAll()
     {
-
         $result = db()->exec(
-            "SELECT `id`, `status`, `name`, `phone`, `email`, `counter`, `last_ts` FROM `".
-            self::fmTbl() . "` ORDER BY insert_ts DESC "
+            'SELECT `id`, `status`, `name`, `phone`, `email`, `counter`, `last_ts` FROM `' .
+            self::fmTbl() . '` ORDER BY insert_ts DESC '
         );
 
         foreach ($result as &$row) {

@@ -7,7 +7,11 @@ namespace F3CMS;
  */
 class rAuthor extends Reaction
 {
-    static function handleRow($row = array())
+    /**
+     * @param array $row
+     * @return mixed
+     */
+    public static function handleRow($row = [])
     {
         $row['tags'] = fAuthor::lotsTag($row['id']);
         // echo mh()->last();

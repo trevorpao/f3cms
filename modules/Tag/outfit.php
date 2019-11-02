@@ -2,11 +2,14 @@
 namespace F3CMS;
 
 /**
-* for render page
-*/
+ * for render page
+ */
 class oTag extends Outfit
 {
-
+    /**
+     * @param $args
+     * @return mixed
+     */
     public static function show($args)
     {
         if (is_numeric($args['slug'])) {
@@ -32,6 +35,6 @@ class oTag extends Outfit
         f3()->set('rows', $subset);
         f3()->set('cate', $tag);
 
-        parent::wrapper(f3()->get('theme') .'/presses.html', $tag['title'], '/tag/' . $tag['slug']);
+        parent::wrapper(f3()->get('theme') . '/presses.html', $tag['title'], '/tag/' . $tag['slug']);
     }
 }

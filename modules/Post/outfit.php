@@ -2,38 +2,47 @@
 namespace F3CMS;
 
 /**
-* for render page
-*/
+ * for render page
+ */
 class oPost extends Outfit
 {
-    public static function home ($args)
+    /**
+     * @param $args
+     */
+    public static function home($args)
     {
         $contact = fPost::one('contact', 'slug', ['status' => fPost::ST_ON], 0);
 
         f3()->set('contact', $contact);
 
-        parent::wrapper(f3()->get('theme') .'/home.html', '首頁', '/');
+        parent::wrapper(f3()->get('theme') . '/home.html', '首頁', '/');
     }
 
-    public static function sitemap ($args)
+    /**
+     * @param $args
+     */
+    public static function sitemap($args)
     {
-        $subset = fPress::limitRows('status:'. fPress::ST_PUBLISHED, 0, 1000);
+        $subset = fPress::limitRows('status:' . fPress::ST_PUBLISHED, 0, 1000);
 
         f3()->set('rows', $subset);
 
         f3()->set('page', fOption::load('page'));
 
         $tp = \Template::instance();
-        $tp->filter('date','\F3CMS\Outfit::date');
+        $tp->filter('date', '\F3CMS\Outfit::date');
 
-        echo $tp->render('sitemap.xml','application/xml');
+        echo $tp->render('sitemap.xml', 'application/xml');
     }
 
-    public static function rss ($args)
+    /**
+     * @param $args
+     */
+    public static function rss($args)
     {
         // TODO: mutil lang
 
-        $subset = fPress::limitRows('status:'. fPress::ST_PUBLISHED, 0, 100);
+        $subset = fPress::limitRows('status:' . fPress::ST_PUBLISHED, 0, 100);
 
         f3()->set('rows', $subset);
 
@@ -42,27 +51,30 @@ class oPost extends Outfit
         f3()->set('contact_mail', fOption::one('contact_mail', 'name'));
 
         $tp = \Template::instance();
-        $tp->filter('date','\F3CMS\Outfit::date');
+        $tp->filter('date', '\F3CMS\Outfit::date');
 
-        echo $tp->render('rss.xml','application/xml');
+        echo $tp->render('rss.xml', 'application/xml');
     }
 
-    function do_lineXml ($f3, $args)
+    /**
+     * @param $f3
+     * @param $args
+     */
+    public function do_lineXml($f3, $args)
     {
-
-        $subset = fPress::limitRows('status:'. fPress::ST_PUBLISHED, 0, 100);
+        $subset = fPress::limitRows('status:' . fPress::ST_PUBLISHED, 0, 100);
 
         foreach ($subset['subset'] as &$row) {
             $row['rel_tag'] = json_decode($row['rel_tag'], true);
 
             if (!empty($row['rel_tag'])) {
-                $ary = array();
+                $ary = [];
 
                 foreach ($row['rel_tag'] as $n) {
                     $ary[] = $n['title'];
                 }
 
-                $row['keyword'] = implode(',', $ary) .','. $row['keyword'];
+                $row['keyword'] = implode(',', $ary) . ',' . $row['keyword'];
             }
 
             $row['online_ts'] = strtotime($row['online_date']) . '000';
@@ -78,12 +90,15 @@ class oPost extends Outfit
         f3()->set('contact_mail', fOption::get('contact_mail'));
 
         $tp = \Template::instance();
-        $tp->filter('date','\F3CMS\Outfit::date');
+        $tp->filter('date', '\F3CMS\Outfit::date');
 
         echo self::utf8Xml($tp->render('lineXml.xml', 'application/xml'));
     }
 
-    public static function show ($args)
+    /**
+     * @param $args
+     */
+    public static function show($args)
     {
         $row = fPost::one($args['slug'], 'slug', ['status' => fPost::ST_ON], 0);
 
@@ -95,46 +110,59 @@ class oPost extends Outfit
 
         f3()->set('breadcrumb_sire', ['title' => '首頁', 'slug' => '/home']);
 
-        parent::wrapper(f3()->get('theme') .'/post.html', $row['title'], '/post/'. $row['slug']);
+        parent::wrapper(f3()->get('theme') . '/post.html', $row['title'], '/post/' . $row['slug']);
     }
 
-    public static function about ($args)
+    /**
+     * @param $args
+     */
+    public static function about($args)
     {
         $args['slug'] = 'about';
         self::show($args);
     }
 
-    public static function privacy ($args)
+    /**
+     * @param $args
+     */
+    public static function privacy($args)
     {
         $args['slug'] = 'privacy';
         self::show($args);
     }
 
-    public static function comingsoon ($args)
+    /**
+     * @param $args
+     */
+    public static function comingsoon($args)
     {
         $ts = strtotime(f3()->get('siteBeginDate'));
         $now = time();
         if ($now < $ts) {
             parent::wrapper('comingsoon.html', 'Coming Soon', '/comingsoon');
-        }
-        else {
+        } else {
             f3()->reroute('/home');
         }
     }
 
-    public static function notfound ($args)
+    /**
+     * @param $args
+     */
+    public static function notfound($args)
     {
         f3()->set('ERROR', [
             'code' => '404',
             'text' => 'Not Found'
         ]);
 
-        parent::wrapper(f3()->get('theme') .'/error.html', 'Not Found', '/404');
+        parent::wrapper(f3()->get('theme') . '/error.html', 'Not Found', '/404');
     }
 
-    public static function word ($args)
+    /**
+     * @param $args
+     */
+    public static function word($args)
     {
-
         $phpWord = WHelper::init();
         $page = $phpWord->newPage();
 
@@ -194,7 +222,7 @@ class oPost extends Outfit
         //     $fontStyleName
         // );
 
-        $phpWord->done('certification_' . date('YmdHis').'.odt');
+        $phpWord->done('certification_' . date('YmdHis') . '.odt');
         // $phpWord->done('certification_' . date('YmdHis').'.docx', 'Word2007');
     }
 }

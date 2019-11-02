@@ -7,7 +7,11 @@ namespace F3CMS;
  */
 class rProject extends Reaction
 {
-    static function handleRow($row = array())
+    /**
+     * @param array $row
+     * @return mixed
+     */
+    public static function handleRow($row = [])
     {
         $row['relateds'] = fProject::lotsRelated($row['id']);
         return $row;

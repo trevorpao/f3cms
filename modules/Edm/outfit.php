@@ -2,12 +2,14 @@
 namespace F3CMS;
 
 /**
-* for render page
-*/
+ * for render page
+ */
 class oEdm extends Outfit
 {
-
-    public static function show ($args)
+    /**
+     * @param $args
+     */
+    public static function show($args)
     {
         $cu = fEdm::one($args['slug'], 'slug', ['status' => fEdm::ST_ON]);
 
@@ -21,7 +23,7 @@ class oEdm extends Outfit
 
         $subset = fSubject::load_list(0, $cu['id'], 20, true);
 
-        $cates = array();
+        $cates = [];
 
         foreach ($subset['subset'] as $row) {
             $cates[$row['category_id']][] = $row;
@@ -29,12 +31,14 @@ class oEdm extends Outfit
 
         f3()->set('cates', $cates);
 
-        parent::wrapper(f3()->get('theme') .'/edm.html', $cu['lang']['title'], '/edm/'. $cu['slug']);
+        parent::wrapper(f3()->get('theme') . '/edm.html', $cu['lang']['title'], '/edm/' . $cu['slug']);
     }
 
-    public static function test ($args)
+    /**
+     * @param $args
+     */
+    public static function test($args)
     {
-
         $cu = fEdm::one($args['slug'], 'slug', ['status' => fEdm::ST_ON], 0);
 
         if (empty($cu)) {
@@ -45,7 +49,7 @@ class oEdm extends Outfit
         f3()->set('email', f3()->get('webmaster'));
 
         $tp = \Template::instance();
-        $html = $tp->render(f3()->get('theme') .'/edm.html');
+        $html = $tp->render(f3()->get('theme') . '/edm.html');
 
         $sent = Sender::sendmail($cu['title'] . ' - 測試信', $html, f3()->get('webmaster'));
 
@@ -53,6 +57,9 @@ class oEdm extends Outfit
         print_r($sent);
     }
 
+    /**
+     * @param $args
+     */
     public static function sent($args)
     {
         $cu = fEdm::one($args['slug'], 'slug', ['status' => fEdm::ST_ON], 0);
@@ -61,10 +68,13 @@ class oEdm extends Outfit
             f3()->error(404);
         }
 
-        parent::wrapper('/sent.html', $cu['title'], '/edm/'. $cu['slug'] .'/sent');
+        parent::wrapper('/sent.html', $cu['title'], '/edm/' . $cu['slug'] . '/sent');
     }
 
-    public static function preview ($args)
+    /**
+     * @param $args
+     */
+    public static function preview($args)
     {
         rStaff::_chkLogin();
 
@@ -75,6 +85,6 @@ class oEdm extends Outfit
         f3()->set('cu', $cu);
         f3()->set('email', f3()->get('webmaster'));
 
-        parent::wrapper(f3()->get('theme') .'/edm.html', $cu['title'], '/edm/'. $cu['slug']);
+        parent::wrapper(f3()->get('theme') . '/edm.html', $cu['title'], '/edm/' . $cu['slug']);
     }
 }

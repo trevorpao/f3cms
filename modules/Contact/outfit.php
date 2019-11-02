@@ -2,14 +2,15 @@
 namespace F3CMS;
 
 /**
-* for render page
-*/
+ * for render page
+ */
 class oContact extends Outfit
 {
-
-    public static function contact ($args)
+    /**
+     * @param $args
+     */
+    public static function contact($args)
     {
-
         $row = fPost::one('contact', 'slug', ['status' => fPost::ST_ON], false);
 
         if (empty($row)) {
@@ -19,6 +20,6 @@ class oContact extends Outfit
         f3()->set('cu', $row);
         f3()->set('breadcrumb_sire', ['title' => '首頁', 'slug' => '/home']);
 
-        parent::wrapper(f3()->get('theme') .'/contact.html', $row['title'], '/contact');
+        parent::wrapper(f3()->get('theme') . '/contact.html', $row['title'], '/contact');
     }
 }

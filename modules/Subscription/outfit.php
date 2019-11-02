@@ -15,7 +15,7 @@ class oSubscription extends Outfit
             fSubscription::cancel($args['email']);
         }
 
-        parent::wrapper(f3()->get('theme') .'/cancel_me.html', '取消訂閱', '/cancel_me');
+        parent::wrapper(f3()->get('theme') . '/cancel_me.html', '取消訂閱', '/cancel_me');
     }
 
     /**
@@ -27,6 +27,6 @@ class oSubscription extends Outfit
             fSubscription::confirm($args['email']);
         }
 
-        parent::wrapper(f3()->get('theme') .'/confirm_me.html', '確認訂閱', '/confirm_me');
+        parent::wrapper(f3()->get('theme') . '/confirm_me.html', '確認訂閱', '/confirm_me');
     }
 }

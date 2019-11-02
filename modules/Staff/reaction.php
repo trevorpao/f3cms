@@ -3,9 +3,13 @@ namespace F3CMS;
 
 class rStaff extends Reaction
 {
-    function do_get_one($f3, $args)
+    /**
+     * @param $f3
+     * @param $args
+     */
+    public function do_get_one($f3, $args)
     {
-        rStaff::_chkLogin();
+        self::_chkLogin();
 
         $req = parent::_getReq();
 
@@ -14,9 +18,9 @@ class rStaff extends Reaction
         }
 
         if ($req['pid'] == 0) {
-            return parent::_return(1, array(
+            return parent::_return(1, [
                 'id' => 0
-            ));
+            ]);
         }
 
         $cu = fStaff::one($req['pid']);
@@ -30,7 +34,11 @@ class rStaff extends Reaction
         return parent::_return(1, $cu);
     }
 
-    function do_login($f3, $args)
+    /**
+     * @param $f3
+     * @param $args
+     */
+    public function do_login($f3, $args)
     {
         $req = parent::_getReq();
 
@@ -56,27 +64,35 @@ class rStaff extends Reaction
             return parent::_return(8105);
         }
 
-        f3()->set('SESSION.cs', array(
-            'name' => $cu['account'],
-            "id" => $cu['id'],
+        f3()->set('SESSION.cs', [
+            'name'      => $cu['account'],
+            'id'        => $cu['id'],
             'has_login' => 1
-        ));
+        ]);
 
-        return parent::_return(self::_isLogin() , array(
+        return parent::_return(self::_isLogin(), [
             'name' => self::_CStaff('name')
-        ));
+        ]);
     }
 
-    function do_logout($f3, $args)
+    /**
+     * @param $f3
+     * @param $args
+     */
+    public function do_logout($f3, $args)
     {
         if (self::_isLogin()) {
             f3()->clear('SESSION.cs');
         }
 
-        return parent::_return(!self::_isLogin() , array());
+        return parent::_return(!self::_isLogin(), []);
     }
 
-    function do_status($f3, $args)
+    /**
+     * @param $f3
+     * @param $args
+     */
+    public function do_status($f3, $args)
     {
         $rtn = [
             'isLogin' => 0
@@ -88,7 +104,10 @@ class rStaff extends Reaction
         return parent::_return(1, $rtn);
     }
 
-    static function _isLogin()
+    /**
+     * @return int
+     */
+    public static function _isLogin()
     {
         $cu = f3()->get('SESSION.cs');
 
@@ -101,17 +120,21 @@ class rStaff extends Reaction
         return 0;
     }
 
-    static function _chkLogin()
+    public static function _chkLogin()
     {
         if (!self::_isLogin()) {
             return parent::_return(8001);
         }
     }
 
-    static function _CStaff($column = 'id')
+    /**
+     * @param $column
+     * @return mixed
+     */
+    public static function _CStaff($column = 'id')
     {
         $cu = f3()->get('SESSION.cs');
-        $str = "";
+        $str = '';
 
         if (isset($cu)) {
             if (isset($cu[$column])) {
@@ -122,7 +145,11 @@ class rStaff extends Reaction
         return $str;
     }
 
-    static function handleRow($row = array())
+    /**
+     * @param array $row
+     * @return mixed
+     */
+    public static function handleRow($row = [])
     {
         unset($row['pwd']);
         return $row;

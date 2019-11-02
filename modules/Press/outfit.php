@@ -2,18 +2,16 @@
 namespace F3CMS;
 
 /**
-* for render page
-*/
+ * for render page
+ */
 class oPress extends Outfit
 {
-
-    public static function list($args)
-    {
+    function list($args) {
         $req = parent::_getReq();
 
-        $req['page'] = ($req['page']) ? ($req['page'] -1) : 0;
+        $req['page'] = ($req['page']) ? ($req['page'] - 1) : 0;
 
-        $subset = fPress::limitRows('status:'. fPress::ST_PUBLISHED, $req['page']);
+        $subset = fPress::limitRows('status:' . fPress::ST_PUBLISHED, $req['page']);
 
         $subset['subset'] = \__::map($subset['subset'], function ($cu) {
             $cu['tags'] = fPress::lotsTag($cu['id']);
@@ -27,37 +25,41 @@ class oPress extends Outfit
 
         f3()->set('breadcrumb_sire', ['title' => '首頁', 'slug' => '/home']);
 
-        parent::wrapper(f3()->get('theme') .'/presses.html', '消息', '/presses');
+        parent::wrapper(f3()->get('theme') . '/presses.html', '消息', '/presses');
     }
 
+    /**
+     * @param $args
+     */
     public static function show($args)
     {
         $fc = new FCHelper('press');
 
         if (f3()->get('cache.press') === 0) {
-            $html = $fc->get('press_'. parent::_lang() .'_'. $args['slug']);
+            $html = $fc->get('press_' . parent::_lang() . '_' . $args['slug']);
 
             if (empty($html)) {
                 if (!rStaff::_isLogin()) {
                     f3()->error(404);
-                }
-                else {
+                } else {
                     $html = self::_render($args['slug']);
                 }
             }
-        }
-        else {
-            $html = $fc->get('press_'. parent::_lang() .'_'. $args['slug'], f3()->get('cache.press'));
+        } else {
+            $html = $fc->get('press_' . parent::_lang() . '_' . $args['slug'], f3()->get('cache.press'));
 
             if (empty($html)) {
                 $html = self::_render($args['slug']);
-                $fc->save('press_'. parent::_lang() .'_'. $args['slug'], $html, f3()->get('cache.press'));
+                $fc->save('press_' . parent::_lang() . '_' . $args['slug'], $html, f3()->get('cache.press'));
             }
         }
 
         echo $html;
     }
 
+    /**
+     * @param $args
+     */
     public static function force($args)
     {
         $fc = new FCHelper('press');
@@ -65,9 +67,12 @@ class oPress extends Outfit
 
         $html = self::_render($args['slug']);
 
-        $fc->save('press_'. parent::_lang() .'_'. $args['slug'], $html);
+        $fc->save('press_' . parent::_lang() . '_' . $args['slug'], $html);
     }
 
+    /**
+     * @param $args
+     */
     public static function preview($args)
     {
         if (!rStaff::_isLogin()) {
@@ -77,6 +82,11 @@ class oPress extends Outfit
         echo self::_render($args['slug'], false);
     }
 
+    /**
+     * @param  $id
+     * @param  $published
+     * @return mixed
+     */
     private static function _render($id = 0, $published = true)
     {
         $filter = [];
@@ -99,12 +109,12 @@ class oPress extends Outfit
         $relateds = fPress::lotsRelated($cu['id']);
         $metas = fPress::lotsMeta($cu['id']);
 
-        $seo = array(
-            'desc' => $cu['info'],
-            'img' => $cu['pic'],
+        $seo = [
+            'desc'    => $cu['info'],
+            'img'     => $cu['pic'],
             'keyword' => $cu['keyword'],
-            'header' => '消息'
-        );
+            'header'  => '消息'
+        ];
 
         if (!empty($metas['seo_desc'])) {
             $seo['desc'] = $metas['seo_desc'];
@@ -131,7 +141,7 @@ class oPress extends Outfit
 
         f3()->set('breadcrumb_sire', ['title' => '消息', 'slug' => '/presses', 'sire' => ['title' => '首頁', 'slug' => '/home']]);
 
-        $html = self::wrapper(f3()->get('theme') .'/press.html', $cu['title'], '/p/'. $cu['id'] . '/' . $cu['slug'], true);
+        $html = self::wrapper(f3()->get('theme') . '/press.html', $cu['title'], '/p/' . $cu['id'] . '/' . $cu['slug'], true);
 
         return $html;
     }

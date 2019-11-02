@@ -13,15 +13,15 @@ class rContact extends Reaction
         $req = f3()->get('POST'); //parent::getReq();
 
         if (empty($req['name'])) {
-            return parent::_return(8002, array('msg' => '姓名未填寫!!'));
+            return parent::_return(8002, ['msg' => '姓名未填寫!!']);
         }
 
         if (empty($req['email'])) {
-            return parent::_return(8002, array('msg' => 'Email 未填寫!!'));
+            return parent::_return(8002, ['msg' => 'Email 未填寫!!']);
         }
 
         if (empty($req['message'])) {
-            return parent::_return(8002, array('msg' => '訊息未填寫!!'));
+            return parent::_return(8002, ['msg' => '訊息未填寫!!']);
         }
 
         fContact::insert($req);
@@ -35,7 +35,7 @@ class rContact extends Reaction
 
         $sent = Sender::sendmail('網站詢問通知', $content, f3()->get('opts.default.contact_mail')); //
 
-        return parent::_return(1, array('pid' => $obj->id, 'msg' => '感謝您~~'));
+        return parent::_return(1, ['pid' => $obj->id, 'msg' => '感謝您~~']);
     }
 
     /**

@@ -15,26 +15,26 @@ class rEdm extends Reaction
         $req = parent::_getReq();
 
         if (empty($req['edm_id'])) {
-            return parent::_return(8002, array('msg' => 'Edm is required!!'));
+            return parent::_return(8002, ['msg' => 'Edm is required!!']);
         }
 
         if (empty($req['emails'])) {
-            return parent::_return(8002, array('msg' => 'Emails is required!!'));
+            return parent::_return(8002, ['msg' => 'Emails is required!!']);
         }
 
-        $data = array(
+        $data = [
             'tw' => self::getHtml($req['edm_id'], 'tw')
-        );
+        ];
 
         // find some email by Module::_lang()
-        $sentEmails = array();
+        $sentEmails = [];
         foreach ($req['emails'] as $row) {
             list($e, $l) = explode(':', $row);
             $sent = Sender::sendmail($data[$l]['title'], $data[$l]['html'], $e);
             $sentEmails[] = $e;
         }
 
-        return parent::_return(1, array('emails' => $sentEmails));
+        return parent::_return(1, ['emails' => $sentEmails]);
     }
 
     /**
@@ -44,19 +44,19 @@ class rEdm extends Reaction
     public static function getHtml($slug, $lang)
     {
         $tp = \Template::instance();
-        Module::_lang(array('lang' => $lang));
+        Module::_lang(['lang' => $lang]);
 
-        $cu = fEdm::one($slug, 'id', array('status' => fEdm::ST_ON), 0);
+        $cu = fEdm::one($slug, 'id', ['status' => fEdm::ST_ON], 0);
 
         if (empty($cu)) {
             f3()->error(404);
         }
         f3()->set('cu', $cu);
 
-        return array(
+        return [
             'title' => $cu['title'],
-            'html'  => $tp->render(f3()->get('theme') .'/edm.html')
-        );
+            'html'  => $tp->render(f3()->get('theme') . '/edm.html')
+        ];
 
     }
 }

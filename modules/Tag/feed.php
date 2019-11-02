@@ -17,9 +17,9 @@ class fTag extends Feed
     const BE_COLS = 'm.id,l.title,m.slug,m.counter';
 
     /**
-     * @param $query
-     * @param $page
-     * @param $limit
+     * @param  $query
+     * @param  $page
+     * @param  $limit
      * @return mixed
      */
     public static function limitRows($query = '', $page = 0, $limit = 1000)
@@ -49,14 +49,13 @@ class fTag extends Feed
      */
     public static function lotsRelated($pid)
     {
-
         $pk = 'tag_id';
         $fk = 'related_id';
 
-        $filter = array(
+        $filter = [
             'r.' . $pk => $pid,
-            't.status' => self::ST_ON,
-        );
+            't.status' => self::ST_ON
+        ];
 
         return mh()->select(self::fmTbl('related') . '(r)', ['[>]' . self::fmTbl() . '(t)' => ['r.related_id' => 'id']], ['t.id', 't.slug', 't.title'], $filter);
     }
@@ -66,7 +65,7 @@ class fTag extends Feed
      */
     public static function get_opts($query = '', $column = 'title')
     {
-        $filter = array('LIMIT' => 100);
+        $filter = ['LIMIT' => 100];
 
         if ($query != '') {
             $filter['OR']['title[~]'] = $query;
@@ -84,7 +83,6 @@ class fTag extends Feed
      */
     public static function detail($pid)
     {
-
         $rows = db()->exec('SELECT * FROM `' . self::fmTbl('detail') . '` WHERE `parent_id`=? LIMIT 1 ', $pid);
 
         if (count($rows) != 1) {
@@ -102,7 +100,6 @@ class fTag extends Feed
      */
     public static function get_tag($cid)
     {
-
         $rows = db()->exec('SELECT * FROM `' . self::fmTbl() . '` WHERE `id`=? LIMIT 1 ', $cid);
 
         if (count($rows) != 1) {
@@ -122,7 +119,6 @@ class fTag extends Feed
      */
     public static function get_tag_by_slug($slug)
     {
-
         $rows = db()->exec('SELECT * FROM `' . self::fmTbl() . '` WHERE `slug`=? LIMIT 1 ', $slug);
 
         if (count($rows) != 1) {
@@ -142,7 +138,6 @@ class fTag extends Feed
      */
     public static function get_tags($parent_id = -1)
     {
-
         $condition = '';
 
         if ($parent_id != -1) {

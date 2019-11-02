@@ -1,5 +1,6 @@
 <?php
 namespace F3CMS;
+
 /**
  * data feed
  */
@@ -17,9 +18,9 @@ class fStaff extends Feed
     const BE_COLS = 'id,account,status';
 
     /**
-     * @param $query
-     * @param $page
-     * @param $limit
+     * @param  $query
+     * @param  $page
+     * @param  $limit
      * @return mixed
      */
     public static function limitRows($query = '', $page = 0, $limit = 12)

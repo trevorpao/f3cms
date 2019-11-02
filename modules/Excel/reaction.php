@@ -3,8 +3,12 @@ namespace F3CMS;
 
 class rExcel extends Reaction
 {
-
-    function do_upload_file($f3, $args)
+    /**
+     * @param $f3
+     * @param $args
+     * @return mixed
+     */
+    public function do_upload_file($f3, $args)
     {
         if (!rStaff::_isLogin()) {
             return parent::_return(8001);
@@ -13,23 +17,25 @@ class rExcel extends Reaction
         $filename = Upload::saveFile(
             f3()->get('FILES'),
             [
-                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                "application/octet-stream",
-                "application/vnd.ms-excel"
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                'application/octet-stream',
+                'application/vnd.ms-excel'
             ]
         );
 
         return $this->load_xls($filename);
     }
 
-    function load_xls($filename)
+    /**
+     * @param $filename
+     */
+    public function load_xls($filename)
     {
-
         $sheetData = Upload::readExcel($filename, 2, 2000, ['B', 'D', 'E', 'F', 'G']);
 
         $rtn = ['new_programs' => [], 'new_folders' => [], 'schedules' => []];
 
-        foreach ($sheetData as $idx => & $row) {
+        foreach ($sheetData as $idx => &$row) {
             $row = array_map('trim', array_filter($row));
             if (!empty($row['E'])) {
                 $row['E'] = strtolower($row['E']);
@@ -82,9 +88,13 @@ class rExcel extends Reaction
         return parent::_return(1, $rtn);
     }
 
-    function do_save_new_schedules($f3, $args)
+    /**
+     * @param $f3
+     * @param $args
+     */
+    public function do_save_new_schedules($f3, $args)
     {
-        $allData = json_decode(f3()->get('SESSION.uploadPrograms') , true);
+        $allData = json_decode(f3()->get('SESSION.uploadPrograms'), true);
 
         db()->begin();
 
@@ -96,7 +106,7 @@ class rExcel extends Reaction
                 $program['id'] = 0;
             }
 
-            db()->exec("INSERT INTO `" . tpf() . "schedules`(`title`, `uri`, `program_id`, `start_date`, `end_date`, `status`, `last_ts`, " . "`last_user`, `insert_user`, `insert_ts`) VALUES ('" . $program['title'] . "', '" . $program['uri'] . "', '" . $program['id'] . "', '" . $prog['d'] . " " . $prog['s'] . ":00', '" . $prog['d'] . " " . $prog['e'] . ":00', 'Yes', '" . date('Y-m-d H:i:s') . "', '" . rStaff::_CStaff('id') . "', '" . rStaff::_CStaff('id') . "', '" . date('Y-m-d H:i:s') . "')");
+            db()->exec('INSERT INTO `' . tpf() . 'schedules`(`title`, `uri`, `program_id`, `start_date`, `end_date`, `status`, `last_ts`, ' . "`last_user`, `insert_user`, `insert_ts`) VALUES ('" . $program['title'] . "', '" . $program['uri'] . "', '" . $program['id'] . "', '" . $prog['d'] . ' ' . $prog['s'] . ":00', '" . $prog['d'] . ' ' . $prog['e'] . ":00', 'Yes', '" . date('Y-m-d H:i:s') . "', '" . rStaff::_CStaff('id') . "', '" . rStaff::_CStaff('id') . "', '" . date('Y-m-d H:i:s') . "')");
         }
 
         db()->commit();

@@ -16,7 +16,7 @@ class Sender extends Helper
      * @param  email  $receiver
      * @return string done or error message
      */
-    public static function sendmail($subject, $content, $receiver)
+    public static function sendmail($subject, $content, $receiver = '')
     {
         $to_address = ($receiver == '') ? f3()->get('webmaster') : $receiver;
 
@@ -69,12 +69,12 @@ class Sender extends Helper
     }
 
     /**
-     * @param $receiver
      * @param $subject
      * @param $body
+     * @param $receiver
      * @return mixed
      */
-    public static function send($receiver, $subject, $body)
+    public static function send($subject, $body, $receiver = '')
     {
         $to_address = ($receiver == '') ? f3()->get('webmaster') : $receiver;
         $mgClient = new Mailgun(self::MAILGUN_KEY);

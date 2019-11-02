@@ -26,11 +26,11 @@ class rSubscription extends Reaction
         $req = parent::_getReq();
 
         if (empty($req['email'])) {
-            return parent::_return(8002, array('msg' => 'Email  is required!!'));
+            return parent::_return(8002, ['msg' => 'Email  is required!!']);
         }
 
         if (empty($req['lang'])) {
-            return parent::_return(8002, array('msg' => 'Lang is required!!'));
+            return parent::_return(8002, ['msg' => 'Lang is required!!']);
         }
 
         fSubscription::insert($req);
@@ -43,7 +43,7 @@ class rSubscription extends Reaction
 
         // $sent = Sender::send('Confirmation Email', $content, $req['email']);
 
-        return parent::_return(1, array('msg' => 'thanks')); //'Please click the link in the confirmation email'));
+        return parent::_return(1, ['msg' => 'thanks']); //'Please click the link in the confirmation email'));
     }
 
     /**

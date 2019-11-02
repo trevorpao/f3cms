@@ -4,7 +4,11 @@ namespace F3CMS;
 
 class rPress extends Reaction
 {
-    public static function handleRow($row = array())
+    /**
+     * @param array $row
+     * @return mixed
+     */
+    public static function handleRow($row = [])
     {
         $row['tags'] = fPress::lotsTag($row['id']);
         $row['authors'] = fPress::lotsAuthor($row['id']);
@@ -26,6 +30,10 @@ class rPress extends Reaction
         return $row;
     }
 
+    /**
+     * @param $f3
+     * @param $args
+     */
     public function do_list($f3, $args)
     {
         rStaff::_chkLogin();
@@ -44,6 +52,10 @@ class rPress extends Reaction
         return self::_return(1, $rtn);
     }
 
+    /**
+     * @param $f3
+     * @param $args
+     */
     public function do_published($f3, $args)
     {
         rStaff::_chkLogin();
@@ -60,8 +72,7 @@ class rPress extends Reaction
             case fPress::ST_PUBLISHED:
                 if ($cu['online_date'] > date('Y-m-d H:i:s')) {
                     $req['online_date'] = date('Y-m-d H:i') . ':00';
-                }
-                else {
+                } else {
                     unset($req['online_date']);
                 }
 
@@ -78,6 +89,6 @@ class rPress extends Reaction
 
         fPress::published($req);
 
-        return self::_return(1, array('id' => $req['id']));
+        return self::_return(1, ['id' => $req['id']]);
     }
 }

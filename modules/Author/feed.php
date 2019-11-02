@@ -1,13 +1,14 @@
 <?php
 namespace F3CMS;
+
 /**
  * data feed
  */
 class fAuthor extends Feed
 {
-    const MTB = "author";
-    const ST_ON = "Enabled";
-    const ST_OFF = "Disabled";
+    const MTB = 'author';
+    const ST_ON = 'Enabled';
+    const ST_OFF = 'Disabled';
 
     const PV_R = 'see.other.press';
     const PV_U = 'see.other.press';

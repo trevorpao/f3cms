@@ -2,54 +2,56 @@
 namespace F3CMS;
 
 /**
-* for render page
-*/
+ * for render page
+ */
 class oProject extends Outfit
 {
-
-    public static function list ($args)
-    {
+    function list($args) {
         $req = parent::_getReq();
 
-        $req['page'] = ($req['page']) ? ($req['page'] -1) : 0;
+        $req['page'] = ($req['page']) ? ($req['page'] - 1) : 0;
 
-        $subset = fProject::limitRows('status:'. fProject::ST_ON, $req['page']);
+        $subset = fProject::limitRows('status:' . fProject::ST_ON, $req['page']);
 
         f3()->set('rows', $subset);
 
         f3()->set('breadcrumb_sire', ['title' => '首頁', 'slug' => '/home']);
 
-        parent::wrapper(f3()->get('theme') .'/projects.html', '專案', '/projects');
+        parent::wrapper(f3()->get('theme') . '/projects.html', '專案', '/projects');
     }
 
+    /**
+     * @param $args
+     */
     public static function show($args)
     {
         $fc = new FCHelper('project');
 
         if (f3()->get('cache.project') === 0) {
-            $html = $fc->get('project_'. parent::_lang() .'_'. $args['slug']);
+            $html = $fc->get('project_' . parent::_lang() . '_' . $args['slug']);
 
             if (empty($html)) {
                 if (!rStaff::_isLogin()) {
                     f3()->error(404);
-                }
-                else {
+                } else {
                     $html = self::_render($args['slug']);
                 }
             }
-        }
-        else {
-            $html = $fc->get('project_'. parent::_lang() .'_'. $args['slug'], f3()->get('cache.project'));
+        } else {
+            $html = $fc->get('project_' . parent::_lang() . '_' . $args['slug'], f3()->get('cache.project'));
 
             if (empty($html)) {
                 $html = self::_render($args['slug']);
-                $fc->save('project_'. parent::_lang() .'_'. $args['slug'], $html, f3()->get('cache.project'));
+                $fc->save('project_' . parent::_lang() . '_' . $args['slug'], $html, f3()->get('cache.project'));
             }
         }
 
         echo $html;
     }
 
+    /**
+     * @param $args
+     */
     public static function force($args)
     {
         $fc = new FCHelper('project');
@@ -57,12 +59,15 @@ class oProject extends Outfit
 
         $html = self::_render($args['slug']);
 
-        $fc->save('project_'. parent::_lang() .'_'. $args['slug'], $html);
+        $fc->save('project_' . parent::_lang() . '_' . $args['slug'], $html);
     }
 
+    /**
+     * @param $id
+     * @return mixed
+     */
     private static function _render($id = 0)
     {
-
         $cu = fProject::one($id, 'id', [
             'status' => fProject::ST_ON
         ], false);
@@ -80,14 +85,14 @@ class oProject extends Outfit
         // $metas = fProject::lotsMeta($cu['id']);
         $relateds = fProject::lotsRelated($cu['id']);
 
-        $pics = fMedia::limitRows('m.target:Project,m.status:'. fMedia::ST_ON .',m.parent_id:'. $cu['id']);
+        $pics = fMedia::limitRows('m.target:Project,m.status:' . fMedia::ST_ON . ',m.parent_id:' . $cu['id']);
 
-        $seo = array(
-            'desc' => $cu['info'],
-            'img' => $cu['pic'],
+        $seo = [
+            'desc'    => $cu['info'],
+            'img'     => $cu['pic'],
             'keyword' => $cu['keyword'],
-            'header' => '專案'
-        );
+            'header'  => '專案'
+        ];
 
         if (!empty($metas['seo_desc'])) {
             $seo['desc'] = $metas['seo_desc'];
@@ -115,7 +120,7 @@ class oProject extends Outfit
 
         f3()->set('breadcrumb_sire', ['title' => '專案', 'slug' => '/projects', 'sire' => ['title' => '首頁', 'slug' => '/home']]);
 
-        $html = self::wrapper(f3()->get('theme') .'/project.html', $cu['title'], '/c/'. $cu['id'] . '/' . $cu['slug'], true);
+        $html = self::wrapper(f3()->get('theme') . '/project.html', $cu['title'], '/c/' . $cu['id'] . '/' . $cu['slug'], true);
 
         return $html;
     }
