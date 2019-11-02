@@ -50,11 +50,13 @@ class MHelper extends Medoo
             $table = $this->tableQuote($table);
             $table_query = $table;
         }
+        $is_join = false;
         $join_key = is_array($join) ? array_keys($join) : null;
         if (
             isset($join_key[0]) &&
             strpos($join_key[0], '[') === 0
         ) {
+            $is_join = true;
             $table_join = array();
             $join_array = array(
                 '>'  => 'LEFT',
@@ -126,10 +128,10 @@ class MHelper extends Medoo
                     $columns = '*';
                     $where = $join;
                 }
-                $column = $column_fn . '(' . $this->columnPush($columns, $map) . ')';
+                $column = $column_fn . '(' . $this->columnPush($columns, $map, true) . ')';
             }
         } else {
-            $column = $this->columnPush($columns, $map);
+            $column = $this->columnPush($columns, $map, true, $is_join);
         }
         return 'SELECT ' . $column . ' FROM ' . $table_query . $this->whereClause($where, $map);
     }
