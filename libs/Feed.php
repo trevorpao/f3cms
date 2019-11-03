@@ -104,7 +104,7 @@ class Feed extends Module
                         }
                         break;
                     case 'slug':
-                        $value = parent::_slugify($value);
+                        $value = (empty($value)) ? $that::renderUniqueNo(16) : parent::_slugify($value);
                         // $value = str_replace('//', '/', $value);
                         $data[$key] = $value;
                         break;
@@ -581,7 +581,6 @@ class Feed extends Module
         } else {
             return $res->rowCount();
         }
-
     }
 
     /**

@@ -17,7 +17,7 @@ class fAdv extends Feed
      */
     public static function getAll()
     {
-        $result = db()->exec('SELECT a.id, a.title, a.position_id, a.end_date, a.counter, a.last_ts FROM `' . self::fmTbl() . '` a ');
+        $result = self::exec('SELECT a.id, a.title, a.position_id, a.end_date, a.counter, a.last_ts FROM `' . self::fmTbl() . '` a ');
 
         foreach ($result as &$row) {
             $row['position'] = self::getPositions()[$row['position_id']]['title'];
@@ -58,7 +58,7 @@ class fAdv extends Feed
         $condition = " WHERE `position_id` = '" . $position_id . "' AND `status` = '" . self::ST_ON . "' ";
         $condition .= " AND `end_date` > '" . date('Y-m-d') . "' ";
 
-        $result = db()->exec('SELECT `id`, `title`, `status`, `pic`, `uri`, `theme`, `background`, `summary` FROM `' . self::fmTbl() . '` ' . $condition . '  ORDER BY ' . $orderby . ' LIMIT ' . $limit);
+        $result = self::exec('SELECT `id`, `title`, `status`, `pic`, `uri`, `theme`, `background`, `summary` FROM `' . self::fmTbl() . '` ' . $condition . '  ORDER BY ' . $orderby . ' LIMIT ' . $limit);
 
         return (1 === $limit && !empty($result)) ? $result[0] : $result;
     }
@@ -113,13 +113,13 @@ class fAdv extends Feed
         }
 
         if ($useRand) {
-            $result = db()->exec($select . $from . ' LIMIT 26 ');
+            $result = self::exec($select . $from . ' LIMIT 26 ');
 
             if ($result) {
                 $result = self::_randomByWeight($result, $limit);
             }
         } else {
-            $result = db()->exec($select . $from . $order . ' LIMIT ' . $limit);
+            $result = self::exec($select . $from . $order . ' LIMIT ' . $limit);
         }
 
         return (empty($result)) ? [] : $result;

@@ -19,7 +19,7 @@ class fEdm extends Feed
     {
         $condition = ' WHERE l.`title` like ? ';
 
-        return db()->exec(
+        return self::exec(
             'SELECT a.id, l.`title` FROM `' . self::fmTbl() . '` a
             LEFT JOIN `' . self::fmTbl('lang') . "` l ON l.`parent_id`=a.id AND `lang` = '" . f3()->get('defaultLang') . "' " . $condition . ' ORDER BY `vol_num` LIMIT 30 ',
             '%' . $query . '%'

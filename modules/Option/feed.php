@@ -54,7 +54,7 @@ class fOption extends Feed
      */
     public static function get($name)
     {
-        $rows = db()->query('SELECT * FROM `' . self::fmTbl() . "` WHERE `name`=? AND `status`='" . self::ST_ON . "' LIMIT 1 ", $name);
+        $rows = mh()->query('SELECT * FROM `' . self::fmTbl() . "` WHERE `name`=? AND `status`='" . self::ST_ON . "' LIMIT 1 ", $name);
 
         if (count($rows) != 1) {
             return null;
@@ -68,7 +68,7 @@ class fOption extends Feed
      */
     public static function load_counties()
     {
-        $rows = db()->query('SELECT * FROM `' . tpf() . self::COUNTYTB . '` ORDER BY `id`');
+        $rows = mh()->query('SELECT * FROM `' . tpf() . self::COUNTYTB . '` ORDER BY `id`');
 
         return $rows;
     }
@@ -79,7 +79,7 @@ class fOption extends Feed
      */
     public static function load_zipcodes($county)
     {
-        $rows = db()->query('SELECT `zipcode`, `town`, CONCAT(`county`, `town`) AS `full_name` FROM `' . tpf() . self::ZIPCODETB . '` WHERE `county`= ? ORDER BY `zipcode`', $county);
+        $rows = mh()->query('SELECT `zipcode`, `town`, CONCAT(`county`, `town`) AS `full_name` FROM `' . tpf() . self::ZIPCODETB . '` WHERE `county`= ? ORDER BY `zipcode`', $county);
 
         return $rows;
     }

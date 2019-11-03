@@ -23,9 +23,10 @@ class fMedia extends Feed
      * @param  $query
      * @param  $page
      * @param  $limit
+     * @param  $cols
      * @return mixed
      */
-    public static function limitRows($query = '', $page = 0, $limit = 12)
+    public static function limitRows($query = '', $page = 0, $limit = 12, $cols = '')
     {
         $filter = self::genQuery($query);
 

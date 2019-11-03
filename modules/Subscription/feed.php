@@ -16,7 +16,7 @@ class fSubscription extends Feed
      */
     public static function getEnabled()
     {
-        $result = db()->exec(
+        $result = self::exec(
             'SELECT `id`, `status`, `name`, `phone`, `email`, `lancode`, `last_ts` FROM `' .
             self::fmTbl() . "` WHERE `status`='Enabled' ORDER BY `insert_ts` DESC "
         );
@@ -29,7 +29,7 @@ class fSubscription extends Feed
      */
     public static function cancel($email)
     {
-        $rows = db()->exec('SELECT `id`, `status` FROM `' . self::fmTbl() . '` WHERE `email`=?', self::_fixAry([$email]));
+        $rows = self::exec('SELECT `id`, `status` FROM `' . self::fmTbl() . '` WHERE `email`=?', self::_fixAry([$email]));
 
         if ($rows) {
             parent::change_status($rows[0]['id'], 'Disabled');
@@ -41,7 +41,7 @@ class fSubscription extends Feed
      */
     public static function confirm($email)
     {
-        $rows = db()->exec('SELECT `id`, `status` FROM `' . self::fmTbl() . '` WHERE `email`=?', self::_fixAry([$email]));
+        $rows = self::exec('SELECT `id`, `status` FROM `' . self::fmTbl() . '` WHERE `email`=?', self::_fixAry([$email]));
 
         if ($rows) {
             parent::change_status($rows[0]['id'], 'Enabled');

@@ -18,17 +18,12 @@ if (!is_https() && $f3->get('forceHTTPS') === 1) {
     exit();
 }
 
-$db = new \DB\SQL($f3->get('db'), $f3->get('db_account'), $f3->get('db_password'));
-$f3->set('DB', $db);
-
-$sess = new \DB\SQL\Session($db, 'sessions', true, function ($session) {
-    //suspect session
+$sess = new \F3CMS\Mession(true, function ($session) {
     $logger = new \Log('session.log');
-    $f3 = \Base::instance();
-    if (($ip = $session->ip()) != $f3->get('IP')) {
+    if (($ip = $session->ip()) != f3()->get('IP')) {
         $logger->write('user changed IP:' . $ip);
     } else {
-        $logger->write('user changed browser/device:' . $f3->get('AGENT'));
+        $logger->write('user changed browser/device:' . f3()->get('AGENT'));
     }
 });
 

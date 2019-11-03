@@ -9,9 +9,6 @@ $f3 = \Base::instance();
 // config
 require './config.php';
 
-$db = new \DB\SQL($f3->get('db'), $f3->get('db_account'), $f3->get('db_password'));
-$f3->set('DB', $db);
-
 $f3->set('opts', \F3CMS\fOption::load('', 'Preload'));
 
 // Define routes

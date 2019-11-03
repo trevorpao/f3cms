@@ -14,7 +14,7 @@ class fExcel extends Feed
      */
     public static function getAll()
     {
-        $result = db()->exec(
+        $result = self::exec(
             'SELECT `id`, `status`, `name`, `phone`, `email`, `counter`, `last_ts` FROM `' .
             self::fmTbl() . '` ORDER BY insert_ts DESC '
         );

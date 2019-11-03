@@ -5,16 +5,6 @@ function f3()
     return \Base::instance();
 }
 
-function db()
-{
-    if (!f3()->exists('DB')) {
-        $db = new \DB\SQL(f3()->get('db'), f3()->get('db_account'), f3()->get('db_password'));
-        f3()->set('DB', $db);
-    }
-
-    return f3()->get('DB');
-}
-
 /**
  * get db instance
  * @return db obj
@@ -104,21 +94,6 @@ function setCORS($allowedOrigins = array())
 function fQuery()
 {
     die(mh()->last());
-}
-
-/**
- * renderUniqueNo
- * @param  string   $length - serial_no length
- * @param  string   $chars  - available char in serial_no
- * @return string
- */
-function renderUniqueNo($length = 6, $chars = '3456789ACDFGHJKLMNPQRSTWXY')
-{
-    $sn = '';
-    for ($i = 0; $i < $length; $i++) {
-        $sn .= substr($chars, rand(0, strlen($chars) - 1), 1);
-    }
-    return $sn;
 }
 
 /**

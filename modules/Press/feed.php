@@ -27,9 +27,10 @@ class fPress extends Feed
      * @param  $query
      * @param  $page
      * @param  $limit
+     * @param  $cols
      * @return mixed
      */
-    public static function limitRows($query = '', $page = 0, $limit = 12)
+    public static function limitRows($query = '', $page = 0, $limit = 12, $cols = '')
     {
         $filter = self::genQuery($query);
 
@@ -308,7 +309,7 @@ class fPress extends Feed
 
     public static function cronjob()
     {
-        $data = db()->exec('
+        $data = self::exec('
             SELECT tp.`id`, tp.`status`, tp.`online_date`
             FROM `' . self::fmTbl() . "` AS tp
             WHERE tp.`status` = 'Scheduled'

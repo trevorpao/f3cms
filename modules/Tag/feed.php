@@ -20,9 +20,10 @@ class fTag extends Feed
      * @param  $query
      * @param  $page
      * @param  $limit
+     * @param  $cols
      * @return mixed
      */
-    public static function limitRows($query = '', $page = 0, $limit = 1000)
+    public static function limitRows($query = '', $page = 0, $limit = 1000, $cols = '')
     {
         $rtn = parent::limitRows($query, $page, $limit);
 
@@ -83,7 +84,7 @@ class fTag extends Feed
      */
     public static function detail($pid)
     {
-        $rows = db()->exec('SELECT * FROM `' . self::fmTbl('detail') . '` WHERE `parent_id`=? LIMIT 1 ', $pid);
+        $rows = self::exec('SELECT * FROM `' . self::fmTbl('detail') . '` WHERE `parent_id`=? LIMIT 1 ', $pid);
 
         if (count($rows) != 1) {
             return null;
@@ -100,7 +101,7 @@ class fTag extends Feed
      */
     public static function get_tag($cid)
     {
-        $rows = db()->exec('SELECT * FROM `' . self::fmTbl() . '` WHERE `id`=? LIMIT 1 ', $cid);
+        $rows = self::exec('SELECT * FROM `' . self::fmTbl() . '` WHERE `id`=? LIMIT 1 ', $cid);
 
         if (count($rows) != 1) {
             return null;
@@ -119,7 +120,7 @@ class fTag extends Feed
      */
     public static function get_tag_by_slug($slug)
     {
-        $rows = db()->exec('SELECT * FROM `' . self::fmTbl() . '` WHERE `slug`=? LIMIT 1 ', $slug);
+        $rows = self::exec('SELECT * FROM `' . self::fmTbl() . '` WHERE `slug`=? LIMIT 1 ', $slug);
 
         if (count($rows) != 1) {
             return null;
@@ -144,6 +145,6 @@ class fTag extends Feed
             $condition = " where c.parent_id='" . $parent_id . "' ";
         }
 
-        return db()->exec('SELECT c.`id`, c.title, c.`slug` FROM `' . self::fmTbl() . '` c ' . $condition);
+        return self::exec('SELECT c.`id`, c.title, c.`slug` FROM `' . self::fmTbl() . '` c ' . $condition);
     }
 }
