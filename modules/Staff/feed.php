@@ -7,6 +7,8 @@ namespace F3CMS;
 class fStaff extends Feed
 {
     const MTB = 'staff';
+    const MULTILANG = 0;
+
     const ST_NEW = 'New';
     const ST_VERIFIED = 'Verified';
     const ST_FREEZE = 'Freeze';

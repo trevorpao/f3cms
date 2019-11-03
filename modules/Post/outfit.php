@@ -23,7 +23,7 @@ class oPost extends Outfit
      */
     public static function sitemap($args)
     {
-        $subset = fPress::limitRows('status:' . fPress::ST_PUBLISHED, 0, 1000);
+        $subset = fPress::limitRows('m.status:' . fPress::ST_PUBLISHED, 0, 1000);
 
         f3()->set('rows', $subset);
 
@@ -32,6 +32,7 @@ class oPost extends Outfit
         $tp = \Template::instance();
         $tp->filter('date', '\F3CMS\Outfit::date');
 
+        echo '<'. '?xml version="1.0" encoding="UTF-8" ?'. '>'. PHP_EOL;
         echo $tp->render('sitemap.xml', 'application/xml');
     }
 
@@ -42,7 +43,7 @@ class oPost extends Outfit
     {
         // TODO: mutil lang
 
-        $subset = fPress::limitRows('status:' . fPress::ST_PUBLISHED, 0, 100);
+        $subset = fPress::limitRows('m.status:' . fPress::ST_PUBLISHED, 0, 100);
 
         f3()->set('rows', $subset);
 
@@ -53,6 +54,7 @@ class oPost extends Outfit
         $tp = \Template::instance();
         $tp->filter('date', '\F3CMS\Outfit::date');
 
+        echo '<'. '?xml version="1.0" encoding="UTF-8" ?'. '>'. PHP_EOL;
         echo $tp->render('rss.xml', 'application/xml');
     }
 

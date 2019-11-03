@@ -4,6 +4,11 @@ namespace F3CMS;
 class Feed extends Module
 {
     const MULTILANG = 1;
+    const BE_COLS = 'm.id';
+    const LANG_ARY_MERGE = 0;
+    const LANG_ARY_ALONE = 1;
+    const LANG_ARY_SKIP = 2;
+
     /**
      * save whole form for backend
      * @param array $req
@@ -446,18 +451,20 @@ class Feed extends Module
         if (empty($data)) {
             return null;
         } else {
-            switch ($multilang) {
-                case 1:
-                    $data['lang'] = $that::lotsLang($data['id']);
-                    break;
-                case 0:
-                    $lang = $that::lotsLang($data['id'], parent::_lang());
-                    if (is_array($lang)) {
-                        $data = array_merge($data, $lang);
-                    }
-                    break;
-                default:
-                    break;
+            if ($that::MULTILANG) {
+                switch ($multilang) {
+                    case $that::LANG_ARY_ALONE:
+                        $data['lang'] = $that::lotsLang($data['id']);
+                        break;
+                    case $that::LANG_ARY_MERGE:
+                        $lang = $that::lotsLang($data['id'], parent::_lang());
+                        if (is_array($lang)) {
+                            $data = array_merge($data, $lang);
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
 
             return $data;

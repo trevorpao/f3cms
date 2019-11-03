@@ -7,6 +7,8 @@ namespace F3CMS;
 class fOption extends Feed
 {
     const MTB = 'option';
+    const MULTILANG = 0;
+
     const COUNTYTB = 'county';
     const ZIPCODETB = 'zipcode';
 

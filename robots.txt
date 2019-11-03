@@ -2,6 +2,19 @@
 
 # Allow crawling of all content
 User-agent: *
-Disallow:
+Crawl-delay: 10
 
-Sitemap: https://domain.com/sitemap.xml
+# Directories
+Disallow: /backend/
+Disallow: /cache/
+Disallow: /libs/
+Disallow: /modules/
+Disallow: /theme/
+Disallow: /tmp/
+Disallow: /vendor/
+
+# Files
+Disallow: /LICENSE
+Disallow: /README.md
+
+Sitemap: https://f3cms.lo:4433/sitemap

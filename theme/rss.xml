@@ -1,0 +1,26 @@
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>{{ @page.title }}</title>
+    <link>{{@uri}}</link>
+    <description><![CDATA[
+      {{ @page.desc }}
+    ]]>
+    </description>
+    <language>zh-TW</language>
+    <docs>{{@uri}}/rss</docs>
+    <atom:link href="{{@uri}}/rss" rel="self" type="application/rss+xml" />
+    <repeat group="{{ @rows.subset }}" value="{{ @row }}" counter="{{ @ctr }}">
+    <item>
+      <guid isPermaLink="false">p{{ @row.id }}</guid>
+      <title>{{ @row.title }}</title>
+      <link>{{@uri}}/p/{{ @row.id }}</link>
+      <pubDate>{{ @row.online_date, 'D, d M Y' | date }} 00:00:00 +0800</pubDate>
+      <description><![CDATA[
+        <check if="{{ @row.cover }}"><img src="{{@uri}}{{ @row.cover }}"/></check>
+        {{ @row.info }}
+      ]]>
+      </description>
+    </item>
+    </repeat>
+  </channel>
+</rss>
