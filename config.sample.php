@@ -3,6 +3,8 @@ $f3->set('AUTOLOAD', './modules/;./libs/;../vendor/;');
 
 $f3->set('vendors', '../vendor/');
 
+$f3->set('PACKAGE', 'F3CMS');
+
 $f3->set('LOGS', $f3->get('TEMP') . 'logs/');
 
 $f3->set('UI', './theme/');
@@ -32,7 +34,7 @@ $f3->set('db_account', 'root');
 $f3->set('db_password', 'sPes4uBrEcHUq5qE');
 $f3->set('tpf', 'tbl_');
 
-$f3->set('uri', 'http://f3cms.lo:8080' . $f3->get('BASE'));
+$f3->set('uri', 'https://f3cms.lo:4433' . $f3->get('BASE'));
 
 $f3->set('site_title', 'Demo');
 
@@ -65,10 +67,10 @@ $f3->set('maxsize', 20971520);
 //EMAIL
 $f3->set('smtp_host', 'smtp.gmail.com');
 $f3->set('smtp_port', 465);
-$f3->set('smtp_account', 'sense.info.co@gmail.com');
-$f3->set('smtp_password', 'ilixxmcanfdnsjgl'); //
-$f3->set('smtp_name', 'Trevor Pao');
-$f3->set('webmaster', 'shuaib25@gmail.com');
+$f3->set('smtp_account', 'your_account');
+$f3->set('smtp_password', 'your_password'); //
+$f3->set('smtp_name', 'your_account');
+$f3->set('webmaster', 'your_email');
 
 if ($_SERVER['SERVER_NAME'] != 'f3cms.lo' && php_sapi_name() != 'cli') {
     $f3->set('DEBUG', 0);
