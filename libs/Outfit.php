@@ -36,8 +36,11 @@ class Outfit extends Module
         if (f3()->exists('siteBeginDate')) {
             $ts = strtotime(f3()->get('siteBeginDate'));
             $now = time();
-            if ($slug != '/comingsoon' && $now < $ts) {
-                f3()->reroute(f3()->get('uri') . '/comingsoon');
+
+            if ($now < $ts) {
+                if (empty($args) || $args[0] != '/comingsoon') {
+                    f3()->reroute(f3()->get('uri') . '/comingsoon');
+                }
             }
         }
 
