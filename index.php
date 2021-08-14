@@ -9,7 +9,7 @@ $f3 = \Base::instance();
 // config
 require './config.php';
 
-setCORS(['https://f3cms.lo:8008', 'http://fe.sense-info.co']); // local BE & FE
+setCORS(['https://loc.f3cms.com:8008', 'http://fe.sense-info.co']); // local BE & FE
 
 if (!is_https() && $f3->get('forceHTTPS') === 1) {
     $redirect = 'https://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];

@@ -34,7 +34,7 @@ $f3->set('db_account', 'root');
 $f3->set('db_password', 'sPes4uBrEcHUq5qE');
 $f3->set('tpf', 'tbl_');
 
-$f3->set('uri', 'https://f3cms.lo:4433' . $f3->get('BASE'));
+$f3->set('uri', 'https://loc.f3cms.com:4433' . $f3->get('BASE'));
 
 $f3->set('site_title', 'Demo');
 
@@ -72,7 +72,7 @@ $f3->set('smtp_password', 'your_password'); //
 $f3->set('smtp_name', 'your_account');
 $f3->set('webmaster', 'your_email');
 
-if ($_SERVER['SERVER_NAME'] != 'f3cms.lo' && php_sapi_name() != 'cli') {
+if ($_SERVER['SERVER_NAME'] != 'loc.f3cms.com' && php_sapi_name() != 'cli') {
     $f3->set('DEBUG', 0);
     $f3->set('forceHTTPS', 1);
 

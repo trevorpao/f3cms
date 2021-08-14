@@ -17,4 +17,4 @@ Disallow: /vendor/
 Disallow: /LICENSE
 Disallow: /README.md
 
-Sitemap: https://f3cms.lo:4433/sitemap
+Sitemap: https://loc.f3cms.com:4433/sitemap
