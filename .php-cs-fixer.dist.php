@@ -21,19 +21,26 @@ $config = new PhpCsFixer\Config();
 $config
     ->setRiskyAllowed(true)
     ->setRules([
-        // '@PhpCsFixer'                      => true,
-        '@PSR2'                            => true,
-        '@PHP73Migration'                  => true,
-        'psr_autoloading'                  => false,
-        'heredoc_indentation'              => false,
-        'strict_comparison'                => false,
-        'concat_space'                     => ['spacing' => 'one'],
-        'binary_operator_spaces'           => ['operators' => [
+        // base mode
+        '@PSR2'           => true,
+        '@PHP73Migration' => true,
+
+        // adv mode
+        '@Symfony'                      => true,
+        // '@PhpCsFixer'                   => true,
+
+        // overwrite
+        'psr_autoloading'        => false,
+        'heredoc_indentation'    => false,
+        'strict_comparison'      => false,
+        'concat_space'           => ['spacing' => 'one'],
+        'binary_operator_spaces' => ['operators' => [
             '=>' => 'align',
             '='  => 'align',
         ]],
-        'general_phpdoc_annotation_remove' => ['annotations' => ['expectedDeprecation']], // one should use PHPUnit built-in method instead
-        'modernize_strpos'                 => true, // needs PHP 8+ or polyfill
+        'phpdoc_summary'                      => false,
+        'general_phpdoc_annotation_remove'    => ['annotations' => ['expectedDeprecation']], // one should use PHPUnit built-in method instead
+        'modernize_strpos'                    => true, // needs PHP 8+ or polyfill
     ])
     ->setFinder($finder)
 ;
