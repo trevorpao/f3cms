@@ -8,8 +8,8 @@ declare(strict_types=1);
 $finder = PhpCsFixer\Finder::create()
     // ->ignoreVCSIgnored(true)
     // ->exclude(['pma', 'tmp', 'vendor'])
-    // ->in([__DIR__ . '/libs', __DIR__ . '/modules']) // not always
-    ->in([__DIR__ . '/modules'])
+    ->in([__DIR__ . '/libs', __DIR__ . '/modules']) // not always
+    // ->in([__DIR__ . '/modules'])
     ->append([
         // __DIR__ . '/dev-tools/doc.php',
         // __DIR__.'/php-cs-fixer', disabled, as we want to be able to run bootstrap file even on lower PHP version, to show nice message
@@ -40,7 +40,6 @@ $config
         ]],
         'phpdoc_summary'                      => false,
         'general_phpdoc_annotation_remove'    => ['annotations' => ['expectedDeprecation']], // one should use PHPUnit built-in method instead
-        'modernize_strpos'                    => true, // needs PHP 8+ or polyfill
     ])
     ->setFinder($finder)
 ;
