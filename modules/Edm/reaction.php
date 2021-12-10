@@ -23,14 +23,14 @@ class rEdm extends Reaction
         }
 
         $data = [
-            'tw' => self::getHtml($req['edm_id'], 'tw')
+            'tw' => self::getHtml($req['edm_id'], 'tw'),
         ];
 
         // find some email by Module::_lang()
         $sentEmails = [];
         foreach ($req['emails'] as $row) {
-            list($e, $l) = explode(':', $row);
-            $sent = Sender::sendmail($data[$l]['title'], $data[$l]['html'], $e);
+            [$e, $l]      = explode(':', $row);
+            $sent         = Sender::sendmail($data[$l]['title'], $data[$l]['html'], $e);
             $sentEmails[] = $e;
         }
 
@@ -55,8 +55,7 @@ class rEdm extends Reaction
 
         return [
             'title' => $cu['title'],
-            'html'  => $tp->render(f3()->get('theme') . '/edm.html')
+            'html'  => $tp->render(f3()->get('theme') . '/edm.html'),
         ];
-
     }
 }

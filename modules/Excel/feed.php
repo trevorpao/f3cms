@@ -7,7 +7,7 @@ namespace F3CMS;
  */
 class fExcel extends Feed
 {
-    const MTB = 'excel';
+    public const MTB = 'excel';
 
     /**
      * @return mixed

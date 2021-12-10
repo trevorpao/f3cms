@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 class rStaff extends Reaction
@@ -17,15 +18,15 @@ class rStaff extends Reaction
             return parent::_return(8004);
         }
 
-        if ($req['pid'] == 0) {
+        if (0 == $req['pid']) {
             return parent::_return(1, [
-                'id' => 0
+                'id' => 0,
             ]);
         }
 
         $cu = fStaff::one($req['pid']);
 
-        if ($cu == null) {
+        if (null == $cu) {
             return parent::_return(8106);
         }
 
@@ -52,7 +53,7 @@ class rStaff extends Reaction
 
         $cu = fStaff::one($req['account'], 'account');
 
-        if ($cu == null) {
+        if (null == $cu) {
             return parent::_return(8106);
         }
 
@@ -60,18 +61,18 @@ class rStaff extends Reaction
             return parent::_return(8104, ['get' => fStaff::_setPsw($req['pwd'])]);
         }
 
-        if ($cu['status'] != fStaff::ST_VERIFIED) {
+        if (fStaff::ST_VERIFIED != $cu['status']) {
             return parent::_return(8105);
         }
 
         f3()->set('SESSION.cs', [
             'name'      => $cu['account'],
             'id'        => $cu['id'],
-            'has_login' => 1
+            'has_login' => 1,
         ]);
 
         return parent::_return(self::_isLogin(), [
-            'name' => self::_CStaff('name')
+            'name' => self::_CStaff('name'),
         ]);
     }
 
@@ -95,12 +96,13 @@ class rStaff extends Reaction
     public function do_status($f3, $args)
     {
         $rtn = [
-            'isLogin' => 0
+            'isLogin' => 0,
         ];
         if (self::_isLogin()) {
             $rtn['isLogin'] = 1;
-            $rtn['user'] = f3()->get('SESSION.cs');
+            $rtn['user']    = f3()->get('SESSION.cs');
         }
+
         return parent::_return(1, $rtn);
     }
 
@@ -129,11 +131,12 @@ class rStaff extends Reaction
 
     /**
      * @param $column
+     *
      * @return mixed
      */
     public static function _CStaff($column = 'id')
     {
-        $cu = f3()->get('SESSION.cs');
+        $cu  = f3()->get('SESSION.cs');
         $str = '';
 
         if (isset($cu)) {
@@ -147,11 +150,13 @@ class rStaff extends Reaction
 
     /**
      * @param array $row
+     *
      * @return mixed
      */
     public static function handleRow($row = [])
     {
         unset($row['pwd']);
+
         return $row;
     }
 }

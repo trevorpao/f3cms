@@ -9,6 +9,7 @@ class rAuthor extends Reaction
 {
     /**
      * @param array $row
+     *
      * @return mixed
      */
     public static function handleRow($row = [])

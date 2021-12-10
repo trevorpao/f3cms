@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 /**
@@ -6,7 +7,8 @@ namespace F3CMS;
  */
 class oPress extends Outfit
 {
-    function list($args) {
+    public function list($args)
+    {
         $req = parent::_getReq();
 
         $req['page'] = ($req['page']) ? ($req['page'] - 1) : 0;
@@ -35,7 +37,7 @@ class oPress extends Outfit
     {
         $fc = new FCHelper('press');
 
-        if (f3()->get('cache.press') === 0) {
+        if (0 === f3()->get('cache.press')) {
             $html = $fc->get('press_' . parent::_lang() . '_' . $args['slug']);
 
             if (empty($html)) {
@@ -62,7 +64,7 @@ class oPress extends Outfit
      */
     public static function force($args)
     {
-        $fc = new FCHelper('press');
+        $fc            = new FCHelper('press');
         $fc->ifHistory = 1;
 
         $html = self::_render($args['slug']);
@@ -83,8 +85,9 @@ class oPress extends Outfit
     }
 
     /**
-     * @param  $id
-     * @param  $published
+     * @param $id
+     * @param $published
+     *
      * @return mixed
      */
     private static function _render($id = 0, $published = true)
@@ -100,20 +103,20 @@ class oPress extends Outfit
             f3()->error(404);
         }
 
-        if ($cu['site_id'] == 3) {
+        if (3 == $cu['site_id']) {
             f3()->set('uri', f3()->get('us_uri'));
         }
 
-        $tags = fPress::lotsTag($cu['id']);
-        $authors = fPress::lotsAuthor($cu['id']);
+        $tags     = fPress::lotsTag($cu['id']);
+        $authors  = fPress::lotsAuthor($cu['id']);
         $relateds = fPress::lotsRelated($cu['id']);
-        $metas = fPress::lotsMeta($cu['id']);
+        $metas    = fPress::lotsMeta($cu['id']);
 
         $seo = [
             'desc'    => $cu['info'],
             'img'     => $cu['pic'],
             'keyword' => $cu['keyword'],
-            'header'  => '消息'
+            'header'  => '消息',
         ];
 
         if (!empty($metas['seo_desc'])) {
@@ -121,7 +124,7 @@ class oPress extends Outfit
         }
 
         if (!empty($metas['seo_keyword'])) {
-            $seo['keyword'] = $metas['seo_keyword'];
+            $seo['keyword']       = $metas['seo_keyword'];
             $metas['seo_keyword'] = explode(',', $metas['seo_keyword']);
         }
 

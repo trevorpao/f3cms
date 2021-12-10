@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 /**
@@ -6,14 +7,14 @@ namespace F3CMS;
  */
 class fMenu extends Feed
 {
-    const MTB = 'menu';
+    public const MTB = 'menu';
 
-    const ST_ON = 'Enabled';
-    const ST_OFF = 'Disabled';
+    public const ST_ON  = 'Enabled';
+    public const ST_OFF = 'Disabled';
 
-    const PV_R = 'use.menu.config';
-    const PV_U = 'use.menu.config';
-    const PV_D = 'use.menu.config';
+    public const PV_R = 'use.menu.config';
+    public const PV_U = 'use.menu.config';
+    public const PV_D = 'use.menu.config';
 
     /**
      * @param $query
@@ -26,14 +27,15 @@ class fMenu extends Feed
             'subset' => rMenu::sort_menus(0, 0, '', 0, 1),
             'limit'  => $limit,
             'pos'    => 0,
-            'sql'    => ((f3()->get('DEBUG') === 0) ? '' : mh()->last())
+            'sql'    => ((0 === f3()->get('DEBUG')) ? '' : mh()->last()),
         ];
     }
 
     /**
      * get menus by parent id
      *
-     * @param  int     $parent_id - parent type id
+     * @param int $parent_id - parent type id
+     *
      * @return array
      */
     public static function get_menus($parent_id = -1, $force = 0)
@@ -41,9 +43,9 @@ class fMenu extends Feed
         $lang = Module::_lang();
 
         $condition = ' where 1 ';
-        $join = ' LEFT JOIN `' . self::fmTbl('lang') . '` l2 ON l2.parent_id=c.parent_id AND l2.lang = \'' . $lang . '\' ';
+        $join      = ' LEFT JOIN `' . self::fmTbl('lang') . '` l2 ON l2.parent_id=c.parent_id AND l2.lang = \'' . $lang . '\' ';
 
-        if ($parent_id != -1) {
+        if (-1 != $parent_id) {
             $condition .= ' AND c.parent_id=\'' . $parent_id . '\' ';
         }
 
@@ -68,7 +70,7 @@ class fMenu extends Feed
             'UPDATE `' . self::fmTbl() . '` SET `sorter`=:sorter WHERE `id`=:id',
             [
                 ':sorter' => $sorter,
-                ':id'     => $pid
+                ':id'     => $pid,
             ]
         );
     }
@@ -83,7 +85,7 @@ class fMenu extends Feed
             'UPDATE `' . self::fmTbl() . '` SET `parent_id`=:parent_id WHERE `id`=:id',
             [
                 ':parent_id' => $parent,
-                ':id'        => $pid
+                ':id'        => $pid,
             ]
         );
     }
@@ -96,7 +98,7 @@ class fMenu extends Feed
     public static function getOpts($query = '', $column = 'title')
     {
         $menus = rMenu::sort_menus(0, 0, '--', 0);
-        $rtn = [];
+        $rtn   = [];
 
         if (is_array($menus) && !empty($menus)) {
             self::recursion($menus, $rtn);

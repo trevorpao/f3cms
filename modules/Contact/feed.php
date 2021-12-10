@@ -7,14 +7,14 @@ namespace F3CMS;
  */
 class fContact extends Feed
 {
-    const MTB = 'contact';
-    const MULTILANG = 0;
+    public const MTB       = 'contact';
+    public const MULTILANG = 0;
 
-    const ST_NEW = 'New';
-    const ST_Process = 'Process';
-    const ST_DONE = 'Done';
+    public const ST_NEW     = 'New';
+    public const ST_Process = 'Process';
+    public const ST_DONE    = 'Done';
 
-    const BE_COLS = 'id,status,name,email,insert_ts,last_ts';
+    public const BE_COLS = 'id,status,name,email,insert_ts,last_ts';
 
     /**
      * @param $req
@@ -29,7 +29,7 @@ class fContact extends Feed
             'message'   => $req['message'],
             'status'    => self::ST_NEW,
             'last_ts'   => $now,
-            'insert_ts' => $now
+            'insert_ts' => $now,
         ];
 
         mh()->insert(self::fmTbl(), $data);

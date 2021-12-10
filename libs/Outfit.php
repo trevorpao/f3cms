@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 class Outfit extends Module
@@ -6,12 +7,13 @@ class Outfit extends Module
     /**
      * @param $method
      * @param $args
+     *
      * @return mixed
      */
     public function __call($method, $args)
     {
         $time_start = microtime(true);
-        $that = get_called_class();
+        $that       = get_called_class();
 
         $that::_beforeRoute($args[1]);
 
@@ -34,11 +36,11 @@ class Outfit extends Module
     public static function _beforeRoute($args)
     {
         if (f3()->exists('siteBeginDate')) {
-            $ts = strtotime(f3()->get('siteBeginDate'));
+            $ts  = strtotime(f3()->get('siteBeginDate'));
             $now = time();
 
             if ($now < $ts) {
-                if (empty($args) || $args[0] != '/comingsoon') {
+                if (empty($args) || '/comingsoon' != $args[0]) {
                     f3()->reroute(f3()->get('uri') . '/comingsoon');
                 }
             }
@@ -54,14 +56,16 @@ class Outfit extends Module
     /**
      * @param $args
      */
-    public static function _afterRoute($args) {}
+    public static function _afterRoute($args)
+    {
+    }
+
     /**
      * @param $args
-     * @param string $next
      */
     public static function _middleware($args, string $next)
     {
-        $class = get_called_class();
+        $class  = get_called_class();
         $method = str_replace('do_', '', $next);
 
         if (!method_exists($class, $method)) {
@@ -70,11 +74,12 @@ class Outfit extends Module
 
         $args = parent::_escape($args, false);
 
-        return call_user_func_array(array($class, $method), array($args));
+        return call_user_func_array([$class, $method], [$args]);
     }
 
     /**
      * set excel header
+     *
      * @param string $filename - file name to user
      */
     public static function _setXls($filename)
@@ -99,13 +104,15 @@ class Outfit extends Module
 
     /**
      * render thumbnail file name
-     * @param  string $path - old path
-     * @param  string $type - thumb type
+     *
+     * @param string $path - old path
+     * @param string $type - thumb type
+     *
      * @return string - new path
      */
     public static function thumbnail($path, $type)
     {
-        list($w, $h) = f3()->get($type . '_thn');
+        [$w, $h] = f3()->get($type . '_thn');
 
         $tmp = explode('.', $path);
 
@@ -116,16 +123,18 @@ class Outfit extends Module
 
     /**
      * render pathByDevice file name
-     * @param  string $path - old path
-     * @param  string $type - thumb type
+     *
+     * @param string $path - old path
+     * @param string $type - thumb type
+     *
      * @return string - new path
      */
     public static function pathByDevice($path, $type)
     {
         $device = parent::_mobile_user_agent();
 
-        if ($device != 'unknown') {
-            list($w, $h) = f3()->get($type . '_thn');
+        if ('unknown' != $device) {
+            [$w, $h] = f3()->get($type . '_thn');
 
             $tmp = explode('.', $path);
 
@@ -141,6 +150,7 @@ class Outfit extends Module
      * @param $link
      * @param $current
      * @param $range
+     *
      * @return mixed
      */
     public static function paginate($total, $limit = 10, $link = '', $current = -1, $range = 5)
@@ -150,21 +160,23 @@ class Outfit extends Module
         if (!empty($link)) {
             $pages->setLinkPath($link);
         }
-        if ($current != -1) {
+        if (-1 != $current) {
             $pages->setCurrent($current);
         }
         $pages->setRouteKeyPrefix('?page=');
         $pages->setRange($range);
+
         return $pages->serve();
     }
 
     /**
      * @param $tags
+     *
      * @return mixed
      */
     public static function handleTag($tags)
     {
-        $ary = array();
+        $ary = [];
         if (!empty($tags)) {
             $items = json_decode($tags);
             foreach ($items as $item) {
@@ -173,6 +185,7 @@ class Outfit extends Module
             f3()->set('rel_tag', $ary);
             f3()->set('pageKeyword', implode(',', $ary));
         }
+
         return $ary;
     }
 
@@ -219,6 +232,7 @@ class Outfit extends Module
 
     /**
      * @param $buffer
+     *
      * @return mixed
      */
     public static function minify($buffer)
@@ -227,19 +241,19 @@ class Outfit extends Module
             return $buffer;
         }
 
-        $search = array(
+        $search = [
             '/\>[^\S ]+/s', // strip whitespaces after tags, except space
             '/[^\S ]+\</s', // strip whitespaces before tags, except space
             '/(\s)+/s', // shorten multiple whitespace sequences
-            '/<!--(?!\s*(?:\[if [^\]]+]|<!|>))(?:(?!-->).)*-->/s'
-        );
+            '/<!--(?!\s*(?:\[if [^\]]+]|<!|>))(?:(?!-->).)*-->/s',
+        ];
 
-        $replace = array(
+        $replace = [
             '>',
             '<',
             '\\1',
-            ''
-        );
+            '',
+        ];
 
         $buffer = preg_replace($search, $replace, $buffer);
 
@@ -284,14 +298,14 @@ class Outfit extends Module
         $page = fOption::load('page');
 
         if (f3()->exists('page')) {
-            $new = f3()->get('page', $page);
+            $new  = f3()->get('page', $page);
             $page = array_merge($page, $new);
         }
 
         f3()->set('page', $page);
 
         f3()->set('site.title', $page['title']);
-        f3()->set('page.title', $title . (($title != '') ? ' | ' : '') . $page['title']);
+        f3()->set('page.title', $title . (('' != $title) ? ' | ' : '') . $page['title']);
 
         f3()->set('social', fOption::load('social'));
     }
@@ -305,5 +319,4 @@ class Outfit extends Module
         f3()->set('page.alternate', '<1-- <link rel="alternate" href="' . $slug . '" hreflang="zh-tw" />' .
             '<link rel="alternate" href="' . $slug . '" hreflang="en" /> -->');
     }
-
 }

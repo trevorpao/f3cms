@@ -1,12 +1,13 @@
 <?php
+
 namespace F3CMS;
 
 class Cart extends Helper
 {
-    const ST_INSERTED = 'Inserted';
-    const ST_REMOVED = 'Removed';
-    const ST_ADDED = 'Added';
-    const ST_EMPTY = 'Empty';
+    public const ST_INSERTED = 'Inserted';
+    public const ST_REMOVED  = 'Removed';
+    public const ST_ADDED    = 'Added';
+    public const ST_EMPTY    = 'Empty';
 
     public function __construct()
     {
@@ -20,7 +21,7 @@ class Cart extends Helper
      */
     public function do_get_items($f3, $args)
     {
-        return Reaction::_return(1, array('cart' => self::get_cart()));
+        return Reaction::_return(1, ['cart' => self::get_cart()]);
     }
 
     /**
@@ -31,10 +32,10 @@ class Cart extends Helper
     {
         // need check depot
         $state = '';
-        $pid = intval(f3()->get('POST.item_id'));
+        $pid   = intval(f3()->get('POST.item_id'));
 
         if (array_key_exists($pid, $_SESSION['cart'])) {
-            if (f3()->get('POST.type') == 'force') {
+            if ('force' == f3()->get('POST.type')) {
                 $_SESSION['cart'][$pid]['qty'] = f3()->get('POST.qty');
             } else {
                 $_SESSION['cart'][$pid]['qty'] += f3()->get('POST.qty');
@@ -46,21 +47,21 @@ class Cart extends Helper
             if (!$tmp) {
                 $state = self::ST_EMPTY;
             } else {
-                $_SESSION['cart'][$pid] = array(
+                $_SESSION['cart'][$pid] = [
                     'id'    => $pid,
                     'title' => $tmp['title'],
                     'pic'   => $tmp['pic'],
                     'price' => $tmp['price'],
                     'qty'   => 1,
-                    'slug'  => $tmp['slug']
-                );
+                    'slug'  => $tmp['slug'],
+                ];
                 $state = self::ST_INSERTED;
             }
         }
 
         return Reaction::_return(
             self::get_msgs()[$state]['code'],
-            array('msg' => self::get_msgs()[$state]['msg'], 'cart' => self::get_cart())
+            ['msg' => self::get_msgs()[$state]['msg'], 'cart' => self::get_cart()]
         );
     }
 
@@ -71,7 +72,7 @@ class Cart extends Helper
     public function do_remove_item($f3, $args)
     {
         $state = self::ST_REMOVED;
-        $pid = intval(f3()->get('POST.item_id'));
+        $pid   = intval(f3()->get('POST.item_id'));
 
         if (array_key_exists($pid, $_SESSION['cart'])) {
             unset($_SESSION['cart'][$pid]);
@@ -79,7 +80,7 @@ class Cart extends Helper
 
         return Reaction::_return(
             self::get_msgs()[$state]['code'],
-            array('msg' => self::get_msgs()[$state]['msg'], 'cart' => self::get_cart())
+            ['msg' => self::get_msgs()[$state]['msg'], 'cart' => self::get_cart()]
         );
     }
 
@@ -89,7 +90,7 @@ class Cart extends Helper
      */
     public function do_get_count($f3, $args)
     {
-        return Reaction::_return(1, array('count' => count($_SESSION['cart'])));
+        return Reaction::_return(1, ['count' => count($_SESSION['cart'])]);
     }
 
     public static function get_cart()
@@ -103,17 +104,17 @@ class Cart extends Helper
     public static function init_cart($force = false)
     {
         if ($force || !isset($_SESSION['cart'])) {
-            $_SESSION['cart'] = array();
+            $_SESSION['cart'] = [];
         }
     }
 
     public static function get_msgs()
     {
-        return array(
-            'Inserted' => array('code' => '1', 'msg' => '品項新增至購物車'),
-            'Removed'  => array('code' => '1', 'msg' => '品項已移除'),
-            'Added'    => array('code' => '1', 'msg' => '品項數量已更新'),
-            'Empty'    => array('code' => '2001', 'msg' => '品項已售完')
-        );
+        return [
+            'Inserted' => ['code' => '1', 'msg' => '品項新增至購物車'],
+            'Removed'  => ['code' => '1', 'msg' => '品項已移除'],
+            'Added'    => ['code' => '1', 'msg' => '品項數量已更新'],
+            'Empty'    => ['code' => '2001', 'msg' => '品項已售完'],
+        ];
     }
 }

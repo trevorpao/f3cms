@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 /**
@@ -6,24 +7,25 @@ namespace F3CMS;
  */
 class fStaff extends Feed
 {
-    const MTB = 'staff';
-    const MULTILANG = 0;
+    public const MTB       = 'staff';
+    public const MULTILANG = 0;
 
-    const ST_NEW = 'New';
-    const ST_VERIFIED = 'Verified';
-    const ST_FREEZE = 'Freeze';
+    public const ST_NEW      = 'New';
+    public const ST_VERIFIED = 'Verified';
+    public const ST_FREEZE   = 'Freeze';
 
-    const PV_R = 'use.web.config';
-    const PV_U = 'use.web.config';
-    const PV_D = 'use.web.config';
+    public const PV_R = 'use.web.config';
+    public const PV_U = 'use.web.config';
+    public const PV_D = 'use.web.config';
 
-    const BE_COLS = 'id,account,status';
+    public const BE_COLS = 'id,account,status';
 
     /**
-     * @param  $query
-     * @param  $page
-     * @param  $limit
-     * @param  $cols
+     * @param $query
+     * @param $page
+     * @param $limit
+     * @param $cols
+     *
      * @return mixed
      */
     public static function limitRows($query = '', $page = 0, $limit = 12, $cols = '')

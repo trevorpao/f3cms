@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 /**
@@ -6,9 +7,9 @@ namespace F3CMS;
  */
 class fDictionary extends Feed
 {
-    const MTB = 'dictionary';
-    const ST_ON = 'Enabled';
-    const ST_OFF = 'Disabled';
+    public const MTB    = 'dictionary';
+    public const ST_ON  = 'Enabled';
+    public const ST_OFF = 'Disabled';
 
     /**
      * @return mixed

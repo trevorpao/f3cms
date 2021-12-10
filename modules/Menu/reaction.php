@@ -9,6 +9,7 @@ class rMenu extends Reaction
 {
     /**
      * save whole form for backend
+     *
      * @param object $f3   - $f3
      * @param array  $args - uri params
      */
@@ -22,11 +23,11 @@ class rMenu extends Reaction
             return self::_return(8004);
         }
 
-        if ($req['id'] != 0 && $req['id'] == $req['parent_id']) {
+        if (0 != $req['id'] && $req['id'] == $req['parent_id']) {
             return self::_return(8004);
         }
 
-        if ($req['id'] != 0 && $req['parent_id'] == 0) {
+        if (0 != $req['id'] && 0 == $req['parent_id']) {
             return self::_return(8004);
         }
 
@@ -38,9 +39,10 @@ class rMenu extends Reaction
     /**
      * get menus in option mode
      *
-     * @param  int     $parent_id - parent type id
-     * @param  int     $level     - level number
-     * @param  int     $level_mod - level string mode
+     * @param int $parent_id - parent type id
+     * @param int $level     - level number
+     * @param int $level_mod - level string mode
+     *
      * @return array
      */
     public static function sort_menus($parent_id = 0, $level = 0, $level_mod = '', $flatten = 1, $force = 0)
@@ -56,22 +58,22 @@ class rMenu extends Reaction
 
         foreach ($menus as $row) {
             if ($row['parent_id'] == $parent_id) {
-                if ($level_mod == '') {
+                if ('' == $level_mod) {
                     $row['prefix'] = '';
                 } else {
                     $row['prefix'] = str_repeat($level_mod, $level + 1);
                 }
                 $row['level'] = $level;
                 $row['title'] = $row['prefix'] . $row['title'];
-                $subCates = self::sort_menus($row['id'], $level + 1, $level_mod, $flatten);
-                if ($flatten == 1) {
+                $subCates     = self::sort_menus($row['id'], $level + 1, $level_mod, $flatten);
+                if (1 == $flatten) {
                     $cates[] = $row;
                     if (!empty($subCates)) {
                         $cates = array_merge($cates, $subCates);
                     }
                 } else {
                     $row['rows'] = $subCates;
-                    $cates[] = $row;
+                    $cates[]     = $row;
                 }
             }
         }
@@ -106,9 +108,11 @@ class rMenu extends Reaction
 
     /**
      * save sorter
-     * @param  object $f3   - $f3
-     * @param  array  $args - uri params
-     * @return array  - std json
+     *
+     * @param object $f3   - $f3
+     * @param array  $args - uri params
+     *
+     * @return array - std json
      */
     public function do_update_sorter($f3, $args)
     {
@@ -129,11 +133,13 @@ class rMenu extends Reaction
 
     /**
      * @param array $row
+     *
      * @return mixed
      */
     public static function handleRow($row = [])
     {
         $row['tags'] = fMenu::lotsTag($row['id']);
+
         return $row;
     }
 

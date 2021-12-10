@@ -1,24 +1,27 @@
 <?php
+
 namespace F3CMS;
 
-class Mession extends MHelper {
-
+class Mession extends MHelper
+{
     //! Session ID
-    protected $sid,
-        //! Anti-CSRF token
-        $_csrf,
-        //! User agent
-        $_agent,
-        //! IP,
-        $_ip,
-        //! Suspect callback
-        $onsuspect;
+    protected $sid;
+    //! Anti-CSRF token
+        protected $_csrf;
+    //! User agent
+        protected $_agent;
+    //! IP,
+        protected $_ip;
+    //! Suspect callback
+        protected $onsuspect;
 
     /**
      *   Open session
-     * @param  $path  string
-     * @param  $name  string
-     * @return TRUE
+     *
+     * @param $path string
+     * @param $name string
+     *
+     * @return true
      */
     public function open($path, $name)
     {
@@ -27,17 +30,21 @@ class Mession extends MHelper {
 
     /**
      *   Close session
-     * @return TRUE
+     *
+     * @return true
      */
     public function close()
     {
         $this->sid = null;
+
         return true;
     }
 
     /**
      *   Return session data in serialized format
-     * @param  $id      string
+     *
+     * @param $id string
+     *
      * @return string
      */
     public function read($id)
@@ -66,9 +73,11 @@ class Mession extends MHelper {
 
     /**
      *   Write session data
-     * @param  $id    string
-     * @param  $data  string
-     * @return TRUE
+     *
+     * @param $id   string
+     * @param $data string
+     *
+     * @return true
      */
     public function write($id, $data)
     {
@@ -77,24 +86,23 @@ class Mession extends MHelper {
             $this->writeLog('insert------start');
             $this->insert($this->tbl, [
                 'session_id' => $id,
-                'data' => $data,
-                'ip' => $this->_ip,
-                'agent' => $this->_agent,
-                'stamp' => time()
+                'data'       => $data,
+                'ip'         => $this->_ip,
+                'agent'      => $this->_agent,
+                'stamp'      => time(),
             ]);
-            $this->writeLog('insert------::'. $this->id());
-        }
-        else {
+            $this->writeLog('insert------::' . $this->id());
+        } else {
             $this->writeLog('update------start');
             $this->writeLog('data:' . $data);
 
             $this->update($this->tbl, [
-                'data' => $data,
-                'ip' => $this->_ip,
+                'data'  => $data,
+                'ip'    => $this->_ip,
                 'agent' => $this->_agent,
-                'stamp' => time()
+                'stamp' => time(),
             ], [
-                'session_id' => $id
+                'session_id' => $id,
             ]);
         }
 
@@ -103,13 +111,15 @@ class Mession extends MHelper {
 
     /**
      *   Destroy session
-     * @param  $id    string
-     * @return TRUE
+     *
+     * @param $id string
+     *
+     * @return true
      */
     public function destroy($id)
     {
         $this->delete($this->tbl, [
-            'session_id' => $id
+            'session_id' => $id,
         ]);
 
         return true;
@@ -117,13 +127,15 @@ class Mession extends MHelper {
 
     /**
      *   Garbage collector
-     * @param  $max   int
-     * @return TRUE
+     *
+     * @param $max int
+     *
+     * @return true
      */
     public function cleanup($max)
     {
         $this->delete($this->tbl, [
-            'stamp[<]' => time() - 86400 * 30
+            'stamp[<]' => time() - 86400 * 30,
         ]);
 
         return true;
@@ -131,7 +143,8 @@ class Mession extends MHelper {
 
     /**
      *   Return session id (if session has started)
-     * @return string|NULL
+     *
+     * @return string|null
      */
     public function sid()
     {
@@ -140,6 +153,7 @@ class Mession extends MHelper {
 
     /**
      *   Return anti-CSRF token
+     *
      * @return string
      */
     public function csrf()
@@ -149,6 +163,7 @@ class Mession extends MHelper {
 
     /**
      *   Return IP address
+     *
      * @return string
      */
     public function ip()
@@ -158,7 +173,8 @@ class Mession extends MHelper {
 
     /**
      *   Return Unix timestamp
-     * @return string|FALSE
+     *
+     * @return string|false
      */
     public function stamp()
     {
@@ -171,6 +187,7 @@ class Mession extends MHelper {
 
     /**
      *   Return HTTP user agent
+     *
      * @return string
      */
     public function agent()
@@ -179,10 +196,12 @@ class Mession extends MHelper {
     }
 
     /**
-    *   Return TRUE if current cursor position is not mapped to any record
-    *   @return bool
-    **/
-    public function dry() {
+     *   Return TRUE if current cursor position is not mapped to any record
+     *
+     *   @return bool
+     **/
+    public function dry()
+    {
         return empty($this->rtn) ? true : false;
     }
 
@@ -193,6 +212,7 @@ class Mession extends MHelper {
 
     /**
      *   Instantiate class
+     *
      * @param $force     bool
      * @param $onsuspect callback
      * @param $key       string
@@ -203,24 +223,24 @@ class Mession extends MHelper {
 
         parent::__construct();
 
-        $headers = f3()->HEADERS;
+        $headers   = f3()->HEADERS;
         $agentBots = ['bot', 'crawl', 'curl', 'dataprovider', 'search', 'get', 'spider', 'find', 'java', 'majesticsEO', 'google', 'yahoo', 'teoma', 'contaxe', 'yandex', 'libwww-perl', 'facebookexternalhit'];
-        $blockIps = [];
+        $blockIps  = [];
 
-        $this->_agent = isset($headers['User-Agent']) ? $headers['User-Agent'] : '';
-        $this->_ip = f3()->IP;
+        $this->_agent = $headers['User-Agent'] ?? '';
+        $this->_ip    = f3()->IP;
 
-        if (!preg_match('/'. implode('|', $agentBots) .'/i', $this->_agent) && !in_array($this->_ip, $blockIps)) {
+        if (!preg_match('/' . implode('|', $agentBots) . '/i', $this->_agent) && !in_array($this->_ip, $blockIps)) {
             $this->onsuspect = $onsuspect;
-            $this->tbl = 'sessions';
+            $this->tbl       = 'sessions';
 
             session_set_save_handler(
-                array($this, 'open'),
-                array($this, 'close'),
-                array($this, 'read'),
-                array($this, 'write'),
-                array($this, 'destroy'),
-                array($this, 'cleanup')
+                [$this, 'open'],
+                [$this, 'close'],
+                [$this, 'read'],
+                [$this, 'write'],
+                [$this, 'destroy'],
+                [$this, 'cleanup']
             );
 
             register_shutdown_function('session_commit');
@@ -230,7 +250,7 @@ class Mession extends MHelper {
                 f3()->$key = $this->_csrf;
             }
 
-            $this->_agent = isset($headers['User-Agent']) ? $headers['User-Agent'] : '';
+            $this->_agent = $headers['User-Agent'] ?? '';
 
             $this->logger = new \Log('session.log');
 
@@ -239,5 +259,4 @@ class Mession extends MHelper {
             session_start();
         }
     }
-
 }

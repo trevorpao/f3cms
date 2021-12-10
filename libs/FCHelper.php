@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 /**
@@ -18,7 +19,8 @@ class FCHelper extends Reaction
     /**
      * constructor
      *
-     * @param  object $dbInstance - db instance
+     * @param object $dbInstance - db instance
+     *
      * @return none
      */
     public function __construct($action)
@@ -33,8 +35,9 @@ class FCHelper extends Reaction
     }
 
     /**
-     * @param  $filename
-     * @param  $html
+     * @param $filename
+     * @param $html
+     *
      * @return mixed
      */
     public function save($cacheName, $content)
@@ -82,7 +85,7 @@ class FCHelper extends Reaction
 
         $html = $this->get($this->action, 7200);
 
-        return parent::_return(1, array('html' => $html));
+        return parent::_return(1, ['html' => $html]);
     }
 
     /**
@@ -104,15 +107,16 @@ class FCHelper extends Reaction
     }
 
     /**
-     * @param  $cacheName
-     * @param  $maxLifetime
+     * @param $cacheName
+     * @param $maxLifetime
+     *
      * @return mixed
      */
     public function get($cacheName, $maxLifetime = 0)
     {
         $filename = $this->getFilename($cacheName);
 
-        if ($maxLifetime != 0 && $this->needRebuild($filename, $maxLifetime)) {
+        if (0 != $maxLifetime && $this->needRebuild($filename, $maxLifetime)) {
             return null;
             // return $this->requestSet($cacheName);
         }
@@ -131,10 +135,11 @@ class FCHelper extends Reaction
     public function getLog($cacheName)
     {
         $filename = $this->getFilename($cacheName);
-        $content = @file_get_contents($this->base . $this->path . '/history.log');
+        $content  = @file_get_contents($this->base . $this->path . '/history.log');
 
-        if ($content !== false) {
+        if (false !== $content) {
             $rtn = preg_split("/\|/u", $content);
+
             return array_filter(array_map('trim', $rtn));
         } else {
             return '';
@@ -143,13 +148,14 @@ class FCHelper extends Reaction
 
     /**
      * @param $cacheName
+     *
      * @return mixed
      */
     public function requestSet($cacheName)
     {
         $curl = curl_init();
 
-        curl_setopt_array($curl, array(
+        curl_setopt_array($curl, [
             CURLOPT_URL            => f3()->get('uri') . '/' . $this->action,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_SSL_VERIFYPEER => false,
@@ -159,13 +165,13 @@ class FCHelper extends Reaction
             CURLOPT_TIMEOUT        => 30,
             CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
             CURLOPT_CUSTOMREQUEST  => 'GET',
-            CURLOPT_HTTPHEADER     => array(
-                'cache-control: no-cache'
-            )
-        ));
+            CURLOPT_HTTPHEADER     => [
+                'cache-control: no-cache',
+            ],
+        ]);
 
         $response = curl_exec($curl);
-        $err = curl_error($curl);
+        $err      = curl_error($curl);
 
         curl_close($curl);
 
@@ -195,7 +201,8 @@ class FCHelper extends Reaction
     /**
      * Returns cache filename.
      *
-     * @param  string   $cacheName
+     * @param string $cacheName
+     *
      * @return string
      */
     protected function getFilename($cacheName)
@@ -236,9 +243,10 @@ class FCHelper extends Reaction
     /**
      * Determines wheater the cache needs to be rebuild or not.
      *
-     * @param  string    $filename
-     * @param  integer   $maxLifetime
-     * @return boolean
+     * @param string $filename
+     * @param int    $maxLifetime
+     *
+     * @return bool
      */
     protected function needRebuild($filename, $maxLifetime)
     {
@@ -269,8 +277,9 @@ class FCHelper extends Reaction
     /**
      * Loads the file of a cached resource.
      *
-     * @param  string  $cacheName
-     * @param  string  $filename
+     * @param string $cacheName
+     * @param string $filename
+     *
      * @return mixed
      */
     protected function readCache($cacheName, $filename)
@@ -284,7 +293,7 @@ class FCHelper extends Reaction
 
         // find first newline
         $position = strpos($content, PHP_EOL);
-        if ($position === false) {
+        if (false === $position) {
             throw new \Exception('Unable to load cache resource "' . $cacheName . '"');
         }
 
@@ -297,7 +306,8 @@ class FCHelper extends Reaction
     /**
      * Loads the file of a cached resource.
      *
-     * @param  string  $filename
+     * @param string $filename
+     *
      * @return mixed
      */
     public function readHistory($filename)
@@ -307,7 +317,7 @@ class FCHelper extends Reaction
 
         // find first newline
         $position = strpos($content, PHP_EOL);
-        if ($position === false) {
+        if (false === $position) {
             throw new \Exception('Unable to load cache resource "' . $filename . '"');
         }
 
@@ -315,24 +325,25 @@ class FCHelper extends Reaction
     }
 
     /**
-     * @param  $buffer
+     * @param $buffer
+     *
      * @return mixed
      */
     public static function minify($buffer)
     {
         //return $buffer;
 
-        $search = array(
+        $search = [
             '/\>[^\S ]+/s', // strip whitespaces after tags, except space
             '/[^\S ]+\</s', // strip whitespaces before tags, except space
-            '/(\s)+/s' // shorten multiple whitespace sequences
-        );
+            '/(\s)+/s', // shorten multiple whitespace sequences
+        ];
 
-        $replace = array(
+        $replace = [
             '>',
             '<',
-            '\\1'
-        );
+            '\\1',
+        ];
 
         $buffer = preg_replace($search, $replace, $buffer);
 

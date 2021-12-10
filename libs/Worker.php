@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 class Worker extends Helper
@@ -11,13 +12,13 @@ class Worker extends Helper
     public function __construct($module = '', $method = '', $logger = null)
     {
         parent::__construct();
-        if ($module != '' && $method != '') {
+        if ('' != $module && '' != $method) {
             $this->_register($module, $method);
         } else {
             $module = 'worker';
         }
 
-        if ($logger != null) {
+        if (null != $logger) {
             $this->logger = $logger;
         } else {
             $this->logger = new \Log($module . '_' . $method . '.log');
@@ -30,28 +31,28 @@ class Worker extends Helper
      */
     public function startWorker($obj, $mode = 'All')
     {
-        $i = 0;
-        $children = array();
-        $doneAry = array();
+        $i        = 0;
+        $children = [];
+        $doneAry  = [];
         foreach ($obj as $k => $v) {
             $pid = pcntl_fork();
-            $i++;
+            ++$i;
             $this->logger->write('pid====>' . $pid . PHP_EOL);
             switch ($pid) {
                 case -1:
-                    die('Could not fork');
+                    exit('Could not fork');
                 case 0:
                     // child
                     $this->_runChild($v);
-                    die(0);
+                    exit(0);
                 default:
                     //parent
                     $children[] = $pid;
             }
 
             // -- check process one by one
-            if ($mode !== 'All') {
-                while (pcntl_waitpid(0, $status) != -1) {
+            if ('All' !== $mode) {
+                while (-1 != pcntl_waitpid(0, $status)) {
                     $this->logger->write('Child ' . $v . ' completed' . PHP_EOL);
                     $doneAry[] = $v;
                 }
@@ -61,13 +62,13 @@ class Worker extends Helper
         }
 
         // -- check after start all processes
-        if ($mode === 'All') {
+        if ('All' === $mode) {
             while (count($children) > 0) {
                 foreach ($children as $key => $pid) {
                     $res = pcntl_waitpid($pid, $status, WNOHANG);
 
                     // If the process has already exited
-                    if ($res == -1 || $res > 0) {
+                    if (-1 == $res || $res > 0) {
                         unset($children[$key]);
                         $this->logger->write("Child {$pid} completed" . PHP_EOL);
                     }
@@ -85,18 +86,18 @@ class Worker extends Helper
     private function _register($module, $method)
     {
         // Create an instance of the module class.
-        $class = ucfirst($module);
+        $class  = ucfirst($module);
         $method = sprintf('%s', $method);
 
         // Check if the action has a corresponding method.
         if (!method_exists($class, $method)) {
-            die('1004::' . $class . '->' . $method . PHP_EOL);
+            exit('1004::' . $class . '->' . $method . PHP_EOL);
         }
 
         // Create a reflection instance of the module, and obtaining the action method.
         $reflectionClass = new \ReflectionClass($class);
 
-        $this->class = $reflectionClass->newInstance();
+        $this->class  = $reflectionClass->newInstance();
         $this->method = $reflectionClass->getMethod($method);
     }
 
@@ -114,7 +115,7 @@ class Worker extends Helper
             // Invoke module action.
             $this->method->invokeArgs(
                 $this->class,
-                array($value)
+                [$value]
             );
         } catch (\Exception $e) {
             $this->logger->write('Caught exception: ' . $e->getMessage() . PHP_EOL);

@@ -6,25 +6,26 @@ class rPress extends Reaction
 {
     /**
      * @param array $row
+     *
      * @return mixed
      */
     public static function handleRow($row = [])
     {
-        $row['tags'] = fPress::lotsTag($row['id']);
-        $row['authors'] = fPress::lotsAuthor($row['id']);
+        $row['tags']     = fPress::lotsTag($row['id']);
+        $row['authors']  = fPress::lotsAuthor($row['id']);
         $row['relateds'] = fPress::lotsRelated($row['id']);
-        $row['meta'] = fPress::lotsMeta($row['id']);
+        $row['meta']     = fPress::lotsMeta($row['id']);
 
         $ts = strtotime($row['online_date']);
         $ts = $ts - $ts % 300; // deduct the seconds that is not a multiple of 5 minutes
 
-        $row['hh'] = date('H', $ts);
-        $row['mm'] = date('i', $ts);
+        $row['hh']          = date('H', $ts);
+        $row['mm']          = date('i', $ts);
         $row['online_date'] = date('Y-m-d', $ts);
 
         // read history file
         // $fc = new FCHelper('press');
-        $row['history'] = []; // $fc->getLog('press_' . $row['id']);
+        $row['history']        = []; // $fc->getLog('press_' . $row['id']);
         $row['status_publish'] = $row['status'];
 
         return $row;
@@ -45,7 +46,7 @@ class rPress extends Reaction
         $rtn = fPress::limitRows($req['query'], $req['page']);
 
         foreach ($rtn['subset'] as $k => $row) {
-            $rtn['subset'][$k]['tags'] = fPress::lotsTag($row['id']);
+            $rtn['subset'][$k]['tags']    = fPress::lotsTag($row['id']);
             $rtn['subset'][$k]['authors'] = fPress::lotsAuthor($row['id']);
         }
 
@@ -76,7 +77,7 @@ class rPress extends Reaction
                     unset($req['online_date']);
                 }
 
-                if (f3()->get('cache.press') === 0) {
+                if (0 === f3()->get('cache.press')) {
                     oPress::force(['slug' => $cu['id']]);
                 }
                 break;

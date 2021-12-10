@@ -1,4 +1,5 @@
 <?php
+
 //autoload.php
 //
 class F3CMS_Autoloader
@@ -9,28 +10,28 @@ class F3CMS_Autoloader
             spl_autoload_register('__autoload');
         }
         if (version_compare(PHP_VERSION, '5.3.0') >= 0) {
-            return spl_autoload_register(array('F3CMS_Autoloader', 'Load'), true, true);
+            return spl_autoload_register(['F3CMS_Autoloader', 'Load'], true, true);
         } else {
-            return spl_autoload_register(array('F3CMS_Autoloader', 'Load'));
+            return spl_autoload_register(['F3CMS_Autoloader', 'Load']);
         }
     }
 
     public static function getType()
     {
-        return array(
+        return [
             'r' => 'reaction',
             'f' => 'feed',
-            'o' => 'outfit'
-        );
+            'o' => 'outfit',
+        ];
     }
 
     public static function getPrefix()
     {
-        return array(
+        return [
             'reaction' => 'r',
             'feed'     => 'f',
-            'outfit'   => 'o'
-        );
+            'outfit'   => 'o',
+        ];
     }
 
     /**
@@ -40,22 +41,22 @@ class F3CMS_Autoloader
      */
     public static function Load($pClassName)
     {
-        if ((class_exists($pClassName, false)) || (strpos($pClassName, 'F3CMS') !== 0)) {
+        if ((class_exists($pClassName, false)) || (0 !== strpos($pClassName, 'F3CMS'))) {
             return false;
         }
 
         $className = ltrim($pClassName, '\\');
-        $fileName = '';
+        $fileName  = '';
         $namespace = '';
         if ($lastNsPos = strrpos($className, '\\')) {
             $namespace = substr($className, 0, $lastNsPos);
             $className = substr($className, $lastNsPos + 1);
-            $fileName = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
+            $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
         }
 
-        list($type, $moduleName) = preg_split('/(?<=[rfo])(?=[A-Z])/', $className);
+        [$type, $moduleName] = preg_split('/(?<=[rfo])(?=[A-Z])/', $className);
 
-        if ($moduleName !== null) {
+        if (null !== $moduleName) {
             $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $moduleName) . DIRECTORY_SEPARATOR . self::getType()[$type] . '.php';
 
             $fileName = str_replace('libs', 'modules', __DIR__) . str_replace('F3CMS', '', $fileName);
@@ -64,7 +65,7 @@ class F3CMS_Autoloader
             $fileName = __DIR__ . str_replace('F3CMS', '', $fileName);
         }
 
-        if ((file_exists($fileName) === false) || (is_readable($fileName) === false)) {
+        if ((false === file_exists($fileName)) || (false === is_readable($fileName))) {
             return false;
         }
 

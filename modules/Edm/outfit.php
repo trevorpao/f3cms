@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 /**
@@ -48,7 +49,7 @@ class oEdm extends Outfit
         f3()->set('cu', $cu);
         f3()->set('email', f3()->get('webmaster'));
 
-        $tp = \Template::instance();
+        $tp   = \Template::instance();
         $html = $tp->render(f3()->get('theme') . '/edm.html');
 
         $sent = Sender::sendmail($cu['title'] . ' - 測試信', $html, f3()->get('webmaster'));

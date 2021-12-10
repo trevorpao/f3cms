@@ -7,6 +7,7 @@ function f3()
 
 /**
  * get db instance
+ *
  * @return db obj
  */
 function mh()
@@ -26,29 +27,33 @@ function tpf()
 
 /**
  * Two-Phase Switcher
+ *
  * @param  [string] $default default string
  * @param  [string] $other   other string
+ *
  * @return [string] string
  */
 function langTPS($default, $other)
 {
-    return ((\F3CMS\Module::_lang() == f3()->get('defaultLang')) ? $default : $other);
+    return (\F3CMS\Module::_lang() == f3()->get('defaultLang')) ? $default : $other;
 }
 
 function is_https()
 {
-    if (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) === 'on') {
+    if (isset($_SERVER['HTTPS']) && 'on' === strtolower($_SERVER['HTTPS'])) {
         return true;
-    } else if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+    } elseif (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && 'https' === $_SERVER['HTTP_X_FORWARDED_PROTO']) {
         return true;
-    } else if (isset($_SERVER['HTTP_FRONT_END_HTTPS']) && $_SERVER['HTTP_FRONT_END_HTTPS'] === 'on') {
+    } elseif (isset($_SERVER['HTTP_FRONT_END_HTTPS']) && 'on' === $_SERVER['HTTP_FRONT_END_HTTPS']) {
         return true;
     }
+
     return false;
 }
 
 /**
  * @param $default
+ *
  * @return mixed
  */
 function detectBrowserLang($default = 'en')
@@ -70,15 +75,15 @@ function detectBrowserLang($default = 'en')
 /**
  * @param array $allowedOrigins
  */
-function setCORS($allowedOrigins = array())
+function setCORS($allowedOrigins = [])
 {
-    $allowedOrigins = array_merge($allowedOrigins, array('http://127.0.0.1', 'http://localhost'));
+    $allowedOrigins = array_merge($allowedOrigins, ['http://127.0.0.1', 'http://localhost']);
 
     if (isset($_SERVER['HTTP_ORIGIN'])) {
         f3()->set('isCORS', 1);
         if (
             in_array($_SERVER['HTTP_ORIGIN'], $allowedOrigins) // for localhost testing
-             || $_SERVER['SERVER_NAME'] == 'demo.sense-info.co' // for demosite testing
+             || 'demo.sense-info.co' == $_SERVER['SERVER_NAME'] // for demosite testing
         ) {
             f3()->set('CORS.origin', $_SERVER['HTTP_ORIGIN']);
             f3()->set('CORS.credentials', true);
@@ -93,7 +98,7 @@ function setCORS($allowedOrigins = array())
 
 function fQuery()
 {
-    die(mh()->last());
+    exit(mh()->last());
 }
 
 /**
@@ -110,7 +115,7 @@ function decodeUnicode($str)
  */
 function chkRegisterID($str, $mode = 'strict')
 {
-    if ($mode == 'strict') {
+    if ('strict' == $mode) {
         return preg_match('/^[A]-\d{4}-[a-z]-\d{3}$/i', $str, $output);
     } else {
         return preg_match('/^[A]-\d{4}-[a-z]-\d{3}\D{0,4}$/i', $str, $output);

@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 class Referer extends Module
@@ -14,7 +15,7 @@ class Referer extends Module
             $uri = $referer;
         } else {
             $parse = parse_url($_SERVER['REQUEST_URI']);
-            $uri = ((!empty($parse['query'])) ? $parse['query'] : '/');
+            $uri   = ((!empty($parse['query'])) ? $parse['query'] : '/');
         }
 
         f3()->set('SESSION.referer', $uri);
@@ -22,6 +23,7 @@ class Referer extends Module
 
     /**
      * get setted referer url
+     *
      * @return string
      */
     public static function get()
@@ -39,6 +41,7 @@ class Referer extends Module
 
     /**
      * remove setted referer url
+     *
      * @return null
      */
     public static function del()

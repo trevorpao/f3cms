@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 /**
@@ -32,7 +33,7 @@ class oPost extends Outfit
         $tp = \Template::instance();
         $tp->filter('date', '\F3CMS\Outfit::date');
 
-        echo '<'. '?xml version="1.0" encoding="UTF-8" ?'. '>'. PHP_EOL;
+        echo '<' . '?xml version="1.0" encoding="UTF-8" ?' . '>' . PHP_EOL;
         echo $tp->render('sitemap.xml', 'application/xml');
     }
 
@@ -54,7 +55,7 @@ class oPost extends Outfit
         $tp = \Template::instance();
         $tp->filter('date', '\F3CMS\Outfit::date');
 
-        echo '<'. '?xml version="1.0" encoding="UTF-8" ?'. '>'. PHP_EOL;
+        echo '<' . '?xml version="1.0" encoding="UTF-8" ?' . '>' . PHP_EOL;
         echo $tp->render('rss.xml', 'application/xml');
     }
 
@@ -138,7 +139,7 @@ class oPost extends Outfit
      */
     public static function comingsoon($args)
     {
-        $ts = strtotime(f3()->get('siteBeginDate'));
+        $ts  = strtotime(f3()->get('siteBeginDate'));
         $now = time();
         if ($now < $ts) {
             parent::wrapper('comingsoon.html', 'Coming Soon', '/comingsoon');
@@ -154,7 +155,7 @@ class oPost extends Outfit
     {
         f3()->set('ERROR', [
             'code' => '404',
-            'text' => 'Not Found'
+            'text' => 'Not Found',
         ]);
 
         parent::wrapper(f3()->get('theme') . '/error.html', 'Not Found', '/404');
@@ -166,7 +167,7 @@ class oPost extends Outfit
     public static function word($args)
     {
         $phpWord = WHelper::init();
-        $page = $phpWord->newPage();
+        $page    = $phpWord->newPage();
 
         $cert = $phpWord->newCert('三思資訊');
         $page->addImage($cert, [
@@ -174,7 +175,7 @@ class oPost extends Outfit
             'width'         => 637,
             'height'        => 923,
             'marginTop'     => -1,
-            'marginLeft'    => -1
+            'marginLeft'    => -1,
         ]);
 
         // \PhpOffice\PhpWord\Shared\Html::addHtml($section, '<table style="width:100%"><tr><td><img src="https://www.gettyimages.ca/gi-resources/images/Homepage/Hero/UK/CMS_Creative_164657191_Kingfisher.jpg" width="200"/></td><td>text</td></tr></table>');

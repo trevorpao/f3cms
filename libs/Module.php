@@ -1,11 +1,14 @@
 <?php
+
 namespace F3CMS;
 
 class Module
 {
     /**
      * _escape
-     * @param  mixed   $array - obj need to escape
+     *
+     * @param mixed $array - obj need to escape
+     *
      * @return mixed
      */
     protected static function _escape($array, $quote = true)
@@ -18,7 +21,7 @@ class Module
                     } else {
                         $array[$k] = self::protectedXss($v);
                     }
-                } else if (is_array($v)) {
+                } elseif (is_array($v)) {
                     $array[$k] = self::_escape($v, $quote);
                 }
             }
@@ -47,29 +50,30 @@ class Module
      */
     public static function _shift($name, $target)
     {
-        $name = str_replace(array('F3CMS\\', '\\'), array('', ''), $name);
+        $name = str_replace(['F3CMS\\', '\\'], ['', ''], $name);
 
-        list($type, $className) = preg_split('/(?<=[rfo])(?=[A-Z])/', $name);
+        [$type, $className] = preg_split('/(?<=[rfo])(?=[A-Z])/', $name);
 
         return '\\F3CMS\\' . \F3CMS_Autoloader::getPrefix()[$target] . $className;
     }
 
     /**
      * handle angular post data
+     *
      * @return array - post data
      */
     public static function _getReq()
     {
-        $rtn = array();
+        $rtn = [];
 
-        if (f3()->get('isCORS') == 1) {
+        if (1 == f3()->get('isCORS')) {
             $str = f3()->get('BODY');
             if (empty($str)) {
                 $str = file_get_contents('php://input');
             }
 
             $rtn = json_decode($str, true);
-            if (!(json_last_error() == JSON_ERROR_NONE)) {
+            if (!(JSON_ERROR_NONE == json_last_error())) {
                 parse_str($str, $rtn);
             }
         }
@@ -84,7 +88,7 @@ class Module
     /**
      * @param array $args
      */
-    public static function _lang($args = array())
+    public static function _lang($args = [])
     {
         if (!f3()->exists('lang') || !empty($args)) {
             $lang = f3()->get('defaultLang');
@@ -113,11 +117,11 @@ class Module
 
             if (stristr($_SERVER['HTTP_USER_AGENT'], 'ipad')) {
                 $device = 'ipad';
-            } else if (stristr($_SERVER['HTTP_USER_AGENT'], 'iphone') || strstr($_SERVER['HTTP_USER_AGENT'], 'iphone')) {
+            } elseif (stristr($_SERVER['HTTP_USER_AGENT'], 'iphone') || strstr($_SERVER['HTTP_USER_AGENT'], 'iphone')) {
                 $device = 'iphone';
-            } else if (stristr($_SERVER['HTTP_USER_AGENT'], 'blackberry')) {
+            } elseif (stristr($_SERVER['HTTP_USER_AGENT'], 'blackberry')) {
                 $device = 'blackberry';
-            } else if (stristr($_SERVER['HTTP_USER_AGENT'], 'android')) {
+            } elseif (stristr($_SERVER['HTTP_USER_AGENT'], 'android')) {
                 $device = 'android';
             }
 
@@ -131,6 +135,7 @@ class Module
 
     /**
      * @param $text
+     *
      * @return mixed
      */
     public static function _slugify($text)

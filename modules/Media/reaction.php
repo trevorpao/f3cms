@@ -30,10 +30,10 @@ class rMedia extends Reaction
         $req = parent::_getReq();
 
         $rtn = mh()->update(fMedia::fmTbl(), [
-            'parent_id' => $req['pid']
+            'parent_id' => $req['pid'],
         ], [
             'id'     => $req['img'],
-            'target' => $req['target']
+            'target' => $req['target'],
         ]);
 
         return self::_return(1, ['cnt' => $rtn->rowCount()]);
@@ -41,19 +41,21 @@ class rMedia extends Reaction
 
     /**
      * save photo
-     * @param  object $f3   - $f3
-     * @param  array  $args - uri params
-     * @return array  - std json
+     *
+     * @param object $f3   - $f3
+     * @param array  $args - uri params
+     *
+     * @return array - std json
      */
     public function do_editor_upload($f3, $args)
     {
         rStaff::_chkLogin();
 
-        list($filename, $width, $height, $title) = Upload::savePhoto(
+        [$filename, $width, $height, $title] = Upload::savePhoto(
             f3()->get('FILES'), [f3()->get('all_thn')]
         );
 
-        $response = new \StdClass;
+        $response       = new \StdClass();
         $response->link = f3()->get('uri') . $filename;
         echo stripslashes(json_encode($response));
     }

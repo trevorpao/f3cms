@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 class XlsReadFilter implements PHPExcel_Reader_IReadFilter
@@ -16,7 +17,7 @@ class XlsReadFilter implements PHPExcel_Reader_IReadFilter
     /**
      * @var array
      */
-    private $_columns = array();
+    private $_columns = [];
 
     /**
      * @param $startRow
@@ -26,8 +27,8 @@ class XlsReadFilter implements PHPExcel_Reader_IReadFilter
     public function __construct($startRow, $endRow, $columns)
     {
         $this->_startRow = $startRow;
-        $this->_endRow = $endRow;
-        $this->_columns = $columns;
+        $this->_endRow   = $endRow;
+        $this->_columns  = $columns;
     }
 
     /**
@@ -42,17 +43,19 @@ class XlsReadFilter implements PHPExcel_Reader_IReadFilter
                 return true;
             }
         }
+
         return false;
     }
 
     /**
      * @param $dateValue
      * @param $base
+     *
      * @return mixed
      */
     public static function number2Ts($dateValue = 0, $base = 'win')
     {
-        if ($base == 'win') {
+        if ('win' == $base) {
             // Base date of 1st Jan 1900 = 1.0
             $myExcelBaseDate = 25569;
             //  Adjust for the spurious 29-Feb-1900 (Day 60)
@@ -66,16 +69,16 @@ class XlsReadFilter implements PHPExcel_Reader_IReadFilter
 
         // Perform conversion
         if ($dateValue >= 1) {
-            $utcDays = $dateValue - $myExcelBaseDate;
+            $utcDays     = $dateValue - $myExcelBaseDate;
             $returnValue = round($utcDays * 24 * 60 * 60);
             if (($returnValue <= PHP_INT_MAX) && ($returnValue >= -PHP_INT_MAX)) {
-                $returnValue = (integer) $returnValue;
+                $returnValue = (int) $returnValue;
             }
         } else {
-            $hours = round($dateValue * 24);
-            $mins = round($dateValue * 24 * 60) - round($hours * 60);
-            $secs = round($dateValue * 24 * 60 * 60) - round($hours * 60 * 60) - round($mins * 60);
-            $returnValue = (integer) gmmktime($hours, $mins, $secs);
+            $hours       = round($dateValue * 24);
+            $mins        = round($dateValue * 24 * 60) - round($hours * 60);
+            $secs        = round($dateValue * 24 * 60 * 60) - round($hours * 60 * 60) - round($mins * 60);
+            $returnValue = (int) gmmktime($hours, $mins, $secs);
         }
 
         // Return

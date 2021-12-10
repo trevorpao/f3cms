@@ -1,9 +1,10 @@
 <?php
+
 namespace F3CMS;
 
-use \PhpOffice\PhpWord\IOFactory as IOFactory;
-use \PhpOffice\PhpWord\PhpWord as PhpWord;
-use \PhpOffice\PhpWord\Shared\Converter as Converter;
+use PhpOffice\PhpWord\IOFactory as IOFactory;
+use PhpOffice\PhpWord\PhpWord as PhpWord;
+use PhpOffice\PhpWord\Shared\Converter as Converter;
 
 class WHelper extends PhpWord
 {
@@ -28,21 +29,22 @@ class WHelper extends PhpWord
     {
         $margin = Converter::cmToTwip(1);
 
-        $page = self::$_instance->addSection(array(
+        $page = self::$_instance->addSection([
             'orientation'  => 'portrait', // [portrait|landscape]
             'marginTop'    => $margin,
             'marginLeft'   => $margin,
             'marginRight'  => $margin,
             'marginBottom' => $margin,
             'pageSizeW'    => 11906,
-            'pageSizeH'    => 16838
-        ));
+            'pageSizeH'    => 16838,
+        ]);
 
         return $page;
     }
 
     /**
-     * @param  $company
+     * @param $company
+     *
      * @return mixed
      */
     public function newCert($company, $year)
@@ -50,8 +52,8 @@ class WHelper extends PhpWord
         // header('Content-type: image/png');
 
         // $year = date('Y') - 1911;
-        $root = f3()->get('ROOT') . f3()->get('BASE');
-        $path = '/upload/cert/' . $year . '/';
+        $root     = f3()->get('ROOT') . f3()->get('BASE');
+        $path     = '/upload/cert/' . $year . '/';
         $filename = date('mdHis') . '.png';
 
         if (!file_exists($root . $path)) {
@@ -63,9 +65,9 @@ class WHelper extends PhpWord
         }
 
         $imgPath = $root . '/upload/img/bg.png';
-        $image = imagecreatefrompng($imgPath);
-        $color = imagecolorallocate($image, 0, 0, 0);
-        $font = $root . '/font/msjh.ttf';
+        $image   = imagecreatefrompng($imgPath);
+        $color   = imagecolorallocate($image, 0, 0, 0);
+        $font    = $root . '/font/msjh.ttf';
 
         imagettftext($image, 22, 0, 245, 630, $color, $font, $company);
         imagettftext($image, 18, 0, 370, 710, $color, $font, $year);
@@ -114,5 +116,4 @@ class WHelper extends PhpWord
         $objWriter = IOFactory::createWriter(self::$_instance, $type);
         $objWriter->save('php://output');
     }
-
 }

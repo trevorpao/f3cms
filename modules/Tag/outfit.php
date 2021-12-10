@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 /**
@@ -8,6 +9,7 @@ class oTag extends Outfit
 {
     /**
      * @param $args
+     *
      * @return mixed
      */
     public static function show($args)

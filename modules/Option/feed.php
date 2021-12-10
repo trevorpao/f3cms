@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 /**
@@ -6,39 +7,40 @@ namespace F3CMS;
  */
 class fOption extends Feed
 {
-    const MTB = 'option';
-    const MULTILANG = 0;
+    public const MTB       = 'option';
+    public const MULTILANG = 0;
 
-    const COUNTYTB = 'county';
-    const ZIPCODETB = 'zipcode';
+    public const COUNTYTB  = 'county';
+    public const ZIPCODETB = 'zipcode';
 
-    const ST_ON = 'Enabled';
-    const ST_OFF = 'Disabled';
+    public const ST_ON  = 'Enabled';
+    public const ST_OFF = 'Disabled';
 
     /**
      * @param $group
      * @param $mode
+     *
      * @return mixed
      */
     public static function load($group = '', $mode = 'Demand')
     {
         $filter = [
             'status' => self::ST_ON,
-            'loader' => $mode
+            'loader' => $mode,
         ];
 
-        if ($group != '') {
+        if ('' != $group) {
             $filter['group'] = $group;
         }
 
         $rows = mh()->select(self::fmTbl(), [
-            'group', 'name', 'content'
+            'group', 'name', 'content',
         ], $filter);
 
         $options = [];
 
         foreach ($rows as $row) {
-            if ($group != '') {
+            if ('' != $group) {
                 $options[$row['name']] = $row['content'];
             } else {
                 $options[$row['group']][$row['name']] = $row['content'];
@@ -51,14 +53,15 @@ class fOption extends Feed
     /**
      * get one row by name
      *
-     * @param  int     $name - option name
+     * @param int $name - option name
+     *
      * @return array
      */
     public static function get($name)
     {
         $rows = mh()->query('SELECT * FROM `' . self::fmTbl() . "` WHERE `name`=? AND `status`='" . self::ST_ON . "' LIMIT 1 ", $name);
 
-        if (count($rows) != 1) {
+        if (1 != count($rows)) {
             return null;
         } else {
             return $rows[0]['content'];
@@ -77,6 +80,7 @@ class fOption extends Feed
 
     /**
      * @param $county
+     *
      * @return mixed
      */
     public static function load_zipcodes($county)
@@ -88,6 +92,7 @@ class fOption extends Feed
 
     /**
      * @param $queryStr
+     *
      * @return mixed
      */
     public static function genQuery($queryStr = '')
@@ -95,19 +100,19 @@ class fOption extends Feed
         $query = parent::genQuery($queryStr);
 
         if (array_key_exists('all', $query)) {
-            $query['OR']['name[~]'] = $query['all'];
+            $query['OR']['name[~]']  = $query['all'];
             $query['OR']['group[~]'] = $query['all'];
             unset($query['all']);
         }
 
         if (array_key_exists('all[!]', $query)) {
-            $query['AND']['name[!]'] = $query['all[!]'];
+            $query['AND']['name[!]']  = $query['all[!]'];
             $query['AND']['group[!]'] = $query['all[!]'];
             unset($query['all[!]']);
         }
 
         if (array_key_exists('all[!~]', $query)) {
-            $query['AND']['name[!~]'] = $query['all[!~]'];
+            $query['AND']['name[!~]']  = $query['all[!~]'];
             $query['AND']['group[!~]'] = $query['all[!~]'];
             unset($query['all[!~]']);
         }
@@ -133,6 +138,7 @@ class fOption extends Feed
     /**
      * @param $str
      * @param array $cols
+     *
      * @return mixed
      */
     public static function split($str, $cols = [])
@@ -151,6 +157,7 @@ class fOption extends Feed
                 }
             }
         }
+
         return $rtn;
     }
 }

@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 /**
@@ -6,24 +7,25 @@ namespace F3CMS;
  */
 class fMedia extends Feed
 {
-    const MTB = 'media';
+    public const MTB = 'media';
 
-    const ST_ON = 'Enabled';
-    const ST_OFF = 'Disabled';
+    public const ST_ON  = 'Enabled';
+    public const ST_OFF = 'Disabled';
 
-    const PV_R = 'use.cms';
-    const PV_U = 'use.cms';
-    const PV_D = 'use.cms';
+    public const PV_R = 'use.cms';
+    public const PV_U = 'use.cms';
+    public const PV_D = 'use.cms';
 
-    const PV_SOP = 'see.other.press';
+    public const PV_SOP = 'see.other.press';
 
-    const BE_COLS = 'm.id,m.title,m.slug,m.status,m.pic,info,m.last_ts';
+    public const BE_COLS = 'm.id,m.title,m.slug,m.status,m.pic,info,m.last_ts';
 
     /**
-     * @param  $query
-     * @param  $page
-     * @param  $limit
-     * @param  $cols
+     * @param $query
+     * @param $page
+     * @param $limit
+     * @param $cols
+     *
      * @return mixed
      */
     public static function limitRows($query = '', $page = 0, $limit = 12, $cols = '')

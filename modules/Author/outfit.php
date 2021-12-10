@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 /**
@@ -6,7 +7,8 @@ namespace F3CMS;
  */
 class oAuthor extends Outfit
 {
-    function list($args) {
+    public function list($args)
+    {
         $author = fAuthor::one(parent::_slugify($args['slug']), 'slug', ['status' => fAuthor::ST_ON], false);
 
         if (empty($author)) {
@@ -25,7 +27,7 @@ class oAuthor extends Outfit
 
         $seo = [
             'desc' => $author['title'] . ':' . $author['info'],
-            'img'  => $author['pic']
+            'img'  => $author['pic'],
         ];
 
         f3()->set('page', $seo);

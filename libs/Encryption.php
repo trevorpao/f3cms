@@ -1,13 +1,16 @@
 <?php
+
 namespace F3CMS;
 
 class Encryption extends Module
 {
-    const MEMBERKEY = 'sgIBSfjak8clVmUQeMhGT3b2wAF5WpN7qPdzO4DHYJK6iuo0xZLnXt1yR9EvCr+/';
+    public const MEMBERKEY = 'sgIBSfjak8clVmUQeMhGT3b2wAF5WpN7qPdzO4DHYJK6iuo0xZLnXt1yR9EvCr+/';
 
     /**
      * get random string
+     *
      * @param  [integer]  $len [string length max is 32 char]
+     *
      * @return [string]
      */
     public static function salt($len = 22)
@@ -21,8 +24,10 @@ class Encryption extends Module
 
     /**
      * hash string
+     *
      * @param  [string]   $input [origin]
      * @param  [string]   $salt  [22 char string]
+     *
      * @return [string]
      */
     public static function hash($input, $salt)
@@ -32,8 +37,10 @@ class Encryption extends Module
 
     /**
      * [verify description]
+     *
      * @param  [string] $input [origin string and salt]
      * @param  [string] $hash  [hashed string]
+     *
      * @return [bool]
      */
     public static function verify($input, $hash)
@@ -43,17 +50,19 @@ class Encryption extends Module
 
     /**
      * encode string
+     *
      * @param  [string]   $input [be encode string]
+     *
      * @return [string]
      */
     public static function encode($input)
     {
         $output = '';
-        $chr1 = $chr2 = $chr3 = $enc1 = $enc2 = $enc3 = $enc4 = null;
-        $i = 0;
+        $chr1   = $chr2   = $chr3   = $enc1   = $enc2   = $enc3   = $enc4   = null;
+        $i      = 0;
 
         while ($i < strlen($input)) {
-            $chr1 = isset($input[$i]) ? ord($input[$i++]) : 0;
+            $chr1  = isset($input[$i]) ? ord($input[$i++]) : 0;
             @$chr2 = isset($input[$i]) ? ord($input[$i++]) : 0;
             @$chr3 = isset($input[$i]) ? ord($input[$i++]) : 0;
 
@@ -62,9 +71,9 @@ class Encryption extends Module
             $enc3 = (($chr2 & 15) << 2) | ($chr3 >> 6);
             $enc4 = $chr3 & 63;
 
-            if (is_nan($chr2) || $chr2 == 0) {
+            if (is_nan($chr2) || 0 == $chr2) {
                 $enc3 = $enc4 = 64;
-            } else if (is_nan($chr3) || $chr3 == 0) {
+            } elseif (is_nan($chr3) || 0 == $chr3) {
                 $enc4 = 64;
             }
 
@@ -79,14 +88,16 @@ class Encryption extends Module
 
     /**
      * decode string
+     *
      * @param  [string]   $input [be decode string]
+     *
      * @return [string]
      */
     public static function decode($input)
     {
         $output = '';
-        $chr1 = $chr2 = $chr3 = $enc1 = $enc2 = $enc3 = $enc4 = null;
-        $i = 0;
+        $chr1   = $chr2   = $chr3   = $enc1   = $enc2   = $enc3   = $enc4   = null;
+        $i      = 0;
 
         $baseKey = self::MEMBERKEY;
 
@@ -96,15 +107,15 @@ class Encryption extends Module
             $enc3 = strpos($baseKey, substr($input, $i++, 1));
             $enc4 = strpos($baseKey, substr($input, $i++, 1));
 
-            if ($enc2 == 64) {
+            if (64 == $enc2) {
                 $enc2 = 0;
             }
 
-            if ($enc3 == 64) {
+            if (64 == $enc3) {
                 $enc3 = 0;
             }
 
-            if ($enc4 == 64) {
+            if (64 == $enc4) {
                 $enc4 = 0;
             }
 
@@ -112,16 +123,17 @@ class Encryption extends Module
             $chr2 = chr(($enc2 << 4) | ($enc3 >> 2));
             $chr3 = chr(($enc3 << 6) | $enc4);
 
-            if (ord($chr3) == 0) {
+            if (0 == ord($chr3)) {
                 $chr3 = null;
             }
 
-            if (ord($chr2) == 0) {
+            if (0 == ord($chr2)) {
                 $chr2 = null;
             }
 
             $output .= $chr1 . $chr2 . $chr3;
         }
+
         return $output;
     }
 

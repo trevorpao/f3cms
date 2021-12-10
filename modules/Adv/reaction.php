@@ -18,13 +18,13 @@ class rAdv extends Reaction
 
         $rtn = [];
 
-        $fc = new FCHelper('board');
+        $fc  = new FCHelper('board');
         $rtn = $fc->get('board_' . $req['pid'] . 'x' . $limit, 1); // 1 mins
 
         if (empty($rtn)) {
             $rtn = fAdv::getResources($req['pid'], $limit, ' m.`weight` ');
 
-            if ($req['meta'] == 1) {
+            if (1 == $req['meta']) {
                 $rtn = \__::map($rtn, function ($cu) {
                     $cu['meta'] = fAdv::lotsMeta($cu['id']);
 
@@ -50,7 +50,7 @@ class rAdv extends Reaction
     {
         $row = fAdv::one((int) f3()->get('GET.id'), 'id', ['status' => fAdv::ST_ON]);
 
-        if ($row == null) {
+        if (null == $row) {
             f3()->error(404);
         }
 
@@ -61,12 +61,14 @@ class rAdv extends Reaction
 
     /**
      * @param array $row
+     *
      * @return mixed
      */
     public static function handleRow($row = [])
     {
         // $row['positions'] = array_values(fAdv::getPositions());
         $row['meta'] = fPress::lotsMeta($row['id']);
+
         return $row;
     }
 }

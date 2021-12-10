@@ -62,7 +62,7 @@ class rSubscription extends Reaction
             header('Content-Type:text/html; charset=utf-8');
             echo '無結果';
         } else {
-            $template = new Template;
+            $template = new Template();
             f3()->set('rows', $subset['subset']);
 
             Outfit::_setXls('subscrition_' . date('YmdHis'));

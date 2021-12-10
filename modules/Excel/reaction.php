@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 class rExcel extends Reaction
@@ -6,6 +7,7 @@ class rExcel extends Reaction
     /**
      * @param $f3
      * @param $args
+     *
      * @return mixed
      */
     public function do_upload_file($f3, $args)
@@ -19,7 +21,7 @@ class rExcel extends Reaction
             [
                 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
                 'application/octet-stream',
-                'application/vnd.ms-excel'
+                'application/vnd.ms-excel',
             ]
         );
 
@@ -41,8 +43,8 @@ class rExcel extends Reaction
                 $row['E'] = strtolower($row['E']);
             }
             if (!empty($row['B'])) {
-                $next = array_filter($sheetData[$idx + 1]);
-                $row['B'] = date('Y-m-d', XlsReadFilter::number2Ts($row['B']));
+                $next               = array_filter($sheetData[$idx + 1]);
+                $row['B']           = date('Y-m-d', XlsReadFilter::number2Ts($row['B']));
                 $rtn['schedules'][] = ['d' => $row['B'], 's' => $row['D'], 'e' => $next['D'], 'c' => $row['E']];
 
                 if (!isset($rtn['new_programs'][$row['E']])) {
@@ -102,8 +104,8 @@ class rExcel extends Reaction
             $program = Program::get_program_by_codename($prog['c']);
             if (empty($program)) {
                 $program['title'] = $prog['c'];
-                $program['uri'] = '';
-                $program['id'] = 0;
+                $program['uri']   = '';
+                $program['id']    = 0;
             }
 
             fExcel::exec('INSERT INTO `' . tpf() . 'schedules`(`title`, `uri`, `program_id`, `start_date`, `end_date`, `status`, `last_ts`, ' . "`last_user`, `insert_user`, `insert_ts`) VALUES ('" . $program['title'] . "', '" . $program['uri'] . "', '" . $program['id'] . "', '" . $prog['d'] . ' ' . $prog['s'] . ":00', '" . $prog['d'] . ' ' . $prog['e'] . ":00', 'Yes', '" . date('Y-m-d H:i:s') . "', '" . rStaff::_CStaff('id') . "', '" . rStaff::_CStaff('id') . "', '" . date('Y-m-d H:i:s') . "')");

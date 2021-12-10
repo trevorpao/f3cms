@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 /**
@@ -6,11 +7,11 @@ namespace F3CMS;
  */
 class fAdv extends Feed
 {
-    const MTB = 'adv';
-    const ST_ON = 'Enabled';
-    const ST_OFF = 'Disabled';
+    public const MTB    = 'adv';
+    public const ST_ON  = 'Enabled';
+    public const ST_OFF = 'Disabled';
 
-    const BE_COLS = 'm.id,l.title,m.position_id,m.weight,m.start_date,m.end_date,m.counter,m.exposure,m.status,m.last_ts';
+    public const BE_COLS = 'm.id,l.title,m.position_id,m.weight,m.start_date,m.end_date,m.counter,m.exposure,m.status,m.last_ts';
 
     /**
      * @return mixed
@@ -31,20 +32,20 @@ class fAdv extends Feed
         return [
             '1' => [
                 'id'    => '1',
-                'title' => '首頁/HERO大圖(1600*800)'
+                'title' => '首頁/HERO大圖(1600*800)',
             ],
             '2' => [
                 'id'    => '2',
-                'title' => '外部連結(400*200)'
+                'title' => '外部連結(400*200)',
             ],
             '3' => [
                 'id'    => '3',
-                'title' => '首頁跳出式提示'
+                'title' => '首頁跳出式提示',
             ],
             '4' => [
                 'id'    => '4',
-                'title' => '會員跳出式提示'
-            ]
+                'title' => '會員跳出式提示',
+            ],
         ];
     }
 
@@ -69,9 +70,9 @@ class fAdv extends Feed
     public static function addCounter($id = 0)
     {
         mh()->update(self::fmTbl(), [
-            'counter[+]' => 1
+            'counter[+]' => 1,
         ], [
-            'id' => $id
+            'id' => $id,
         ]);
     }
 
@@ -81,9 +82,9 @@ class fAdv extends Feed
     public static function addExposure($ids = [])
     {
         mh()->update(self::fmTbl(), [
-            'exposure[+]' => 1
+            'exposure[+]' => 1,
         ], [
-            'id' => $ids
+            'id' => $ids,
         ]);
     }
 
@@ -102,11 +103,11 @@ class fAdv extends Feed
         $condition .= " AND m.`end_date` > '" . date('Y-m-d') . "' ";
 
         $select = 'SELECT m.`id`, l.`title`, m.`status`, m.`weight`, m.`cover`, m.`uri`, m.`theme`, m.`background`, l.`subtitle`, l.`content`';
-        $from = ' FROM `' . self::fmTbl() . '` AS m INNER JOIN `' . self::fmTbl('lang') . '` AS l ON l.`parent_id` = m.`id` AND l.`lang`="' . parent::_lang() . '" ' . $condition;
+        $from   = ' FROM `' . self::fmTbl() . '` AS m INNER JOIN `' . self::fmTbl('lang') . '` AS l ON l.`parent_id` = m.`id` AND l.`lang`="' . parent::_lang() . '" ' . $condition;
 
-        $order = '';
+        $order   = '';
         $useRand = false;
-        if (trim($orderby) != 'rand()') {
+        if ('rand()' != trim($orderby)) {
             $order = ' ORDER BY ' . $orderby . ', m.`id` DESC';
         } else {
             $useRand = true;
@@ -128,6 +129,7 @@ class fAdv extends Feed
     /**
      * @param $ary
      * @param $limit
+     *
      * @return mixed
      */
     private static function _randomByWeight($ary, $limit = 4)
@@ -167,7 +169,7 @@ class fAdv extends Feed
     public static function _handleColumn($req)
     {
         $req['start_date'] = $req['start_date'] . ' ' . $req['sh'] . ':' . $req['sm'] . ':00';
-        $req['end_date'] = $req['end_date'] . ' ' . $req['eh'] . ':' . $req['em'] . ':00';
+        $req['end_date']   = $req['end_date'] . ' ' . $req['eh'] . ':' . $req['em'] . ':00';
 
         return parent::_handleColumn($req);
     }

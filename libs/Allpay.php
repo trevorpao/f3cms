@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 class Allpay extends Helper
@@ -29,14 +30,14 @@ class Allpay extends Helper
     /**
      * @var array
      */
-    private $_commands = array(
-        'Checkout' => array(
+    private $_commands = [
+        'Checkout' => [
             'action'       => '/Cashier/AioCheckOut',
-            'extra_params' => array(
-                'PaymentType' => 'aio'
-            )
-        )
-    );
+            'extra_params' => [
+                'PaymentType' => 'aio',
+            ],
+        ],
+    ];
 
     public function __construct()
     {
@@ -52,15 +53,16 @@ class Allpay extends Helper
         unset($rtn_data['CheckMacValue']);
         ksort($rtn_data, SORT_NATURAL | SORT_FLAG_CASE);
         $chkCode2 = $this->_getMacValue($rtn_data);
+
         return ($chkCode2 == $chkCode1) ? 1 : 0;
     }
 
     /**
      * call - Send request to Mobile Payment API.
      *
-     * @access public
-     * @param  string  $command      Request type.
-     * @param  array   $request_data Request data array.
+     * @param string $command      request type
+     * @param array  $request_data request data array
+     *
      * @return array
      */
     public function call($command, $request_data, $mode = 'curl')
@@ -71,7 +73,7 @@ class Allpay extends Helper
 
         $request_data['MerchantID'] = $this->merchant_id;
 
-        list($uri, $data) = $this->getURL($command, $request_data, 'array');
+        [$uri, $data] = $this->getURL($command, $request_data, 'array');
         // Send the HTTP request.
 
         return $this->_sendRequest($uri, $data, $mode);
@@ -80,10 +82,10 @@ class Allpay extends Helper
     /**
      * getURL - Return API URL
      *
-     * @access public
-     * @param  string  $command      Request type.
-     * @param  array   $request_data Request data array.
-     * @param  string  $return       array or string
+     * @param string $command      request type
+     * @param array  $request_data request data array
+     * @param string $return       array or string
+     *
      * @return mixed
      */
     public function getURL($command, $request_data, $return = 'string')
@@ -108,37 +110,39 @@ class Allpay extends Helper
 
         $data = $this->_serialize($command, $request_data, $return);
 
-        return ($return == 'string') ? sprintf('%s?%s', $uri, $data) : array(
+        return ('string' == $return) ? sprintf('%s?%s', $uri, $data) : [
             $uri,
-            $data
-        );
+            $data,
+        ];
     }
 
     /**
      * replace all letters
-     * @param  string $value - target string
+     *
+     * @param string $value - target string
+     *
      * @return string - final string
      */
     private function _replaceChar($value)
     {
-        $search_list = array(
+        $search_list = [
             '%2d',
             '%5f',
             '%2e',
             '%21',
             '%2a',
             '%28',
-            '%29'
-        );
-        $replace_list = array(
+            '%29',
+        ];
+        $replace_list = [
             '-',
             '_',
             '.',
             '!',
             '*',
             '(',
-            ')'
-        );
+            ')',
+        ];
         $value = str_replace($search_list, $replace_list, $value);
 
         return $value;
@@ -146,9 +150,11 @@ class Allpay extends Helper
 
     /**
      * get check code
-     * @param  string $hash_key - hash seed
-     * @param  string $hash_iv  - hash seed part2
-     * @param  array  $params   - all params
+     *
+     * @param string $hash_key - hash seed
+     * @param string $hash_iv  - hash seed part2
+     * @param array  $params   - all params
+     *
      * @return string - check code
      */
     private function _getMacValue($params)
@@ -167,39 +173,39 @@ class Allpay extends Helper
     /**
      * _serialize - Serialize data.
      *
-     * @access private
-     * @param  string   $command      Request type.
-     * @param  array    $request_data Request data array.
+     * @param string $command      request type
+     * @param array  $request_data request data array
+     *
      * @return string
      */
     private function _serialize($command, $request_data, $return)
     {
-        $hash_data = '';
+        $hash_data    = '';
         $extra_params = $this->_commands[$command]['extra_params'];
         $request_data = array_merge($request_data, $extra_params);
 
         ksort($request_data, SORT_NATURAL | SORT_FLAG_CASE); // 調整ksort排序規則--依自然排序法(大小寫不敏感)
         $request_data['CheckMacValue'] = $this->_getMacValue($request_data);
-        $serialized_data = '';
+        $serialized_data               = '';
 
         foreach ($request_data as $key => $value) {
             $serialized_data .= sprintf('&%s=%s', $key, $value);
         }
 
-        return ($return == 'string') ? substr($serialized_data, 1) : $request_data;
+        return ('string' == $return) ? substr($serialized_data, 1) : $request_data;
     }
 
     /**
      * _sendRequest - Make API request.
      *
-     * @access private
-     * @param  string  $uri          API URI.
-     * @param  array   $request_data Request data in serialized form.
+     * @param string $uri          API URI
+     * @param array  $request_data request data in serialized form
+     *
      * @return mixed
      */
     private function _sendRequest($uri, $request_data, $mode = 'curl')
     {
-        if ($mode == 'curl') {
+        if ('curl' == $mode) {
             // Try cURL.
             if (function_exists('curl_version')) {
                 $ch = curl_init($uri);
@@ -210,7 +216,7 @@ class Allpay extends Helper
 
                 $response = curl_exec($ch);
 
-                if ($response === false) {
+                if (false === $response) {
                     return $this->_error(sprintf('cURL: %s', curl_error($ch)));
                 }
 
@@ -221,15 +227,15 @@ class Allpay extends Helper
             // Try file_get_contents.
 
             if (ini_get('allow_url_fopen')) {
-                $options = array(
-                    'http' => array(
+                $options = [
+                    'http' => [
                         'method'  => 'POST',
                         'header'  => 'Content-Type: application/x-www-form-urlencoded',
-                        'content' => $request_data
-                    )
-                );
+                        'content' => $request_data,
+                    ],
+                ];
 
-                $context = stream_context_create($options);
+                $context  = stream_context_create($options);
                 $response = file_get_contents($_uri, false, $context);
 
                 return $response;

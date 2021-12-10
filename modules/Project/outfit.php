@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 /**
@@ -6,7 +7,8 @@ namespace F3CMS;
  */
 class oProject extends Outfit
 {
-    function list($args) {
+    public function list($args)
+    {
         $req = parent::_getReq();
 
         $req['page'] = ($req['page']) ? ($req['page'] - 1) : 0;
@@ -27,7 +29,7 @@ class oProject extends Outfit
     {
         $fc = new FCHelper('project');
 
-        if (f3()->get('cache.project') === 0) {
+        if (0 === f3()->get('cache.project')) {
             $html = $fc->get('project_' . parent::_lang() . '_' . $args['slug']);
 
             if (empty($html)) {
@@ -54,7 +56,7 @@ class oProject extends Outfit
      */
     public static function force($args)
     {
-        $fc = new FCHelper('project');
+        $fc            = new FCHelper('project');
         $fc->ifHistory = 1;
 
         $html = self::_render($args['slug']);
@@ -64,19 +66,20 @@ class oProject extends Outfit
 
     /**
      * @param $id
+     *
      * @return mixed
      */
     private static function _render($id = 0)
     {
         $cu = fProject::one($id, 'id', [
-            'status' => fProject::ST_ON
+            'status' => fProject::ST_ON,
         ], false);
 
         if (empty($cu)) {
             f3()->error(404);
         }
 
-        if ($cu['site_id'] == 3) {
+        if (3 == $cu['site_id']) {
             f3()->set('uri', f3()->get('us_uri'));
         }
 
@@ -91,7 +94,7 @@ class oProject extends Outfit
             'desc'    => $cu['info'],
             'img'     => $cu['pic'],
             'keyword' => $cu['keyword'],
-            'header'  => '專案'
+            'header'  => '專案',
         ];
 
         if (!empty($metas['seo_desc'])) {
@@ -99,7 +102,7 @@ class oProject extends Outfit
         }
 
         if (!empty($metas['seo_keyword'])) {
-            $seo['keyword'] = $metas['seo_keyword'];
+            $seo['keyword']       = $metas['seo_keyword'];
             $metas['seo_keyword'] = explode(',', $metas['seo_keyword']);
         }
 

@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 use Intervention\Image\ImageManagerStatic as Image;
@@ -10,40 +11,40 @@ class Upload extends Helper
      * @param array $thumbnail
      * @param $column
      */
-    public static function savePhoto($files, $thumbnail = array(), $column = 'photo')
+    public static function savePhoto($files, $thumbnail = [], $column = 'photo')
     {
         $root = f3()->get('ROOT') . f3()->get('BASE');
         $path = '/upload/img/' . date('Y/m') . '/';
 
-        if (($files[$column]['size'] >= f3()->get('maxsize')) || ($files[$column]['size'] == 0)) {
-            Reaction::_return('2002', array('msg' => 'File too large. File must be less than 2 megabytes.'));
+        if (($files[$column]['size'] >= f3()->get('maxsize')) || (0 == $files[$column]['size'])) {
+            Reaction::_return('2002', ['msg' => 'File too large. File must be less than 2 megabytes.']);
         }
 
         if (!in_array($files[$column]['type'], f3()->get('photo_acceptable')) && !empty($files['photo']['type'])) {
-            Reaction::_return('2003', array('msg' => 'Invalid file type. Only JPG, GIF and PNG types are accepted.'));
+            Reaction::_return('2003', ['msg' => 'Invalid file type. Only JPG, GIF and PNG types are accepted.']);
         }
 
-        if ($files[$column]['error'] != 0) {
-            Reaction::_return('2004', array('msg' => 'other error.'));
+        if (0 != $files[$column]['error']) {
+            Reaction::_return('2004', ['msg' => 'other error.']);
         }
 
         if (!self::mkdir($root . $path) || !is_writable($root . $path)) {
-            Reaction::_return('2006', array('msg' => 'failed to mkdir.'));
+            Reaction::_return('2006', ['msg' => 'failed to mkdir.']);
         }
 
         $path_parts = pathinfo($files[$column]['name']);
-        $old_fn = $path_parts['filename'];
-        $ext = $path_parts['extension'];
+        $old_fn     = $path_parts['filename'];
+        $ext        = $path_parts['extension'];
 
         $filename = $path . substr(md5(uniqid(microtime(), 1)), 0, 15);
 
         if (file_exists($files[$column]['tmp_name'])) {
-            Image::configure(array('driver' => 'imagick')); // imagick|gd
+            Image::configure(['driver' => 'imagick']); // imagick|gd
 
             $im = Image::make($files[$column]['tmp_name']);
             $im->interlace();
 
-            $width = $im->width();
+            $width  = $im->width();
             $height = $im->height();
 
             if ($width > 1440) {
@@ -71,49 +72,49 @@ class Upload extends Helper
             }
 
             $new_fn = $filename . '.' . $ext;
-        }
-        else {
+        } else {
             $new_fn = '';
-            $width = 0;
+            $width  = 0;
             $height = 0;
         }
 
-        return array($new_fn, $width, $height, $old_fn);
+        return [$new_fn, $width, $height, $old_fn];
     }
 
     /**
      * @param $files
      * @param array $acceptable
+     *
      * @return mixed
      */
-    public static function saveFile($files, $acceptable = array())
+    public static function saveFile($files, $acceptable = [])
     {
         $root = f3()->get('ROOT') . f3()->get('BASE');
         $path = '/upload/doc/' . date('Y/m') . '/';
 
-        $acceptable = (!empty($acceptable)) ? $acceptable : array(
-            'application/pdf'
-        );
+        $acceptable = (!empty($acceptable)) ? $acceptable : [
+            'application/pdf',
+        ];
 
-        if (($files['file']['size'] >= f3()->get('maxsize')) || ($files['file']['size'] == 0)) {
-            Reaction::_return('2002', array('msg' => 'File too large. File must be less than 2 megabytes.'));
+        if (($files['file']['size'] >= f3()->get('maxsize')) || (0 == $files['file']['size'])) {
+            Reaction::_return('2002', ['msg' => 'File too large. File must be less than 2 megabytes.']);
         }
 
         if (!in_array($files['file']['type'], $acceptable) && !empty($files['file']['type'])) {
-            Reaction::_return('2003', array('msg' => 'Invalid file type.(' . $files['file']['type'] . ')'));
+            Reaction::_return('2003', ['msg' => 'Invalid file type.(' . $files['file']['type'] . ')']);
         }
 
-        if ($files['file']['error'] != 0) {
-            Reaction::_return('2004', array('msg' => 'other error.'));
+        if (0 != $files['file']['error']) {
+            Reaction::_return('2004', ['msg' => 'other error.']);
         }
 
         if (!self::mkdir($root . $path) || !is_writable($root . $path)) {
-            Reaction::_return('2006', array('msg' => 'failed to mkdir.'));
+            Reaction::_return('2006', ['msg' => 'failed to mkdir.']);
         }
 
         $path_parts = pathinfo($files['file']['name']);
-        $old_fn = $path_parts['filename'];
-        $ext = $path_parts['extension'];
+        $old_fn     = $path_parts['filename'];
+        $ext        = $path_parts['extension'];
 
         $filename = $path . substr(md5(uniqid(microtime(), 1)), 0, 15);
 
@@ -128,6 +129,7 @@ class Upload extends Helper
 
     /**
      * @param $uri
+     *
      * @return mixed
      */
     public static function takeScreenshot($uri)
@@ -136,21 +138,21 @@ class Upload extends Helper
         $path = '/upload/screenshot/' . date('Y/m') . '/';
 
         if (!self::mkdir($root . $path) || !is_writable($root . $path)) {
-            Reaction::_return('2006', array('msg' => 'failed to mkdir.'));
+            Reaction::_return('2006', ['msg' => 'failed to mkdir.']);
         }
 
         $filename = $path . substr(md5(uniqid(microtime(), 1)), 0, 15);
-        $fp = fopen($root . $filename . '.png', 'w+b');
+        $fp       = fopen($root . $filename . '.png', 'w+b');
 
-        $params = array(
+        $params = [
             'key'     => f3()->get('screenshot_key'),
             'size'    => Screenshot::SIZE_F,
             'url'     => $uri,
             'format'  => Screenshot::PNG,
-            'timeout' => 1000
-        );
+            'timeout' => 1000,
+        ];
 
-        $ss = new Screenshot($params);
+        $ss  = new Screenshot($params);
         $raw = $ss->saveScreen($fp);
         fclose($fp);
 
@@ -160,10 +162,11 @@ class Upload extends Helper
     /**
      * adapter for PHPExcel
      *
-     * @param  string  $filename -
-     * @param  integer $startRow -
-     * @param  integer $endRow   -
-     * @param  array   $columns  -
+     * @param string $filename -
+     * @param int    $startRow -
+     * @param int    $endRow   -
+     * @param array  $columns  -
+     *
      * @return array
      */
     public static function readExcel($filename, $startRow, $endRow, $columns)
@@ -193,45 +196,46 @@ class Upload extends Helper
     /**
      * scan folder
      *
-     * @param  string  $dir
-     * @param  integer $only_dir -only folder type or all
-     * @param  string  $target   -target column name or all
+     * @param string $dir
+     * @param int    $only_dir -only folder type or all
+     * @param string $target   -target column name or all
+     *
      * @return array
      */
     public static function scan($dir = '', $only_dir = 0, $target = 'all')
     {
         $root = f3()->get('ROOT') . f3()->get('BASE');
 
-        $files = array();
+        $files = [];
 
         // Is there actually such a folder/file?
         if (file_exists($root . $dir)) {
             foreach (scandir($root . $dir) as $f) {
-                if (!$f || $f[0] == '.') {
+                if (!$f || '.' == $f[0]) {
                     continue; // Ignore hidden files
                 }
 
                 if (is_dir($root . $dir . '/' . $f)) {
-                    if ($only_dir == 1 || $only_dir == 0) {
+                    if (1 == $only_dir || 0 == $only_dir) {
                         // The path is a folder
-                        $files[] = array(
+                        $files[] = [
                             'name'  => $f,
                             'type'  => 'folder',
                             'path'  => $dir . '/' . $f,
-                            'items' => self::scan($dir . '/' . $f, $only_dir) // Recursively get the contents of the folder
-                        );
+                            'items' => self::scan($dir . '/' . $f, $only_dir), // Recursively get the contents of the folder
+                        ];
                     }
                 } else {
                     // It is a file
-                    if ($only_dir == 2 || $only_dir == 0) {
-                        $tmp = array(
+                    if (2 == $only_dir || 0 == $only_dir) {
+                        $tmp = [
                             'name' => $f,
                             'type' => 'file',
                             'path' => $dir . '/' . $f,
-                            'size' => filesize($root . $dir . '/' . $f) // Gets the size of this file
-                        );
+                            'size' => filesize($root . $dir . '/' . $f), // Gets the size of this file
+                        ];
 
-                        if ($target == 'all') {
+                        if ('all' == $target) {
                             $files[] = $tmp;
                         } else {
                             $files[] = $tmp[$target];
@@ -270,14 +274,16 @@ class Upload extends Helper
     /**
      * Creates directory
      *
-     * @param  string  $path     Path to create
-     * @param  integer $mode     Optional permissions
-     * @return boolean Success
+     * @param string $path Path to create
+     * @param int    $mode Optional permissions
+     *
+     * @return bool Success
      */
     public static function mkdir($path, $mode = 0775)
     {
         if (!file_exists($path)) {
             umask(0027);
+
             return @mkdir($path, $mode, true);
         } else {
             return true;

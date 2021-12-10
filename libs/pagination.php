@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 /**
@@ -13,9 +14,7 @@ namespace F3CMS;
  * Christian Knuth <mail@ikkez.de>
  *
  * @version 1.4.1
- *
  */
-
 class Pagination
 {
     /**
@@ -51,10 +50,11 @@ class Pagination
      */
     private $linkPath;
 
-    const
-    TEXT_MissingItemsAttr = 'You need to specify items attribute for a pagination.';
+    public const TEXT_MissingItemsAttr = 'You need to specify items attribute for a pagination.';
+
     /**
      * create new pagination
+     *
      * @param $items    array|integer max items or array to count
      * @param $limit    int           max items per page
      * @param $routeKey string        the key for pagination in your routing
@@ -62,12 +62,13 @@ class Pagination
     public function __construct($items, $limit = 10, $routeKey = 'page')
     {
         $this->items_count = is_array($items) ? count($items) : $items;
-        $this->routeKey = $routeKey;
+        $this->routeKey    = $routeKey;
         $this->setLimit($limit);
     }
 
     /**
      * set maximum items shown on one page
+     *
      * @param $limit int
      */
     public function setLimit($limit)
@@ -80,6 +81,7 @@ class Pagination
 
     /**
      * set token name used in your route pattern for pagination
+     *
      * @param string $key
      */
     public function setRouteKey($key)
@@ -89,6 +91,7 @@ class Pagination
 
     /**
      * set a prefix that is added to your page links
+     *
      * @param string $prefix
      */
     public function setRouteKeyPrefix($prefix)
@@ -98,6 +101,7 @@ class Pagination
 
     /**
      * set path for the template file
+     *
      * @param $template string
      */
     public function setTemplate($template)
@@ -107,6 +111,7 @@ class Pagination
 
     /**
      * set the range of pages, that are displayed prev and next to current page
+     *
      * @param $range int
      */
     public function setRange($range)
@@ -114,11 +119,11 @@ class Pagination
         if (is_numeric($range)) {
             $this->range = $range;
         }
-
     }
 
     /**
      * set the current page number
+     *
      * @param $current int
      */
     public function setCurrent($current)
@@ -135,25 +140,26 @@ class Pagination
         } else {
             $this->current_page = $this->getMax();
         }
-
     }
 
     /**
      * set path to current routing for link building
+     *
      * @param $linkPath
      */
     public function setLinkPath($linkPath)
     {
-        $this->linkPath = (substr($linkPath, 0, 1) != '/') ? '/' . $linkPath : $linkPath;
-        if (substr($this->linkPath, -1) != '/') {
+        $this->linkPath = ('/' != substr($linkPath, 0, 1)) ? '/' . $linkPath : $linkPath;
+        if ('/' != substr($this->linkPath, -1)) {
             $this->linkPath .= '/';
         }
-
     }
 
     /**
      * extract the current page number from the route parameter token
-     * @param  string      $key
+     *
+     * @param string $key
+     *
      * @return int|mixed
      */
     public static function findCurrentPage($key = 'page', $type = 'GET')
@@ -164,6 +170,7 @@ class Pagination
 
     /**
      * returns the current page number
+     *
      * @return int
      */
     public function getCurrent()
@@ -173,6 +180,7 @@ class Pagination
 
     /**
      * returns the maximum count of items to display in pages
+     *
      * @return int
      */
     public function getItemCount()
@@ -182,6 +190,7 @@ class Pagination
 
     /**
      * get maximum pages needed to display all items
+     *
      * @return int
      */
     public function getMax()
@@ -191,6 +200,7 @@ class Pagination
 
     /**
      * get next page number
+     *
      * @return int|bool
      */
     public function getNext()
@@ -205,6 +215,7 @@ class Pagination
 
     /**
      * get previous page number
+     *
      * @return int|bool
      */
     public function getPrev()
@@ -219,6 +230,7 @@ class Pagination
 
     /**
      * return last page number, if current page is not in range
+     *
      * @return bool|int
      */
     public function getLast()
@@ -228,6 +240,7 @@ class Pagination
 
     /**
      * return first page number, if current page is not in range
+     *
      * @return bool|int
      */
     public function getFirst()
@@ -237,8 +250,10 @@ class Pagination
 
     /**
      * return all page numbers within the given range
-     * @param  $range int
-     * @return array  page numbers in range
+     *
+     * @param $range int
+     *
+     * @return array page numbers in range
      */
     public function getInRange($range = null)
     {
@@ -246,17 +261,19 @@ class Pagination
             $range = $this->range;
         }
 
-        $current_range = array(($this->current_page - $range < 1 ? 1 : $this->current_page - $range),
-            ($this->current_page + $range > $this->getMax() ? $this->getMax() : $this->current_page + $range));
-        $rangeIDs = array();
+        $current_range = [($this->current_page - $range < 1 ? 1 : $this->current_page - $range),
+            ($this->current_page + $range > $this->getMax() ? $this->getMax() : $this->current_page + $range), ];
+        $rangeIDs = [];
         for ($x = $current_range[0]; $x <= $current_range[1]; ++$x) {
             $rangeIDs[] = $x;
         }
+
         return $rangeIDs;
     }
 
     /**
      * returns the number of items left behind for current page
+     *
      * @return int
      */
     public function getItemOffset()
@@ -266,6 +283,7 @@ class Pagination
 
     /**
      * generates the pagination output
+     *
      * @return string
      */
     public function serve()
@@ -274,7 +292,7 @@ class Pagination
             $route = f3()->get('PARAMS.0');
             if (f3()->exists('PARAMS.' . $this->routeKey)) {
                 $route = preg_replace('/' . f3()->get('PARAMS.' . $this->routeKey) . '$/', '', $route);
-            } else if (substr($route, -1) != '/');
+            } elseif ('/' != substr($route, -1));
             $route .= '/';
         } else {
             $route = $this->linkPath;
@@ -290,19 +308,23 @@ class Pagination
         f3()->set('pg.rangePages', $this->getInRange());
         $output = \Template::instance()->render($this->template);
         f3()->clear('pg');
+
         return $output;
     }
 
     /**
      * magic render function for custom tags
+     *
      * @static
-     * @param  $args
+     *
+     * @param $args
+     *
      * @return string
      */
     public static function renderTag($args)
     {
         $attr = $args['@attrib'];
-        $tmp = Template::instance();
+        $tmp  = Template::instance();
         foreach ($attr as &$att) {
             $att = $tmp->token($att);
         }
@@ -333,6 +355,7 @@ class Pagination
         }
 
         $pn_code .= 'echo $pn->serve();';
+
         return '<?php ' . $pn_code . ' ?>';
     }
 }

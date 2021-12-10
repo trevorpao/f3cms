@@ -7,9 +7,9 @@ namespace F3CMS;
  */
 class fSubscription extends Feed
 {
-    const MTB = 'subscription';
-    const MULTILANG = 0;
-    const BE_COLS = 'm.id,m.status,m.name,m.phone,m.email,m.lancode,m.last_ts';
+    public const MTB       = 'subscription';
+    public const MULTILANG = 0;
+    public const BE_COLS   = 'm.id,m.status,m.name,m.phone,m.email,m.lancode,m.last_ts';
 
     /**
      * @return mixed

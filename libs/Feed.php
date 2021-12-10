@@ -1,27 +1,29 @@
 <?php
+
 namespace F3CMS;
 
 class Feed extends Module
 {
-    const MULTILANG = 1;
-    const BE_COLS = 'm.id';
-    const LANG_ARY_MERGE = 0;
-    const LANG_ARY_ALONE = 1;
-    const LANG_ARY_SKIP = 2;
+    public const MULTILANG      = 1;
+    public const BE_COLS        = 'm.id';
+    public const LANG_ARY_MERGE = 0;
+    public const LANG_ARY_ALONE = 1;
+    public const LANG_ARY_SKIP  = 2;
 
     /**
      * save whole form for backend
+     *
      * @param array $req
      */
     public static function save($req, $tbl = '')
     {
-        $that = get_called_class();
-        list($data, $other) = $that::_handleColumn($req);
+        $that           = get_called_class();
+        [$data, $other] = $that::_handleColumn($req);
 
         $rtn = null;
 
-        if ($req['id'] == 0) {
-            $data['insert_ts'] = date('Y-m-d H:i:s');
+        if (0 == $req['id']) {
+            $data['insert_ts']   = date('Y-m-d H:i:s');
             $data['insert_user'] = rStaff::_CStaff('id');
 
             mh()->insert($that::fmTbl($tbl), $data);
@@ -30,9 +32,9 @@ class Feed extends Module
 
             $rtn = self::chkErr($req['id']);
         } else {
-            $rtn = mh()->update($that::fmTbl($tbl), $data, array(
-                'id' => $req['id']
-            ));
+            $rtn = mh()->update($that::fmTbl($tbl), $data, [
+                'id' => $req['id'],
+            ]);
 
             $rtn = self::chkErr($rtn->rowCount());
         }
@@ -46,25 +48,26 @@ class Feed extends Module
 
     /**
      * save whole form for backend
+     *
      * @param array $req
      */
     public static function published($req, $tbl = '')
     {
         $that = get_called_class();
-        $data = array(
+        $data = [
             'status'    => $req['status'],
             'last_ts'   => date('Y-m-d H:i:s'),
-            'last_user' => rStaff::_CStaff('id')
-        );
+            'last_user' => rStaff::_CStaff('id'),
+        ];
         $rtn = null;
 
         if (isset($req['online_date'])) {
             $data['online_date'] = $req['online_date'];
         }
 
-        $rtn = mh()->update($that::fmTbl($tbl), $data, array(
-            'id' => $req['id']
-        ));
+        $rtn = mh()->update($that::fmTbl($tbl), $data, [
+            'id' => $req['id'],
+        ]);
 
         $rtn = self::chkErr($rtn->rowCount());
 
@@ -73,14 +76,16 @@ class Feed extends Module
 
     /**
      * pre handle column by diff type
-     * @param  array   $req request columns
+     *
+     * @param array $req request columns
+     *
      * @return array
      */
     public static function _handleColumn($req)
     {
-        $that = get_called_class();
-        $data = array();
-        $other = array();
+        $that  = get_called_class();
+        $data  = [];
+        $other = [];
 
         foreach ($req as $key => $value) {
             if ($that::filterColumn($key)) {
@@ -104,7 +109,7 @@ class Feed extends Module
                     case 'lang':
                         if (is_array($value)) {
                             foreach ($value as $k => $v) {
-                                $other['lang'][] = array($k, $v);
+                                $other['lang'][] = [$k, $v];
                             }
                         }
                         break;
@@ -115,7 +120,7 @@ class Feed extends Module
                         break;
                     case 'pwd':
                         if (!empty($value)) {
-                            $value = $that::_setPsw($value);
+                            $value      = $that::_setPsw($value);
                             $data[$key] = $value;
                         }
                         break;
@@ -131,10 +136,10 @@ class Feed extends Module
             }
         }
 
-        $data['last_ts'] = date('Y-m-d H:i:s');
+        $data['last_ts']   = date('Y-m-d H:i:s');
         $data['last_user'] = rStaff::_CStaff('id');
 
-        return array($data, $other);
+        return [$data, $other];
     }
 
     /**
@@ -145,20 +150,20 @@ class Feed extends Module
     public static function lotsSub($subTbl, $pid)
     {
         $that = get_called_class();
-        $sub = '\F3CMS\f' . ucfirst($subTbl);
+        $sub  = '\F3CMS\f' . ucfirst($subTbl);
 
         $pk = $that::MTB . '_id';
         $fk = $subTbl . '_id';
 
-        $filter = array($pk => $pid);
+        $filter = [$pk => $pid];
 
         return mh()->select(
             $that::fmTbl($subTbl) . '(r)',
-            array(
-                '[>]' . $sub::fmTbl() . '(t)'       => array('r.' . $fk => 'id'),
-                '[>]' . $sub::fmTbl('lang') . '(l)' => array('t.id' => 'parent_id', 'l.lang' => '[SV]'. Module::_lang())
-            ),
-            array('t.id', 'l.title'),
+            [
+                '[>]' . $sub::fmTbl() . '(t)'       => ['r.' . $fk => 'id'],
+                '[>]' . $sub::fmTbl('lang') . '(l)' => ['t.id' => 'parent_id', 'l.lang' => '[SV]' . Module::_lang()],
+            ],
+            ['t.id', 'l.title'],
             $filter
         );
     }
@@ -174,60 +179,63 @@ class Feed extends Module
         $pk = $that::MTB . '_id';
         $fk = 'tag_id';
 
-        $filter = array(
+        $filter = [
             'r.' . $pk => $pid,
-            't.status' => fTag::ST_ON
-        );
+            't.status' => fTag::ST_ON,
+        ];
 
         return mh()->select($that::fmTbl('tag') . '(r)',
-            array('[>]' . tpf() . fTag::MTB . '(t)'  => array('r.tag_id' => 'id'),
-                '[>]' . fTag::fmTbl('lang') . '(l)' => array('t.id' => 'parent_id', 'l.lang' => '[SV]'. Module::_lang())),
-            array('t.id', 't.slug', 'l.title', 't.counter'), $filter);
+            ['[>]' . tpf() . fTag::MTB . '(t)'      => ['r.tag_id' => 'id'],
+                '[>]' . fTag::fmTbl('lang') . '(l)' => ['t.id' => 'parent_id', 'l.lang' => '[SV]' . Module::_lang()], ],
+            ['t.id', 't.slug', 'l.title', 't.counter'], $filter);
     }
 
     /**
-     * @param  $pid
-     * @param  $key
+     * @param $pid
+     * @param $key
+     *
      * @return mixed
      */
     public static function lotsMeta($pid, $key = '')
     {
         $that = get_called_class();
 
-        $filter = array('parent_id' => $pid);
+        $filter = ['parent_id' => $pid];
 
-        if ($key != '') {
+        if ('' != $key) {
             $filter['k[~]'] = $key;
         }
 
         $result = mh()->select($that::fmTbl('meta'), '*', $filter);
 
-        $rows = array();
+        $rows = [];
         foreach ($result as $row) {
             $rows[$row['k']] = $row['v'];
         }
+
         return $rows;
     }
 
     /**
-     * @param  $pid
+     * @param $pid
+     *
      * @return array
      */
     public static function lotsLang($pid, $lang = '')
     {
-        $that = get_called_class();
-        $filter = array('parent_id' => $pid);
-        if ($lang != '') {
+        $that   = get_called_class();
+        $filter = ['parent_id' => $pid];
+        if ('' != $lang) {
             $filter['lang'] = $lang;
         }
 
-        $result = mh()->select($that::fmTbl('lang'), '*', $filter);
-        $filter = self::default_filtered_column();
+        $result   = mh()->select($that::fmTbl('lang'), '*', $filter);
+        $filter   = self::default_filtered_column();
         $filter[] = 'parent_id';
 
-        $rows = array();
+        $rows = [];
         foreach (f3()->get('acceptLang') as $n) {
-            $rows[$n] = array();
+            $rows[$n] = [];
         }
 
         if (count($result) > 0) {
@@ -252,40 +260,41 @@ class Feed extends Module
             }
         }
 
-        return ($lang != '') ? $rows[$lang] : $rows;
+        return ('' != $lang) ? $rows[$lang] : $rows;
     }
 
     /**
-     * @param  $subTbl
-     * @param  $pid
-     * @param  array      $rels
-     * @param  $reverse
+     * @param       $subTbl
+     * @param       $pid
+     * @param array $rels
+     * @param       $reverse
+     *
      * @return int
      */
-    public static function saveMany($subTbl, $pid, $rels = array(), $reverse = false, $sortable = false)
+    public static function saveMany($subTbl, $pid, $rels = [], $reverse = false, $sortable = false)
     {
         if (empty($rels)) {
             return false;
         }
 
         $that = get_called_class();
-        $pk = $that::MTB . '_id';
-        $fk = $subTbl . '_id';
-        $data = array();
+        $pk   = $that::MTB . '_id';
+        $fk   = $subTbl . '_id';
+        $data = [];
 
         if ($reverse) {
             $fk = $pk;
             $pk = $subTbl . '_id';
         }
 
-        mh()->delete($that::fmTbl($subTbl), array($pk => $pid));
+        mh()->delete($that::fmTbl($subTbl), [$pk => $pid]);
 
         foreach ($rels as $idx => $value) {
             if (!empty($value)) {
-                $data[$idx] = array(
+                $data[$idx] = [
                     $pk => $pid,
-                    $fk => $value
-                );
+                    $fk => $value,
+                ];
 
                 if ($sortable) {
                     $data[$idx]['sorter'] = $idx;
@@ -301,31 +310,32 @@ class Feed extends Module
     }
 
     /**
-     * @param  $pid
-     * @param  $data
-     * @param  $replace
+     * @param $pid
+     * @param $data
+     * @param $replace
+     *
      * @return int
      */
-    public static function saveMeta($pid, $data = array(), $replace = false)
+    public static function saveMeta($pid, $data = [], $replace = false)
     {
         if (empty($data)) {
             return false;
         }
 
         $that = get_called_class();
-        $rows = array();
+        $rows = [];
 
         if ($replace) {
-            mh()->delete($that::fmTbl('meta'), array('parent_id' => $pid, 'k' => array_keys($data)));
+            mh()->delete($that::fmTbl('meta'), ['parent_id' => $pid, 'k' => array_keys($data)]);
         }
 
         foreach ($data as $k => $v) {
             if (!empty($v)) {
-                $rows[] = array(
+                $rows[] = [
                     'parent_id' => $pid,
                     'k'         => $k,
-                    'v'         => $v
-                );
+                    'v'         => $v,
+                ];
             }
         }
 
@@ -337,12 +347,13 @@ class Feed extends Module
     }
 
     /**
-     * @param  $pid
-     * @param  $data
-     * @param  $replace
+     * @param $pid
+     * @param $data
+     * @param $replace
+     *
      * @return int
      */
-    public static function saveLang($pid, $data = array())
+    public static function saveLang($pid, $data = [])
     {
         if (empty($data)) {
             return false;
@@ -352,18 +363,18 @@ class Feed extends Module
 
         foreach ($data as $v) {
             if (!empty($v[1])) {
-                $filter = array(
+                $filter = [
                     'parent_id' => $pid,
-                    'lang'      => $v[0]
-                );
+                    'lang'      => $v[0],
+                ];
 
-                $v[1]['last_ts'] = date('Y-m-d H:i:s');
+                $v[1]['last_ts']   = date('Y-m-d H:i:s');
                 $v[1]['last_user'] = rStaff::_CStaff('id');
 
                 if (mh()->has($that::fmTbl('lang'), $filter)) {
                     mh()->update($that::fmTbl('lang'), $v[1], $filter);
                 } else {
-                    $v[1]['insert_ts'] = date('Y-m-d H:i:s');
+                    $v[1]['insert_ts']   = date('Y-m-d H:i:s');
                     $v[1]['insert_user'] = rStaff::_CStaff('id');
 
                     mh()->insert($that::fmTbl('lang'), array_merge($v[1], $filter));
@@ -379,28 +390,29 @@ class Feed extends Module
      */
     public static function getOpts($query = '', $column = 'title')
     {
-        $that = get_called_class();
-        $filter = array('LIMIT' => 100);
+        $that   = get_called_class();
+        $filter = ['LIMIT' => 100];
 
-        if ($query != '') {
+        if ('' != $query) {
             $filter['l.title[~]'] = $query;
         }
 
         return mh()->select($that::fmTbl() . '(m)',
-            array('[><]' . $that::fmTbl('lang') . '(l)' => array('m.id' => 'parent_id'), 'l.lang' => '[SV]'. Module::_lang()), array('m.id', $column . '(title)'), $filter);
+            ['[><]' . $that::fmTbl('lang') . '(l)' => ['m.id' => 'parent_id'], 'l.lang' => '[SV]' . Module::_lang()], ['m.id', $column . '(title)'], $filter);
     }
 
     /**
      * delete one row
+     *
      * @param int $pid
      */
     public static function delRow($pid, $sub_table = '')
     {
         $that = get_called_class();
 
-        $data = mh()->delete($that::fmTbl($sub_table), array(
-            'id' => $pid
-        ));
+        $data = mh()->delete($that::fmTbl($sub_table), [
+            'id' => $pid,
+        ]);
 
         return $data->rowCount();
     }
@@ -418,7 +430,7 @@ class Feed extends Module
         $filter = $that::genQuery($query);
 
         if ($that::MULTILANG) {
-            $join = array('[>]' . $that::fmTbl('lang') . '(l)' => array('m.id' => 'parent_id', 'l.lang' => '[SV]'. Module::_lang()));
+            $join = ['[>]' . $that::fmTbl('lang') . '(l)' => ['m.id' => 'parent_id', 'l.lang' => '[SV]' . Module::_lang()]];
         } else {
             $join = null;
         }
@@ -436,17 +448,18 @@ class Feed extends Module
     /**
      * get a row
      *
-     * @param  mixed   $val - condition
+     * @param mixed $val - condition
+     *
      * @return array
      */
-    public static function one($val, $col = 'id', $condition = array(), $multilang = 1)
+    public static function one($val, $col = 'id', $condition = [], $multilang = 1)
     {
         $that = get_called_class();
 
-        $data = mh()->get($that::fmTbl(), '*', array_merge(array(
+        $data = mh()->get($that::fmTbl(), '*', array_merge([
             $col    => $val,
-            'ORDER' => array($col => 'DESC')
-        ), $condition));
+            'ORDER' => [$col => 'DESC'],
+        ], $condition));
 
         if (empty($data)) {
             return null;
@@ -476,6 +489,7 @@ class Feed extends Module
      * @param $page
      * @param $limit
      * @param $cols
+     *
      * @return mixed
      */
     public static function lotsByTag($id, $page = 0, $limit = 6, $cols = '')
@@ -483,14 +497,14 @@ class Feed extends Module
         $that = get_called_class();
 
         if (is_array($id)) {
-            $condi = array();
+            $condi = [];
             foreach ($id as $row) {
                 $condi[] = ' SELECT `' . $that::MTB . '_id` FROM `' . $that::fmTbl('tag') . '` WHERE `tag_id`=' . intval($row) . ' ';
             }
 
             $presses = mh()->query('SELECT `' . $that::MTB . '_id`, COUNT(`' . $that::MTB . '_id`) AS `cnt` FROM (' . (implode(' UNION ALL ', $condi)) . ') u GROUP by `' . $that::MTB . '_id` HAVING `cnt` > ' . (sizeof($condi) - 1) . ' ')->fetchAll(\PDO::FETCH_ASSOC);
         } else {
-            $presses = mh()->select($that::fmTbl('tag') . '(r)', array('r.' . $that::MTB . '_id'), array('r.tag_id' => $id));
+            $presses = mh()->select($that::fmTbl('tag') . '(r)', ['r.' . $that::MTB . '_id'], ['r.tag_id' => $id]);
         }
 
         return $that::lotsByID(\__::pluck($presses, '' . $that::MTB . '_id'), $page, $limit, $cols);
@@ -501,6 +515,7 @@ class Feed extends Module
      * @param $page
      * @param $limit
      * @param $cols
+     *
      * @return mixed
      */
     public static function lotsByID($ids, $page = 0, $limit = 6, $cols = '')
@@ -511,12 +526,12 @@ class Feed extends Module
 
         $filter['m.status'] = $that::ST_ON;
 
-        $filter['ORDER'] = array('m.insert_ts' => 'DESC');
+        $filter['ORDER'] = ['m.insert_ts' => 'DESC'];
 
-        $join = array(
-            '[>]' . fStaff::fmTbl() . '(s)'      => array('m.insert_user' => 'id'),
-            '[>]' . $that::fmTbl('lang') . '(l)' => array('m.id' => 'parent_id', 'l.lang' => '[SV]'. Module::_lang())
-        );
+        $join = [
+            '[>]' . fStaff::fmTbl() . '(s)'      => ['m.insert_user' => 'id'],
+            '[>]' . $that::fmTbl('lang') . '(l)' => ['m.id' => 'parent_id', 'l.lang' => '[SV]' . Module::_lang()],
+        ];
 
         return $that::paginate($that::fmTbl() . '(m)', $filter, $page, $limit, explode(',', $that::BE_COLS . $cols), $join);
     }
@@ -531,7 +546,7 @@ class Feed extends Module
      */
     public static function paginate($tbl, $filter, $page = 0, $limit = 10, $cols = '*', $join = null)
     {
-        if ($join == null) {
+        if (null == $join) {
             $total = mh()->count($tbl, $filter);
         } else {
             $total = mh()->count($tbl, $join, '*', $filter);
@@ -539,49 +554,50 @@ class Feed extends Module
 
         $err = mh()->error();
 
-        if (is_array($err) && $err[0] != '00000') {
-            if (f3()->get('DEBUG') === 0) {
+        if (is_array($err) && '00000' != $err[0]) {
+            if (0 === f3()->get('DEBUG')) {
                 return null;
             } else {
                 print_r($err);
-                die;
+                exit;
             }
         }
 
         $count = ceil($total / $limit);
-        $page = max(0, min($page, $count - 1));
+        $page  = max(0, min($page, $count - 1));
 
-        $filter['LIMIT'] = array(($page * $limit), $limit);
+        $filter['LIMIT'] = [($page * $limit), $limit];
 
-        if ($join == null) {
+        if (null == $join) {
             $result = mh()->select($tbl, $cols, $filter);
         } else {
             $result = mh()->select($tbl, $join, $cols, $filter);
         }
 
-        return array(
+        return [
             'subset' => $result,
             'total'  => $total,
             'limit'  => $limit,
             'count'  => $count,
             'pos'    => (($page < $count) ? $page : 0),
             'filter' => $filter,
-            'sql'    => ((f3()->get('DEBUG') === 0) ? '' : mh()->last())
-        );
+            'sql'    => ((0 === f3()->get('DEBUG')) ? '' : mh()->last()),
+        ];
     }
 
     /**
      * @param $query
      * @param array $map
      * @param $isSole
+     *
      * @return mixed
      */
-    public static function exec($query, $map = array(), $isSole = false)
+    public static function exec($query, $map = [], $isSole = false)
     {
         $query = trim($query);
-        $res = mh()->query($query, $map);
+        $res   = mh()->query($query, $map);
 
-        if (stripos($query, 'SELECT') === 0) {
+        if (0 === stripos($query, 'SELECT')) {
             $method = ($isSole) ? 'fetch' : 'fetchAll';
 
             return $res->{$method}(\PDO::FETCH_ASSOC);
@@ -591,60 +607,61 @@ class Feed extends Module
     }
 
     /**
-     * @param  $queryStr
+     * @param $queryStr
+     *
      * @return mixed
      */
     public static function genQuery($queryStr = '')
     {
         $that = get_called_class();
-        $arr = explode(',', $queryStr);
+        $arr  = explode(',', $queryStr);
 
-        $query = array();
+        $query = [];
 
         foreach ($arr as $val) {
             if (!empty($val)) {
-                if (strpos($val, '<>') !== false) {
-                    list($k, $v) = explode('<>', $val);
-                    $k = (empty($k)) ? 'all' : $k;
+                if (false !== strpos($val, '<>')) {
+                    [$k, $v]            = explode('<>', $val);
+                    $k                  = (empty($k)) ? 'all' : $k;
                     $query[$k . '[<>]'] = explode('|', $v);
-                } else if (strpos($val, '>') !== false) {
-                    list($k, $v) = explode('>', $val);
-                    $k = (empty($k)) ? 'all' : $k;
+                } elseif (false !== strpos($val, '>')) {
+                    [$k, $v]           = explode('>', $val);
+                    $k                 = (empty($k)) ? 'all' : $k;
                     $query[$k . '[>]'] = $v;
-                } else if (strpos($val, '<') !== false) {
-                    list($k, $v) = explode('<', $val);
-                    $k = (empty($k)) ? 'all' : $k;
+                } elseif (false !== strpos($val, '<')) {
+                    [$k, $v]           = explode('<', $val);
+                    $k                 = (empty($k)) ? 'all' : $k;
                     $query[$k . '[<]'] = $v;
-                } else if (strpos($val, '!~') !== false) {
-                    list($k, $v) = explode('!~', $val);
-                    $k = (empty($k)) ? 'all' : $k;
+                } elseif (false !== strpos($val, '!~')) {
+                    [$k, $v]            = explode('!~', $val);
+                    $k                  = (empty($k)) ? 'all' : $k;
                     $query[$k . '[!~]'] = $v;
-                } else if (strpos($val, '!') !== false) {
-                    list($k, $v) = explode('!', $val);
-                    $k = (empty($k)) ? 'all' : $k;
+                } elseif (false !== strpos($val, '!')) {
+                    [$k, $v]           = explode('!', $val);
+                    $k                 = (empty($k)) ? 'all' : $k;
                     $query[$k . '[!]'] = $v;
-                } else if (strpos($val, '~') !== false) {
-                    list($k, $v) = explode('~', $val);
-                    $k = (empty($k)) ? 'all' : $k;
+                } elseif (false !== strpos($val, '~')) {
+                    [$k, $v]           = explode('~', $val);
+                    $k                 = (empty($k)) ? 'all' : $k;
                     $query[$k . '[~]'] = $v;
-                } else if (strpos($val, ':') !== false) {
-                    list($k, $v) = explode(':', $val);
-                    $k = (empty($k)) ? 'all' : $k;
-                    $query[$k] = (strpos($v, '|') !== false) ? explode('|', $v) : (string) $v;
+                } elseif (false !== strpos($val, ':')) {
+                    [$k, $v]   = explode(':', $val);
+                    $k         = (empty($k)) ? 'all' : $k;
+                    $query[$k] = (false !== strpos($v, '|')) ? explode('|', $v) : (string) $v;
                 } else {
                     $query['all'] = $val;
                 }
             }
         }
 
-        $new = array();
+        $new = [];
 
         foreach ($query as $key => $value) {
-            if ($key == 'tag') {
+            if ('tag' == $key) {
                 if (is_array($value)) {
-                    $filter = array(
-                        'm.status' => fTag::ST_ON
-                    );
+                    $filter = [
+                        'm.status' => fTag::ST_ON,
+                    ];
 
                     $rows = $that::exec('SELECT t1.`artwork_id` FROM `tbl_artwork_tag` t1
                             INNER JOIN `tbl_artwork_tag` t2 ON t2.artwork_id = t1.`artwork_id` AND t2.`tag_id` = \'' . $value[1] . '\'
@@ -652,22 +669,22 @@ class Feed extends Module
                             WHERE t1.`tag_id` = \'' . $value[0] . '\' ');
                 } else {
                     if (is_numeric($value)) {
-                        $filter = array(
+                        $filter = [
                             'l.parent_id' => $value,
-                            'm.status'    => fTag::ST_ON
-                        );
+                            'm.status'    => fTag::ST_ON,
+                        ];
                     } else {
-                        $filter = array(
+                        $filter = [
                             'l.title[~]' => $value,
-                            'm.status'   => fTag::ST_ON
-                        );
+                            'm.status'   => fTag::ST_ON,
+                        ];
                     }
 
                     $tag = mh()->get(fTag::fmTbl() . '(m)',
-                        array('[><]' . fTag::fmTbl('lang') . '(l)' => array('m.id' => 'parent_id')), array('m.id'), $filter);
+                        ['[><]' . fTag::fmTbl('lang') . '(l)' => ['m.id' => 'parent_id']], ['m.id'], $filter);
 
                     if (!empty($tag)) {
-                        $rows = mh()->select($that::fmTbl('tag') . '(r)', array('r.' . $that::MTB . '_id'), array('r.tag_id' => $tag['id']));
+                        $rows = mh()->select($that::fmTbl('tag') . '(r)', ['r.' . $that::MTB . '_id'], ['r.tag_id' => $tag['id']]);
                     }
                 }
 
@@ -676,24 +693,24 @@ class Feed extends Module
                 } else {
                     $new['m.id'] = -1;
                 }
-            } else if ($key == 'author') {
+            } elseif ('author' == $key) {
                 if (is_numeric($value)) {
-                    $filter = array(
+                    $filter = [
                         'l.parent_id' => $value,
-                        'm.status'    => fAuthor::ST_ON
-                    );
+                        'm.status'    => fAuthor::ST_ON,
+                    ];
                 } else {
-                    $filter = array(
+                    $filter = [
                         'l.title[~]' => $value,
-                        'm.status'   => fAuthor::ST_ON
-                    );
+                        'm.status'   => fAuthor::ST_ON,
+                    ];
                 }
 
                 $author = mh()->get(fAuthor::fmTbl() . '(m)',
-                    array('[><]' . fAuthor::fmTbl('lang') . '(l)' => array('m.id' => 'parent_id')), array('m.id'), $filter);
+                    ['[><]' . fAuthor::fmTbl('lang') . '(l)' => ['m.id' => 'parent_id']], ['m.id'], $filter);
 
                 if (!empty($author)) {
-                    $rows = mh()->select($that::fmTbl('author') . '(r)', array('r.' . $that::MTB . '_id'), array('r.author_id' => $author['id']));
+                    $rows = mh()->select($that::fmTbl('author') . '(r)', ['r.' . $that::MTB . '_id'], ['r.author_id' => $author['id']]);
                 }
 
                 if (!empty($rows)) {
@@ -711,22 +728,26 @@ class Feed extends Module
 
     /**
      * filter some columns we don't want user by themselves
-     * @param  string $column - column name
+     *
+     * @param string $column - column name
+     *
      * @return boolen - filter or not
      */
     public static function filterColumn($column)
     {
         $that = get_called_class();
+
         return !in_array($column, array_merge(self::default_filtered_column(), $that::filtered_column()));
     }
 
     public static function filtered_column()
     {
-        return array();
+        return [];
     }
 
     /**
      * save one column
+     *
      * @param array $req
      */
     public static function saveCol($req, $table = '', $pk = 'id')
@@ -742,17 +763,18 @@ class Feed extends Module
             return false;
         }
 
-        $rtn = mh()->update($that::fmTbl($table), array(
-            $req['col'] => $req['val']
-        ), array(
-            $pk => $req['pid']
-        ));
+        $rtn = mh()->update($that::fmTbl($table), [
+            $req['col'] => $req['val'],
+        ], [
+            $pk => $req['pid'],
+        ]);
 
         return $rtn->rowCount();
     }
 
     /**
-     * @param  $req
+     * @param $req
+     *
      * @return int
      */
     public static function handleSave($req)
@@ -762,7 +784,7 @@ class Feed extends Module
 
     public static function default_filtered_column()
     {
-        return array('id', 'last_ts', 'last_user', 'insert_ts', 'insert_user');
+        return ['id', 'last_ts', 'last_user', 'insert_ts', 'insert_user'];
     }
 
     /**
@@ -771,23 +793,25 @@ class Feed extends Module
     public static function fmTbl($sub_table = '')
     {
         $that = get_called_class();
-        return tpf() . $that::MTB . (($sub_table != '') ? '_' . $sub_table : '');
+
+        return tpf() . $that::MTB . (('' != $sub_table) ? '_' . $sub_table : '');
     }
 
     /**
      * @param $rtn
+     *
      * @return mixed
      */
     public static function chkErr($rtn)
     {
         $err = mh()->error();
 
-        if (is_array($err) && $err[0] != '00000') {
-            if (f3()->get('DEBUG') === 0) {
+        if (is_array($err) && '00000' != $err[0]) {
+            if (0 === f3()->get('DEBUG')) {
                 return null;
             } else {
                 print_r($err);
-                die;
+                exit;
             }
         } else {
             return $rtn;
@@ -796,16 +820,19 @@ class Feed extends Module
 
     /**
      * renderUniqueNo
-     * @param  string   $length - serial_no length
-     * @param  string   $chars  - available char in serial_no
+     *
+     * @param string $length - serial_no length
+     * @param string $chars  - available char in serial_no
+     *
      * @return string
      */
     public static function renderUniqueNo($length = 6, $chars = '3456789ACDFGHJKLMNPQRSTWXY')
     {
         $sn = '';
-        for ($i = 0; $i < $length; $i++) {
+        for ($i = 0; $i < $length; ++$i) {
             $sn .= substr($chars, rand(0, strlen($chars) - 1), 1);
         }
+
         return $sn;
     }
 }

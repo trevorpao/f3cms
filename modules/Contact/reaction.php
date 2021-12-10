@@ -30,10 +30,10 @@ class rContact extends Reaction
         f3()->set('email', $req['email']);
         f3()->set('message', nl2br($req['message']));
 
-        $tp = \Template::instance();
+        $tp      = \Template::instance();
         $content = $tp->render('mail/contact.html');
 
-        $sent = Sender::sendmail('網站詢問通知', $content, f3()->get('opts.default.contact_mail')); //
+        $sent = Sender::sendmail('網站詢問通知', $content, f3()->get('opts.default.contact_mail'));
 
         return parent::_return(1, ['pid' => $obj->id, 'msg' => '感謝您~~']);
     }
@@ -54,7 +54,7 @@ class rContact extends Reaction
             header('Content-Type:text/html; charset=utf-8');
             echo '無結果';
         } else {
-            $template = new Template;
+            $template = new Template();
             f3()->set('rows', $rows);
 
             Outfit::_setXls('contact_' . date('YmdHis'));

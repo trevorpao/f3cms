@@ -1,7 +1,8 @@
 <?php
+
 namespace F3CMS;
 
-use \Predis\Client as Client;
+use Predis\Client as Client;
 
 class RHelper extends Client
 {
@@ -15,7 +16,7 @@ class RHelper extends Client
             self::$_instance = new self([
                 'scheme' => 'tcp',
                 'host'   => f3()->get('redis_host'),
-                'port'   => 6379
+                'port'   => 6379,
             ]);
         }
 
@@ -36,10 +37,9 @@ class RHelper extends Client
 
         $jsonObj = json_decode($content, true);
 
-        if ($jsonObj === null && json_last_error() !== JSON_ERROR_NONE) {
+        if (null === $jsonObj && JSON_ERROR_NONE !== json_last_error()) {
             return $content;
-        }
-        else {
+        } else {
             return $jsonObj;
         }
     }

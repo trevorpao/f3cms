@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 require_once 'tcpdf/tcpdf.php';
@@ -7,21 +8,23 @@ class Pdf extends Helper
 {
     /**
      * create a Pdf by html
-     * @param  string $title    title
-     * @param  string $uri      html uri
-     * @param  string $fileName pdf filename
+     *
+     * @param string $title    title
+     * @param string $uri      html uri
+     * @param string $fileName pdf filename
+     *
      * @return string file path
      */
     public static function createPdf($title, $uri, $fileName)
     {
         $pdfPath = '/upload/doc/';
-        $font = 'simfang';
-        $lang = array(
+        $font    = 'simfang';
+        $lang    = [
             'a_meta_charset'  => 'UTF-8',
             'a_meta_dir'      => 'ltr',
             'a_meta_language' => 'zh',
-            'w_page'          => '頁面'
-        );
+            'w_page'          => '頁面',
+        ];
 
         if (!file_exists($pdfPath)) {
             mkdir($pdfPath, 770);
@@ -41,8 +44,8 @@ class Pdf extends Helper
         // $pdf->SetHeaderData('logo.png', '10', $title, '');
 
         // set header and footer fonts
-        $pdf->setHeaderFont(array(PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN));
-        $pdf->setFooterFont(array(PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA));
+        $pdf->setHeaderFont([PDF_FONT_NAME_MAIN, '', PDF_FONT_SIZE_MAIN]);
+        $pdf->setFooterFont([PDF_FONT_NAME_DATA, '', PDF_FONT_SIZE_DATA]);
 
         // set default monospaced font
         $pdf->SetDefaultMonospacedFont(PDF_FONT_MONOSPACED);

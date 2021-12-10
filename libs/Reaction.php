@@ -1,10 +1,12 @@
 <?php
+
 namespace F3CMS;
 
 class Reaction extends Module
 {
     /**
      * save whole form for backend
+     *
      * @param object $f3   - $f3
      * @param array  $args - uri params
      */
@@ -19,19 +21,19 @@ class Reaction extends Module
             // Check if the action has a corresponding method.
             $method = sprintf('do_%s', $args['method']);
             if (!method_exists($class, $method)) {
-                return self::_return(1004, array('class' => $class, 'method' => $method));
+                return self::_return(1004, ['class' => $class, 'method' => $method]);
             }
 
             // Create a reflection instance of the module, and obtaining the action method.
             $reflectionClass = new \ReflectionClass($class);
 
             $reflectionInstance = $reflectionClass->newInstance();
-            $reflectionMethod = $reflectionClass->getMethod($method);
+            $reflectionMethod   = $reflectionClass->getMethod($method);
 
             // Invoke module action.
             $reflectionMethod->invokeArgs(
                 $reflectionInstance,
-                array($f3, $args)
+                [$f3, $args]
             );
         } catch (Exception $e) {
             return self::_return($e->getCode());
@@ -46,7 +48,7 @@ class Reaction extends Module
     {
         rStaff::_chkLogin(); // chkAuth($feed::PV_R);
 
-        $req = parent::_getReq();
+        $req  = parent::_getReq();
         $feed = parent::_shift(get_called_class(), 'feed');
 
         $req['page'] = ($req['page']) ? ($req['page'] - 1) : 1;
@@ -60,6 +62,7 @@ class Reaction extends Module
 
     /**
      * save whole form for backend
+     *
      * @param object $f3   - $f3
      * @param array  $args - uri params
      */
@@ -67,7 +70,7 @@ class Reaction extends Module
     {
         rStaff::_chkLogin(); // chkAuth($feed::PV_U);
 
-        $req = parent::_getReq();
+        $req  = parent::_getReq();
         $feed = parent::_shift(get_called_class(), 'feed');
 
         if (!isset($req['id'])) {
@@ -78,11 +81,12 @@ class Reaction extends Module
 
         $feed::handleSave($req);
 
-        return self::_return(1, array('id' => $id));
+        return self::_return(1, ['id' => $id]);
     }
 
     /**
      * save photo
+     *
      * @param object $f3   - $f3
      * @param array  $args - uri params
      */
@@ -90,23 +94,24 @@ class Reaction extends Module
     {
         rStaff::_chkLogin();
 
-        $name = str_replace(array('F3CMS\\', '\\'), array('', ''), get_called_class());
+        $name = str_replace(['F3CMS\\', '\\'], ['', ''], get_called_class());
 
-        list($type, $className) = preg_split('/(?<=[rfo])(?=[A-Z])/', $name);
+        [$type, $className] = preg_split('/(?<=[rfo])(?=[A-Z])/', $name);
 
         $thumb_str = strtolower($className) . '_thn';
 
         $default = f3()->exists($thumb_str) ? f3()->get($thumb_str) : f3()->get('default_thn');
 
-        list($filename, $width, $height) = Upload::savePhoto(
-            f3()->get('FILES'), array($default, f3()->get('all_thn'))
+        [$filename, $width, $height] = Upload::savePhoto(
+            f3()->get('FILES'), [$default, f3()->get('all_thn')]
         );
 
-        return self::_return(1, array('filename' => $filename));
+        return self::_return(1, ['filename' => $filename]);
     }
 
     /**
      * save photo
+     *
      * @param object $f3   - $f3
      * @param array  $args - uri params
      */
@@ -116,17 +121,18 @@ class Reaction extends Module
 
         $filename = Upload::saveFile(f3()->get('FILES'));
 
-        return self::_return(1, array('filename' => $filename));
+        return self::_return(1, ['filename' => $filename]);
     }
 
     /**
      * save one column
+     *
      * @param object $f3   - $f3
      * @param array  $args - uri params
      */
     public function do_save_col($f3, $args)
     {
-        $req = parent::_getReq();
+        $req  = parent::_getReq();
         $feed = parent::_shift(get_called_class(), 'feed');
 
         rStaff::_chkLogin(); // chkAuth($feed::PV_U);
@@ -137,11 +143,12 @@ class Reaction extends Module
 
         $id = $feed::save_col($req);
 
-        return self::_return(1, array('id' => $id));
+        return self::_return(1, ['id' => $id]);
     }
 
     /**
      * delete one row
+     *
      * @param object $f3   - $f3
      * @param array  $args - uri params
      */
@@ -165,6 +172,7 @@ class Reaction extends Module
 
     /**
      * get one row
+     *
      * @param object $f3   - $f3
      * @param array  $args - uri params
      */
@@ -181,9 +189,9 @@ class Reaction extends Module
             return self::_return(8004);
         }
 
-        if ($req['id'] == 0) {
+        if (0 == $req['id']) {
             // set default array
-            $cu = array('id' => 0);
+            $cu = ['id' => 0];
         } else {
             $cu = $feed::one($req['id']);
         }
@@ -193,6 +201,7 @@ class Reaction extends Module
         } else {
             // handleCurrentRow
             $cu = $that::handleRow($cu);
+
             return self::_return(1, $cu);
         }
     }
@@ -220,32 +229,36 @@ class Reaction extends Module
     }
 
     /**
-     * @param  array   $params
+     * @param array $params
+     *
      * @return mixed
      */
-    public static function beforeSave($params = array())
+    public static function beforeSave($params = [])
     {
         return $params;
     }
 
     /**
-     * @param  array   $row
+     * @param array $row
+     *
      * @return mixed
      */
-    public static function handleRow($row = array())
+    public static function handleRow($row = [])
     {
         return $row;
     }
 
     /**
      * new return mode
-     * @param  mixed   $code - whether sucess or error code
-     * @param  array   $data - the data need to return
+     *
+     * @param mixed $code - whether sucess or error code
+     * @param array $data - the data need to return
+     *
      * @return array
      */
-    public static function _return($code = 1, $data = array())
+    public static function _return($code = 1, $data = [])
     {
-        $return = array('code' => (int) $code);
+        $return = ['code' => (int) $code];
 
         if (!empty($data)) {
             $return['data'] = $data;
@@ -257,12 +270,12 @@ class Reaction extends Module
 
         // detect jsonp or json
         if (f3()->get('GET.callback') &&
-            (strpos(f3()->get('GET.callback'), '__jp') === 0 || strpos(f3()->get('GET.callback'), 'ng_jsonp_callback_') === 0)) {
+            (0 === strpos(f3()->get('GET.callback'), '__jp') || 0 === strpos(f3()->get('GET.callback'), 'ng_jsonp_callback_'))) {
             header('Content-Type: application/javascript; charset=utf-8');
-            die(f3()->get('GET.callback') . ' (' . json_encode($return) . ');');
+            exit(f3()->get('GET.callback') . ' (' . json_encode($return) . ');');
         } else {
             header('Content-Type: application/json; charset=utf-8');
-            die(json_encode($return));
+            exit(json_encode($return));
         }
     }
 }

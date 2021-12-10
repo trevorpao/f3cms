@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 /**
@@ -20,7 +21,7 @@ class oDictionary extends Outfit
         f3()->set('cu', $cu);
 
         f3()->set('bc_ary', [
-            ['link' => 'javascript:;', 'title' => $cu['title']]
+            ['link' => 'javascript:;', 'title' => $cu['title']],
         ]);
 
         f3()->set('nav', rMenu::sort_menus(1, 0, '', 0));

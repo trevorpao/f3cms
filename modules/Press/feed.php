@@ -1,4 +1,5 @@
 <?php
+
 namespace F3CMS;
 
 /**
@@ -6,28 +7,29 @@ namespace F3CMS;
  */
 class fPress extends Feed
 {
-    const MTB = 'press';
-    const CATEGORYTB = 'tag';
+    public const MTB        = 'press';
+    public const CATEGORYTB = 'tag';
 
-    const ST_DRAFT = 'Draft';
-    const ST_PUBLISHED = 'Published';
-    const ST_SCHEDULED = 'Scheduled';
-    const ST_CHANGED = 'Changed';
-    const ST_OFFLINED = 'Offlined';
+    public const ST_DRAFT     = 'Draft';
+    public const ST_PUBLISHED = 'Published';
+    public const ST_SCHEDULED = 'Scheduled';
+    public const ST_CHANGED   = 'Changed';
+    public const ST_OFFLINED  = 'Offlined';
 
-    const PV_R = 'use.cms';
-    const PV_U = 'use.cms';
-    const PV_D = 'use.cms';
+    public const PV_R = 'use.cms';
+    public const PV_U = 'use.cms';
+    public const PV_D = 'use.cms';
 
-    const PV_SOP = 'see.other.press';
+    public const PV_SOP = 'see.other.press';
 
-    const BE_COLS = 'm.id,l.title,l.info,m.last_ts,m.cover,m.status,m.slug,m.online_date,s.account';
+    public const BE_COLS = 'm.id,l.title,l.info,m.last_ts,m.cover,m.status,m.slug,m.online_date,s.account';
 
     /**
-     * @param  $query
-     * @param  $page
-     * @param  $limit
-     * @param  $cols
+     * @param $query
+     * @param $page
+     * @param $limit
+     * @param $cols
+     *
      * @return mixed
      */
     public static function limitRows($query = '', $page = 0, $limit = 12, $cols = '')
@@ -42,7 +44,7 @@ class fPress extends Feed
 
         $join = [
             '[>]' . fStaff::fmTbl() . '(s)'     => ['m.insert_user' => 'id'],
-            '[>]' . self::fmTbl('lang') . '(l)' => ['m.id' => 'parent_id', 'l.lang' => '[SV]' . Module::_lang()]
+            '[>]' . self::fmTbl('lang') . '(l)' => ['m.id' => 'parent_id', 'l.lang' => '[SV]' . Module::_lang()],
         ];
 
         return self::paginate(self::fmTbl() . '(m)', $filter, $page, $limit, explode(',', self::BE_COLS), $join);
@@ -64,7 +66,7 @@ class fPress extends Feed
 
         $join = [
             '[>]' . fStaff::fmTbl() . '(s)'     => ['m.insert_user' => 'id'],
-            '[>]' . self::fmTbl('lang') . '(l)' => ['m.id' => 'parent_id', 'l.lang' => '[SV]' . Module::_lang()]
+            '[>]' . self::fmTbl('lang') . '(l)' => ['m.id' => 'parent_id', 'l.lang' => '[SV]' . Module::_lang()],
         ];
 
         return self::paginate(self::fmTbl() . '(m)', $filter, $page, $limit, explode(',', self::BE_COLS . $cols), $join);
@@ -97,8 +99,9 @@ class fPress extends Feed
     /**
      * get a next press
      *
-     * @param  int      $press_id    - current
-     * @param  int      $category_id - category
+     * @param int $press_id    - current
+     * @param int $category_id - category
+     *
      * @return string
      */
     public static function load_next($cu, $category_id = 0, $col = 'id')
@@ -119,8 +122,9 @@ class fPress extends Feed
     /**
      * get a prev press
      *
-     * @param  int      $cu          - current
-     * @param  int      $category_id - category
+     * @param int $cu          - current
+     * @param int $category_id - category
+     *
      * @return string
      */
     public static function load_prev($cu, $category_id = 0, $col = 'id')
@@ -148,13 +152,14 @@ class fPress extends Feed
             'LEFT JOIN `' . fSite::fmTbl() . '` AS `s` ON `s`.`id` = `p`.`site_id` ' .
             'WHERE `p`.`title` LIKE :press ORDER BY p.`id` DESC LIMIT 100',
             [
-                ':press' => '%' . $query . '%'
+                ':press' => '%' . $query . '%',
             ]
         )->fetchAll(\PDO::FETCH_ASSOC);
     }
 
     /**
      * save whole form for backend
+     *
      * @param array $req
      */
     public static function save($req, $tbl = '')
@@ -168,12 +173,12 @@ class fPress extends Feed
         unset($req['status']); // can't change status from this func
         unset($req['online_date']);
 
-        list($data, $other) = self::_handleColumn($req);
+        [$data, $other] = self::_handleColumn($req);
 
         $rtn = null;
 
-        if ($req['id'] == 0) {
-            $data['insert_ts'] = date('Y-m-d H:i:s');
+        if (0 == $req['id']) {
+            $data['insert_ts']   = date('Y-m-d H:i:s');
             $data['insert_user'] = rStaff::_CStaff('id');
 
             mh()->insert(self::fmTbl($tbl), $data);
@@ -183,7 +188,7 @@ class fPress extends Feed
             $rtn = self::chkErr($req['id']);
         } else {
             $rtn = mh()->update(self::fmTbl($tbl), $data, [
-                'id' => $req['id']
+                'id' => $req['id'],
             ]);
 
             $rtn = self::chkErr($rtn->rowCount());
@@ -210,12 +215,12 @@ class fPress extends Feed
         $filter = [
             'r.' . $pk => $pid,
             'm.status' => self::ST_PUBLISHED,
-            'ORDER'    => 'r.sorter'
+            'ORDER'    => 'r.sorter',
         ];
 
         return mh()->select(self::fmTbl('related') . '(r)', [
             '[>]' . self::fmTbl('lang') . '(t)' => ['r.related_id' => 'parent_id', 't.lang' => '[SV]' . Module::_lang()],
-            '[>]' . self::fmTbl() . '(m)'       => ['r.related_id' => 'id']
+            '[>]' . self::fmTbl() . '(m)'       => ['r.related_id' => 'id'],
         ], ['t.parent_id(id)', 't.title'], $filter);
     }
 
@@ -231,14 +236,14 @@ class fPress extends Feed
         $filter = [
             'r.' . $pk => $pid,
             'p.status' => fAuthor::ST_ON,
-            'ORDER'    => 'r.sorter'
+            'ORDER'    => 'r.sorter',
         ];
 
         return mh()->select(
             self::fmTbl('author') . '(r)',
             [
                 '[>]' . fAuthor::fmTbl('lang') . '(t)' => ['r.author_id' => 'parent_id', 't.lang' => '[SV]' . Module::_lang()],
-                '[>]' . fAuthor::fmTbl() . '(p)'       => ['r.author_id' => 'id']
+                '[>]' . fAuthor::fmTbl() . '(p)'       => ['r.author_id' => 'id'],
             ], ['p.id', 'p.cover', 't.title'], $filter
         );
     }
@@ -249,24 +254,26 @@ class fPress extends Feed
     }
 
     /**
-     * @param  $queryStr
+     * @param $queryStr
+     *
      * @return mixed
      */
 
     /**
-     * @param  $queryStr
+     * @param $queryStr
+     *
      * @return mixed
      */
     public static function genQuery($queryStr = '')
     {
         $query = parent::genQuery($queryStr);
-        $new = [];
+        $new   = [];
 
         foreach ($query as $key => $value) {
-            if ($key == 'tag') {
+            if ('tag' == $key) {
                 $filter = [
                     'l.title[~]' => $value,
-                    'm.status'   => fTag::ST_ON
+                    'm.status'   => fTag::ST_ON,
                 ];
 
                 $tag = mh()->get(fTag::fmTbl() . '(m)',
@@ -299,10 +306,10 @@ class fPress extends Feed
         if (!empty($rows)) {
             $rtn = mh()->update(self::fmTbl(), [
                 'last_user' => rStaff::_CStaff(),
-                'status'    => self::ST_SCHEDULED
+                'status'    => self::ST_SCHEDULED,
             ], [
                 'id'     => \__::pluck($rows, 'press_id'),
-                'status' => self::ST_PUBLISHED
+                'status' => self::ST_PUBLISHED,
             ]);
         }
     }
