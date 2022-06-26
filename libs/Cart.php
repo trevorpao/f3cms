@@ -1,13 +1,12 @@
 <?php
-
 namespace F3CMS;
 
 class Cart extends Helper
 {
-    public const ST_INSERTED = 'Inserted';
-    public const ST_REMOVED  = 'Removed';
-    public const ST_ADDED    = 'Added';
-    public const ST_EMPTY    = 'Empty';
+    const ST_INSERTED = 'Inserted';
+    const ST_REMOVED = 'Removed';
+    const ST_ADDED = 'Added';
+    const ST_EMPTY = 'Empty';
 
     public function __construct()
     {

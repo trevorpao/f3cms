@@ -44,6 +44,8 @@ class Upload extends Helper
             $im = Image::make($files[$column]['tmp_name']);
             $im->interlace();
 
+            $webpable = self::is_webpable($current['type']);
+
             $width  = $im->width();
             $height = $im->height();
 
@@ -62,6 +64,35 @@ class Upload extends Helper
 
             $im->save($root . $filename . '.' . $ext);
 
+            $im->backup();
+
+            if ($webpable) {
+                self::webp($root . $filename . '.' . $ext);
+            }
+
+            $im->resize(720, null, function ($constraint) {
+                $constraint->aspectRatio(); // constraint the current aspect-ratio
+                $constraint->upsize();      // Keep image from being upsized.
+            });
+
+            $im->save($root . $filename . '_md.' . $ext);
+
+            if ($webpable) {
+                self::webp($root . $filename . '_md.' . $ext);
+            }
+
+            $im->resize(360, null, function ($constraint) {
+                $constraint->aspectRatio(); // constraint the current aspect-ratio
+                $constraint->upsize();      // Keep image from being upsized.
+            });
+
+            $im->save($root . $filename . '_sm.' . $ext);
+
+            if ($webpable) {
+                self::webp($root . $filename . '_sm.' . $ext);
+            }
+
+            // smaller then 360
             foreach ($thumbnail as $ns) {
                 // cropping and resizing
                 $im->fit($ns[0], $ns[1], function ($constraint) {
@@ -69,9 +100,20 @@ class Upload extends Helper
                 }, 'center'); // top-left, top, center
 
                 $im->save($root . $filename . '_' . $ns[0] . 'x' . $ns[1] . '.' . $ext);
+
+                $im->reset();
+
+                if ($webpable) {
+                    self::webp($root . $filename . '_' . $ns[0] . 'x' . $ns[1] . '.' . $ext);
+                }
             }
 
             $new_fn = $filename . '.' . $ext;
+
+            if ($webpable && 'develop' != f3()->get('APP_ENV')) {
+                $new_fn = str_replace('.' . $ext, '.webp', $new_fn);
+                $new_fn .= '?' . $ext;
+            }
         } else {
             $new_fn = '';
             $width  = 0;
@@ -97,7 +139,7 @@ class Upload extends Helper
         ];
 
         if (($files['file']['size'] >= f3()->get('maxsize')) || (0 == $files['file']['size'])) {
-            Reaction::_return('2002', ['msg' => 'File too large. File must be less than 2 megabytes.']);
+            Reaction::_return('2002', ['msg' => 'File too large(' . $files['file']['size'] . '). File must be less than ' . f3()->get('maxsize') . '.']);
         }
 
         if (!in_array($files['file']['type'], $acceptable) && !empty($files['file']['type'])) {
@@ -288,5 +330,55 @@ class Upload extends Helper
         } else {
             return true;
         }
+    }
+
+    /**
+     * @param $path
+     *
+     * @return mixed
+     */
+    public static function webp($path)
+    {
+        if (file_exists($path)) {
+            try {
+                $logger     = new \Log('convert.log');
+                $path_parts = pathinfo($path);
+                $ext        = $path_parts['extension'];
+
+                // if ('image/jpeg' == $mimeType) {
+                //     $ta = str_replace('.'. $ext, '.jp2', $path);
+                //     $ratio = 60;
+                //     $sh = 'convert '. $path .' -quality '. $ratio .' '. $ta .';';
+                //     shell_exec($sh);
+                // }
+
+                $ta    = str_replace('.' . $ext, '.webp', $path);
+                $ratio = 60;
+                $sh    = 'convert ' . $path . ' -quality ' . $ratio . ' -define webp:lossless=false,method=6,auto-filter=true,partitions=3,image-hint=photo ' . $ta . ';';
+
+                $logger->write($sh);
+                shell_exec($sh);
+
+                $path = $ta;
+            } catch (Exception $e) {
+                $logger = new \Log('convert_error.log');
+                $logger->write('failed convert to webp:' . $path);
+            }
+        }
+
+        return $path;
+    }
+
+    /**
+     * @param $mimeType
+     */
+    public static function is_webpable($mimeType)
+    {
+        $taMimeTypes = [
+            'image/jpeg',
+            'image/png',
+        ];
+
+        return in_array($mimeType, $taMimeTypes);
     }
 }

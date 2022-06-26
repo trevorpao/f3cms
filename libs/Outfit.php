@@ -35,7 +35,7 @@ class Outfit extends Module
      */
     public static function _beforeRoute($args)
     {
-        if (f3()->exists('siteBeginDate')) {
+        if (f3()->exists('siteBeginDate')) {  // && f3()->get('APP_ENV') == 'production' && !kStaff::_isLogin()
             $ts  = strtotime(f3()->get('siteBeginDate'));
             $now = time();
 

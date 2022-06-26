@@ -46,10 +46,9 @@ class Reaction extends Module
      */
     public function do_list($f3, $args)
     {
-        rStaff::_chkLogin(); // chkAuth($feed::PV_R);
-
         $req  = parent::_getReq();
         $feed = parent::_shift(get_called_class(), 'feed');
+        chkAuth($feed::PV_R);
 
         $req['page'] = ($req['page']) ? ($req['page'] - 1) : 1;
 
@@ -68,10 +67,9 @@ class Reaction extends Module
      */
     public function do_save($f3, $args)
     {
-        rStaff::_chkLogin(); // chkAuth($feed::PV_U);
-
         $req  = parent::_getReq();
         $feed = parent::_shift(get_called_class(), 'feed');
+        chkAuth($feed::PV_U);
 
         if (!isset($req['id'])) {
             return self::_return(8004);
@@ -92,7 +90,7 @@ class Reaction extends Module
      */
     public function do_upload($f3, $args)
     {
-        rStaff::_chkLogin();
+        kStaff::_chkLogin();
 
         $name = str_replace(['F3CMS\\', '\\'], ['', ''], get_called_class());
 
@@ -117,7 +115,7 @@ class Reaction extends Module
      */
     public function do_upload_file($f3, $args)
     {
-        rStaff::_chkLogin();
+        kStaff::_chkLogin();
 
         $filename = Upload::saveFile(f3()->get('FILES'));
 
@@ -135,7 +133,7 @@ class Reaction extends Module
         $req  = parent::_getReq();
         $feed = parent::_shift(get_called_class(), 'feed');
 
-        rStaff::_chkLogin(); // chkAuth($feed::PV_U);
+        chkAuth($feed::PV_U);
 
         if (!isset($req['id'])) {
             return self::_return(8004);
@@ -157,7 +155,7 @@ class Reaction extends Module
         $that = get_called_class();
         $feed = parent::_shift($that, 'feed');
 
-        rStaff::_chkLogin(); // chkAuth($feed::PV_D);
+        chkAuth($feed::PV_D);
 
         $req = parent::_getReq();
 
@@ -181,7 +179,7 @@ class Reaction extends Module
         $that = get_called_class();
         $feed = parent::_shift($that, 'feed');
 
-        rStaff::_chkLogin(); // chkAuth($feed::PV_R);
+        chkAuth($feed::PV_R);
 
         $req = parent::_getReq();
 
@@ -215,7 +213,7 @@ class Reaction extends Module
         $that = get_called_class();
         $feed = parent::_shift($that, 'feed');
 
-        rStaff::_chkLogin(); // chkAuth($feed::PV_R);
+        kStaff::_chkLogin(); // chkAuth($feed::PV_R);
 
         $req = self::_getReq();
 
@@ -246,6 +244,24 @@ class Reaction extends Module
     public static function handleRow($row = [])
     {
         return $row;
+    }
+
+    public static function formatMsgs()
+    {
+        return [
+            'MissCols'   => [
+                'code' => '8002',
+                'msg'  => '欄位未填寫，請重新確認!',
+            ],
+            'WrongData'  => [
+                'code' => '8204',
+                'msg'  => '欄位資料有誤，請重新確認!',
+            ],
+            'UnVerified' => [
+                'code' => '8205',
+                'msg'  => 'TOKEN 不符，請重新取得!',
+            ],
+        ];
     }
 
     /**

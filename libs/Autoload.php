@@ -19,18 +19,20 @@ class F3CMS_Autoloader
     public static function getType()
     {
         return [
-            'r' => 'reaction',
             'f' => 'feed',
             'o' => 'outfit',
+            'r' => 'reaction',
+            'k' => 'kit',
         ];
     }
 
     public static function getPrefix()
     {
         return [
-            'reaction' => 'r',
             'feed'     => 'f',
             'outfit'   => 'o',
+            'reaction' => 'r',
+            'kit'      => 'k',
         ];
     }
 
@@ -54,15 +56,19 @@ class F3CMS_Autoloader
             $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
         }
 
-        [$type, $moduleName] = preg_split('/(?<=[rfo])(?=[A-Z])/', $className);
+        [$type, $moduleName] = preg_split('/(?<=[fork])(?=[A-Z])/', $className);
 
         if (null !== $moduleName) {
             $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $moduleName) . DIRECTORY_SEPARATOR . self::getType()[$type] . '.php';
 
-            $fileName = str_replace('libs', 'modules', __DIR__) . str_replace('F3CMS', '', $fileName);
+            $fileName  = str_replace('libs', 'modules', __DIR__) . str_replace('F3CMS', '', $fileName);
+
+            if (false === file_exists($fileName)) {
+                $fileName = str_replace('/f3cms', '', $fileName);
+            }
         } else {
             $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $type) . '.php';
-            $fileName = __DIR__ . str_replace('F3CMS', '', $fileName);
+            $fileName  = __DIR__ . str_replace('F3CMS', '', $fileName);
         }
 
         if ((false === file_exists($fileName)) || (false === is_readable($fileName))) {
