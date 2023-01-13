@@ -7,9 +7,9 @@ namespace F3CMS;
  */
 class fSubscription extends Feed
 {
-    public const MTB       = 'subscription';
-    public const MULTILANG = 0;
-    public const BE_COLS   = 'm.id,m.status,m.name,m.phone,m.email,m.lancode,m.last_ts';
+    const MTB       = 'subscription';
+    const MULTILANG = 0;
+    const BE_COLS   = 'm.id,m.status,m.name,m.phone,m.email,m.lancode,m.last_ts';
 
     /**
      * @return mixed
@@ -29,7 +29,7 @@ class fSubscription extends Feed
      */
     public static function cancel($email)
     {
-        $rows = self::exec('SELECT `id`, `status` FROM `' . self::fmTbl() . '` WHERE `email`=?', self::_fixAry([$email]));
+        $rows = self::exec('SELECT `id`, `status` FROM `' . self::fmTbl() . '` WHERE `email`=:email', [':email' => $email]);
 
         if ($rows) {
             parent::change_status($rows[0]['id'], 'Disabled');
@@ -41,7 +41,7 @@ class fSubscription extends Feed
      */
     public static function confirm($email)
     {
-        $rows = self::exec('SELECT `id`, `status` FROM `' . self::fmTbl() . '` WHERE `email`=?', self::_fixAry([$email]));
+        $rows = self::exec('SELECT `id`, `status` FROM `' . self::fmTbl() . '` WHERE `email`=:email', [':email' => $email]);
 
         if ($rows) {
             parent::change_status($rows[0]['id'], 'Enabled');

@@ -56,10 +56,10 @@ class fAdv extends Feed
      */
     public static function getAdvs($position_id, $limit = 10, $orderby = ' rand() ')
     {
-        $condition = " WHERE `position_id` = '" . $position_id . "' AND `status` = '" . self::ST_ON . "' ";
+        $condition = " WHERE `position_id` = :position_id AND `status` = :status ";
         $condition .= " AND `end_date` > '" . date('Y-m-d') . "' ";
 
-        $result = self::exec('SELECT `id`, `title`, `status`, `pic`, `uri`, `theme`, `background`, `summary` FROM `' . self::fmTbl() . '` ' . $condition . '  ORDER BY ' . $orderby . ' LIMIT ' . $limit);
+        $result = self::exec('SELECT `id`, `title`, `status`, `pic`, `uri`, `theme`, `background`, `summary` FROM `' . self::fmTbl() . '` ' . $condition . '  ORDER BY ' . $orderby . ' LIMIT ' . $limit, [':position_id' => $position_id, ':status' => self::ST_ON]);
 
         return (1 === $limit && !empty($result)) ? $result[0] : $result;
     }
@@ -70,9 +70,9 @@ class fAdv extends Feed
     public static function addCounter($id = 0)
     {
         mh()->update(self::fmTbl(), [
-            'counter[+]' => 1,
+            'counter[+]' => 1
         ], [
-            'id' => $id,
+            'id' => $id
         ]);
     }
 
@@ -82,9 +82,9 @@ class fAdv extends Feed
     public static function addExposure($ids = [])
     {
         mh()->update(self::fmTbl(), [
-            'exposure[+]' => 1,
+            'exposure[+]' => 1
         ], [
-            'id' => $ids,
+            'id' => $ids
         ]);
     }
 
@@ -99,28 +99,28 @@ class fAdv extends Feed
             return [];
         }
 
-        $condition = " WHERE m.`position_id` = '" . $position_id . "' AND m.`status` = '" . self::ST_ON . "' ";
+        $condition = " WHERE m.`position_id` = :position_id AND m.`status` = :status ";
         $condition .= " AND m.`end_date` > '" . date('Y-m-d') . "' ";
 
         $select = 'SELECT m.`id`, l.`title`, m.`status`, m.`weight`, m.`cover`, m.`uri`, m.`theme`, m.`background`, l.`subtitle`, l.`content`';
-        $from   = ' FROM `' . self::fmTbl() . '` AS m INNER JOIN `' . self::fmTbl('lang') . '` AS l ON l.`parent_id` = m.`id` AND l.`lang`="' . parent::_lang() . '" ' . $condition;
+        $from = ' FROM `' . self::fmTbl() . '` AS m INNER JOIN `' . self::fmTbl('lang') . '` AS l ON l.`parent_id` = m.`id` AND l.`lang`=\'' . parent::_lang() . '\' ' . $condition;
 
-        $order   = '';
+        $order = '';
         $useRand = false;
-        if ('rand()' != trim($orderby)) {
+        if (trim($orderby) != 'rand()') {
             $order = ' ORDER BY ' . $orderby . ', m.`id` DESC';
         } else {
             $useRand = true;
         }
 
         if ($useRand) {
-            $result = self::exec($select . $from . ' LIMIT 26 ');
+            $result = self::exec($select . $from . ' LIMIT 26 ', [':position_id' => $position_id, ':status' => self::ST_ON]);
 
             if ($result) {
                 $result = self::_randomByWeight($result, $limit);
             }
         } else {
-            $result = self::exec($select . $from . $order . ' LIMIT ' . $limit);
+            $result = self::exec($select . $from . $order . ' LIMIT ' . $limit, [':position_id' => $position_id, ':status' => self::ST_ON]);
         }
 
         return (empty($result)) ? [] : $result;
