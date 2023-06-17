@@ -302,6 +302,14 @@ class Outfit extends Module
             $page = array_merge($page, $new);
         }
 
+        $page = array_merge([
+            'title' => '',
+            'desc' => '',
+            'img' => '',
+            'alternate' => '',
+            'keyword' => ''
+        ], $page);
+
         f3()->set('page', $page);
 
         f3()->set('site.title', $page['title']);

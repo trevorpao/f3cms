@@ -1,20 +1,21 @@
 {
     "name": "sense-info/f3-cms",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "config": {
-        "vendor-dir": "./vendor"
+        "vendor-dir": "./vendor",
+        "platform": {
+            "php": "8.1"
+        }
     },
     "require": {
-        "bcosca/fatfree-core": "^3.6",
-        "ikkez/f3-opauth": "dev-master",
-        "phpoffice/phpexcel": "^1.8",
-        "tecnickcom/tcpdf": "^6.2",
-        "mailgun/mailgun-php": "^2.3",
-        "php-http/curl-client": "^1.7",
-        "guzzlehttp/psr7": "^1.4",
-        "aws/aws-sdk-php": "^3.36",
-        "intervention/image": "^2.4",
-        "maciejczyzewski/bottomline": "^0.0.9",
-        "catfan/medoo": "^1.5"
+        "bcosca/fatfree-core": "^3.8",
+        "phpoffice/phpspreadsheet": "^1.29",
+        "tecnickcom/tcpdf": "^6.6",
+        "aws/aws-sdk-php": "^3.273",
+        "intervention/image": "^2.7",
+        "maciejczyzewski/bottomline": "^0.2.3",
+        "catfan/medoo": "^2.1",
+        "twig/twig": "^3.6",
+        "rakit/validation": "^1.4"
     }
 }

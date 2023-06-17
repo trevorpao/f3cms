@@ -46,28 +46,6 @@ if ($f3->get('DEBUG') == 0) {
     });
 }
 
-// load opauth config (allow token resolve)
-$f3->config('./opauth.ini', true);
-
-// init with config
-$opauth = OpauthBridge::instance($f3->opauth);
-
-// define login handler
-$opauth->onSuccess(function ($data) {
-    header('Content-Type: text');
-    echo 'User successfully authenticated.' . "\n";
-    print_r($data['info']);
-});
-
-// define error handler
-$opauth->onAbort(function ($data) {
-    header('Content-Type: text');
-    echo 'Auth request was canceled.' . "\n";
-    print_r($data);
-});
-
-// $opauth->onSuccess('\F3CMS\rUser->socialLogin');
-
 $f3->set('opts', \F3CMS\fOption::load('', 'Preload'));
 
 $f3->run();

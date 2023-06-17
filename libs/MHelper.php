@@ -2,7 +2,7 @@
 
 namespace F3CMS;
 
-use Medoo\Medoo as Medoo;
+use Medoo\Medoo;
 
 class MHelper extends Medoo
 {
@@ -20,13 +20,13 @@ class MHelper extends Medoo
             'server'        => f3()->get('db_host'),
             'username'      => f3()->get('db_account'),
             'password'      => f3()->get('db_password'),
-            'charset'       => 'utf8',
+            'charset'       => 'utf8mb4',
         ]);
     }
 
-    public static function init()
+    public static function init($force = false)
     {
-        if (!self::$_instance) {
+        if (!self::$_instance || $force) {
             self::$_instance = new self();
         }
 
@@ -41,7 +41,7 @@ class MHelper extends Medoo
      * @param null $where
      * @param null $column_fn
      */
-    protected function selectContext($table, &$map, $join, &$columns = null, $where = null, $column_fn = null)
+    protected function selectContext(string $table, array &$map, $join, &$columns = NULL, $where = NULL, $columnFn = NULL): string
     {
         preg_match('/(?<table>[a-zA-Z0-9_]+)\s*\((?<alias>[a-zA-Z0-9_]+)\)/i', $table, $table_match);
         if (isset($table_match['table'], $table_match['alias'])) {
@@ -74,7 +74,7 @@ class MHelper extends Medoo
                     if (is_array($relation)) {
                         // For ['column1', 'column2']
                         if (isset($relation[0])) {
-                            $relation = 'USING ("' . implode($relation, '", "') . '")';
+                            $relation = 'USING ("' . implode('", "', $relation) . '")';
                         } else {
                             $joins = [];
                             foreach ($relation as $key => $value) {
@@ -88,7 +88,7 @@ class MHelper extends Medoo
                                 ' = ' . (('[SV]' == substr($value, 0, 4)) ? $this->pdo->quote(substr($value, 4)) :
                                 $this->tableQuote($match['alias'] ?? $match['table']) . '."' . $value . '"');
                             }
-                            $relation = 'ON ' . implode($joins, ' AND ');
+                            $relation = 'ON ' . implode(' AND ', $joins);
                         }
                     }
                     $table_name = $this->tableQuote($match['table']) . ' ';
@@ -98,7 +98,7 @@ class MHelper extends Medoo
                     $table_join[] = $join_array[$match['join']] . ' JOIN ' . $table_name . $relation;
                 }
             }
-            $table_query .= ' ' . implode($table_join, ' ');
+            $table_query .= ' ' . implode(' ', $table_join);
         } else {
             if (is_null($columns)) {
                 if (
@@ -172,5 +172,14 @@ class MHelper extends Medoo
         $out = $this->pdo->commit();
 
         return $out;
+    }
+
+    public function error()
+    {
+        if ($this->error) {
+            return $this->errorInfo;
+        } else {
+            return null;
+        }
     }
 }

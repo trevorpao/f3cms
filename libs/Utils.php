@@ -257,7 +257,7 @@ function chkAuth($authority = '')
  * @param $priv
  * @param $auth
  */
-function hasAuth($priv = 0, $auth)
+function hasAuth($priv = 0, $auth = '')
 {
     return \F3CMS\fRole::hasAuth($priv, $auth);
 }
