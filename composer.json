@@ -9,13 +9,13 @@
     },
     "require": {
         "bcosca/fatfree-core": "^3.8",
-        "phpoffice/phpspreadsheet": "^1.29",
+        "phpoffice/phpspreadsheet": "^1.29.1",
         "tecnickcom/tcpdf": "^6.6",
         "aws/aws-sdk-php": "^3.273",
         "intervention/image": "^2.7",
         "maciejczyzewski/bottomline": "^0.2.3",
         "catfan/medoo": "^2.1",
-        "twig/twig": "^3.6",
+        "twig/twig": "^3.14.0",
         "rakit/validation": "^1.4"
     }
 }
