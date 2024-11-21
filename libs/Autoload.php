@@ -1,9 +1,12 @@
 <?php
 
-//autoload.php
-//
 class F3CMS_Autoloader
 {
+    /**
+     * 註冊自動加載器
+     *
+     * @return bool 成功返回 true，失敗返回 false
+     */
     public static function Register()
     {
         if (function_exists('__autoload')) {
@@ -16,6 +19,11 @@ class F3CMS_Autoloader
         }
     }
 
+    /**
+     * 獲取前綴對應的類型
+     *
+     * @return array 前綴對應的類型
+     */
     public static function getType()
     {
         return [
@@ -26,6 +34,11 @@ class F3CMS_Autoloader
         ];
     }
 
+    /**
+     * 獲取類型對應的前綴
+     *
+     * @return array 類型對應的前綴
+     */
     public static function getPrefix()
     {
         return [
@@ -37,11 +50,25 @@ class F3CMS_Autoloader
     }
 
     /**
-     * Autoload a class identified by name
+     * Load 方法根據提供的類名自動加載對應的類。它首先使用 detect 方法來找到類文件的路徑，
+     * 如果找到，則包含該文件以加載類。
+     *
+     * @param string $pClassName 要加載的類名
+     */
+    public static function Load($pClassName)
+    {
+        $fileName = self::detect($pClassName);
+        if (false !== $fileName) {
+            require $fileName;
+        }
+    }
+
+    /**
+     * detect a class file exist
      *
      * @param string $pClassName Name of the object to load
      */
-    public static function Load($pClassName)
+    public static function detect($pClassName)
     {
         if ((class_exists($pClassName, false)) || (0 !== strpos($pClassName, 'F3CMS'))) {
             return false;
@@ -56,28 +83,27 @@ class F3CMS_Autoloader
             $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
         }
 
-        $ary = preg_split('/(?<=[fork])(?=[A-Z])/', $className);
+        if (preg_match('/(^[fork])+([A-Z]\S*)/', $className, $match)) {
+            $type = $match[1];
+            $moduleName = $match[2];
 
-        $type = $ary[0];
-        if (!empty($ary[1])) {
-            $moduleName = $ary[1];
             $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $moduleName) . DIRECTORY_SEPARATOR . self::getType()[$type] . '.php';
 
-            $fileName  = str_replace('libs', 'modules', __DIR__) . str_replace('F3CMS', '', $fileName);
+            $fileName = str_replace('libs', 'modules', __DIR__) . str_replace('F3CMS', '', $fileName);
 
             if (false === file_exists($fileName)) {
                 $fileName = str_replace('/f3cms', '', $fileName);
             }
         } else {
-            $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $type) . '.php';
-            $fileName  = __DIR__ . str_replace('F3CMS', '', $fileName);
+            $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
+            $fileName = __DIR__ . str_replace('F3CMS', '', $fileName);
         }
 
         if ((false === file_exists($fileName)) || (false === is_readable($fileName))) {
             return false;
         }
 
-        require $fileName;
+        return $fileName;
     }
 }
 

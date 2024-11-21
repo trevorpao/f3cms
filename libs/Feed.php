@@ -12,10 +12,13 @@ class Feed extends Module
     const PV_R = 'base.cms';
     const PV_U = 'base.cms';
     const PV_D = 'mgr.cms';
-
+    
     /**
-     * save whole form for backend
-     * @param array $req
+     * 保存 feed 的數據。
+     *
+     * @param array $req 包含 feed 資訊的請求數據。
+     * @param string $tbl 要保存 feed 的表名。
+     * @return mixed 保存操作的結果。
      */
     public static function save($req, $tbl = '')
     {
@@ -49,9 +52,11 @@ class Feed extends Module
     }
 
     /**
-     * save whole form for backend
+     * 更新已發佈的 feed 的狀態和最後修改的資訊。
      *
-     * @param array $req
+     * @param array $req 包含 feed 資訊的請求數據。
+     * @param string $tbl 要更新 feed 的表名。
+     * @return int|null 受影響的行數，如果發生錯誤則為 null。
      */
     public static function published($req, $tbl = '')
     {
@@ -77,11 +82,10 @@ class Feed extends Module
     }
 
     /**
-     * pre handle column by diff type
+     * 處理請求數據的列並返回處理後的數據和其他信息。
      *
-     * @param array $req request columns
-     *
-     * @return array
+     * @param array $req 包含列的請求數據。
+     * @return array 包含處理後的數據和其他信息的數組。
      */
     public static function _handleColumn($req)
     {
@@ -145,9 +149,11 @@ class Feed extends Module
     }
 
     /**
-     * @param $ta_tbl
-     * @param $pid
-     * @param $reverse
+     * 這個方法用於從指定的子表中檢索與給定主表ID相關的記錄。
+     *
+     * @param string $subTbl 子表名稱
+     * @param int $pid 主表ID
+     * @return array 返回與主表ID相關的記錄
      */
     public static function lotsSub($subTbl, $pid)
     {
@@ -193,10 +199,12 @@ class Feed extends Module
     }
 
     /**
+     * this method is used to get the meta data of a record
+     * 
      * @param $pid
-     * @param $key
-     *
-     * @return mixed
+     * @param $key  - meta key
+     * 
+     * @return array
      */
     public static function lotsMeta($pid, $key = '')
     {
@@ -221,7 +229,9 @@ class Feed extends Module
     }
 
     /**
-     * @param $pid
+     * this method is used to get the lang data of a record
+     * @param $pid  - parent id
+     * @param $lang - language code
      *
      * @return array
      */
@@ -268,10 +278,11 @@ class Feed extends Module
     }
 
     /**
-     * @param       $subTbl
-     * @param       $pid
-     * @param array $rels
-     * @param       $reverse
+     *  this method is used to get the tag data of a record
+     * @param       $subTbl - sub table name
+     * @param       $pid    - parent id
+     * @param array $rels   - related ids
+     * @param       $reverse - reverse the relation
      *
      * @return int
      */
@@ -306,14 +317,19 @@ class Feed extends Module
             }
         }
 
+        $affected = 0;
         if (!empty($data)) {
-            mh()->insert($that::fmTbl($subTbl), $data);
+            $data = array_values($data);
+            $rtn = mh()->insert($that::fmTbl($subTbl), $data);
+            $affected = self::chkErr($rtn->rowCount());
         }
 
-        return self::chkErr(1);
+        return $affected;
     }
 
     /**
+     * this method is used to save the meta data of a record
+     * 
      * @param $pid
      * @param $data
      * @param $replace
@@ -391,8 +407,12 @@ class Feed extends Module
     }
 
     /**
-     * @param $query
-     */
+     * 从数据库中根据给定的查询和列检索选项。
+     *
+     * @param string $query 搜索查询。
+     * @param string $column 要搜索的列。
+     * @return array 从数据库中检索到的选项。
+     */    
     public static function getOpts($query = '', $column = 'title')
     {
         $that   = get_called_class();
@@ -426,11 +446,20 @@ class Feed extends Module
     public static function changeStatus($pid, $status)
     {
         $that = get_called_class();
-        mh()->update($that::fmTbl(), [
+
+        $data = mh()->update($that::fmTbl(), [
             'status' => $status,
         ], [
             'id' => $pid,
         ]);
+
+        $affected = self::chkErr($data->rowCount());
+
+        if ($affected) {
+            // TODO: if $that::STATULOG is true, then log the status change
+        }
+
+        return $affected;
     }
 
     /**
@@ -446,7 +475,13 @@ class Feed extends Module
             'id' => $pid,
         ]);
 
-        return self::chkErr($data->rowCount());
+        $affected = self::chkErr($data->rowCount());
+
+        if ($affected) {
+            // TODO: save to log
+        }
+
+        return $affected;
     }
 
     /**
@@ -827,6 +862,8 @@ class Feed extends Module
     }
 
     /**
+     * this method is used to format sql string for sql server
+     * 
      * @param $sql
      */
     public static function format($sql)
@@ -853,13 +890,16 @@ class Feed extends Module
         return 1;
     }
 
+    /**
+     * this method is used to get the default filtered column, keep the system column out of the output
+     */
     public static function default_filtered_column()
     {
         return ['id', 'last_ts', 'last_user', 'insert_ts', 'insert_user'];
     }
 
     /**
-     * get class const
+     * get the table name
      */
     public static function fmTbl($sub_table = '')
     {
@@ -869,6 +909,8 @@ class Feed extends Module
     }
 
     /**
+     * this method is used to check the error and print the error message
+     * 
      * @param $rtn
      *
      * @return mixed
@@ -901,7 +943,39 @@ class Feed extends Module
     }
 
     /**
-     * renderUniqueNo
+     * this method is used to numeric the primary key, keep the primary key in a numeric value
+     */
+    public static function safePKAry($pid)
+    {
+        if (is_array($pid)) {
+            $pid = array_filter($pid, function ($v) {
+                return is_numeric($v);
+            });
+        } else {
+            $pid = [intval($pid)];
+        }
+
+        return $pid;
+    }
+
+    /**
+     * this method is used to slugify the string
+     */
+    public static function safeSlugAry($slugs)
+    {
+        if (is_array($slugs)) {
+            $slugs = array_filter($slugs, function ($v) {
+                return parent::_slugify($v);
+            });
+        } else {
+            $slugs = [parent::_slugify($slugs)];
+        }
+
+        return $slugs;
+    }
+
+    /**
+     * this method is used to get uuid string
      *
      * @param string $length - serial_no length
      * @param string $chars  - available char in serial_no
@@ -936,7 +1010,7 @@ class Feed extends Module
     final public static function _chkPsw($str, $hash, $memberID = 0)
     {
         if (0 != $memberID && strlen($hash) < 40) {
-            if ($hash == md5($str)) {
+            if ($hash == md5($str)) { // for old password
                 $that = get_called_class();
 
                 $that::saveCol([
@@ -955,7 +1029,7 @@ class Feed extends Module
     }
 
     /**
-     * @param  no       input
+     * this method is used to generate a token string
      *
      * @return [string] [tokenString]
      */
