@@ -1029,16 +1029,12 @@ class Feed extends Module
     }
 
     /**
-     * this method is used to generate a token string
+     * @param  no       input
      *
      * @return [string] [tokenString]
      */
     final public static function _genToken()
     {
-        $rand1       = Encryption::salt(32);
-        $rand2       = Encryption::salt(32);
-        $tokenString = $rand1 . $rand2;
-
-        return $tokenString;
+        return secure_random_string(64);
     }
 }

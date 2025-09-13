@@ -443,17 +443,27 @@ function getCookie($idx)
     }
 }
 
+function secure_random_string($length, $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
+{
+    $charactersLength = strlen($characters);
+    $randomString = '';
+    for ($i = 0; $i < $length; $i++) {
+        $randomIndex = random_int(0, $charactersLength - 1);
+        $randomString .= $characters[$randomIndex];
+    }
+
+    return $randomString;
+}
+
 /**
  * @return mixed
  */
 function uuid()
 {
-    $chars = md5(uniqid(mt_rand(), true));
-    $uuid  = substr($chars, 0, 8) . '-'
+    $chars = secure_random_string(40, '0123456789abcdefghijklmnopqrstuvwxyz');
+    return substr($chars, 0, 8) . '-'
     . substr($chars, 8, 4) . '-'
     . substr($chars, 12, 4) . '-'
     . substr($chars, 16, 4) . '-'
     . substr($chars, 20, 12);
-
-    return $uuid;
 }
