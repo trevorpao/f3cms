@@ -7,61 +7,18 @@ namespace F3CMS;
  */
 class fAdv extends Feed
 {
-    public const MTB    = 'adv';
-    public const ST_ON  = 'Enabled';
-    public const ST_OFF = 'Disabled';
+    const MTB    = 'adv';
+    const ST_ON  = 'Enabled';
+    const ST_OFF = 'Disabled';
 
-    public const BE_COLS = 'm.id,l.title,m.position_id,m.weight,m.start_date,m.end_date,m.counter,m.exposure,m.status,m.last_ts';
-
-    /**
-     * @return mixed
-     */
-    public static function getAll()
-    {
-        $result = self::exec('SELECT a.id, a.title, a.position_id, a.end_date, a.counter, a.last_ts FROM `' . self::fmTbl() . '` a ');
-
-        foreach ($result as &$row) {
-            $row['position'] = self::getPositions()[$row['position_id']]['title'];
-        }
-
-        return $result;
-    }
+    const BE_COLS = 'm.id,l.title,m.position_id,m.position_id,m.weight,m.cover,m.start_date,m.end_date,m.counter,m.exposure,m.status,m.last_ts';
 
     public static function getPositions()
     {
-        return [
-            '1' => [
-                'id'    => '1',
-                'title' => '首頁/HERO大圖(1600*800)',
-            ],
-            '2' => [
-                'id'    => '2',
-                'title' => '外部連結(400*200)',
-            ],
-            '3' => [
-                'id'    => '3',
-                'title' => '首頁跳出式提示',
-            ],
-            '4' => [
-                'id'    => '4',
-                'title' => '會員跳出式提示',
-            ],
-        ];
-    }
+        $positions = fGenus::getOpts('adv', 'm.group');
+        $idArray   = array_column($positions, 'id');
 
-    /**
-     * @param $position_id
-     * @param $limit
-     * @param $orderby
-     */
-    public static function getAdvs($position_id, $limit = 10, $orderby = ' rand() ')
-    {
-        $condition = " WHERE `position_id` = :position_id AND `status` = :status ";
-        $condition .= " AND `end_date` > '" . date('Y-m-d') . "' ";
-
-        $result = self::exec('SELECT `id`, `title`, `status`, `pic`, `uri`, `theme`, `background`, `summary` FROM `' . self::fmTbl() . '` ' . $condition . '  ORDER BY ' . $orderby . ' LIMIT ' . $limit, [':position_id' => $position_id, ':status' => self::ST_ON]);
-
-        return (1 === $limit && !empty($result)) ? $result[0] : $result;
+        return array_combine($idArray, $positions);
     }
 
     /**
@@ -70,9 +27,9 @@ class fAdv extends Feed
     public static function addCounter($id = 0)
     {
         mh()->update(self::fmTbl(), [
-            'counter[+]' => 1
+            'counter[+]' => 1,
         ], [
-            'id' => $id
+            'id' => $id,
         ]);
     }
 
@@ -82,10 +39,15 @@ class fAdv extends Feed
     public static function addExposure($ids = [])
     {
         mh()->update(self::fmTbl(), [
-            'exposure[+]' => 1
+            'exposure[+]' => 1,
         ], [
-            'id' => $ids
+            'id' => $ids,
         ]);
+    }
+
+    public static function genOrder()
+    {
+        return ['m.position_id' => 'ASC', 'm.weight' => 'DESC', 'm.insert_ts' => 'DESC'];
     }
 
     /**
@@ -99,15 +61,16 @@ class fAdv extends Feed
             return [];
         }
 
-        $condition = " WHERE m.`position_id` = :position_id AND m.`status` = :status ";
-        $condition .= " AND m.`end_date` > '" . date('Y-m-d') . "' ";
+        $condition = ' WHERE m.`position_id` = :position_id AND m.`status` = :status ';
+        $condition .= " AND m.`end_date` > '" . date('Y-m-d H:i:s') . "' ";
+        $condition .= " AND m.`start_date` < '" . date('Y-m-d H:i:s') . "' ";
 
         $select = 'SELECT m.`id`, l.`title`, m.`status`, m.`weight`, m.`cover`, m.`uri`, m.`theme`, m.`background`, l.`subtitle`, l.`content`';
-        $from = ' FROM `' . self::fmTbl() . '` AS m INNER JOIN `' . self::fmTbl('lang') . '` AS l ON l.`parent_id` = m.`id` AND l.`lang`=\'' . parent::_lang() . '\' ' . $condition;
+        $from   = ' FROM `' . self::fmTbl() . '` AS m INNER JOIN `' . self::fmTbl('lang') . '` AS l ON l.`parent_id` = m.`id` AND l.`lang`=\'' . parent::_lang() . '\' ' . $condition;
 
-        $order = '';
+        $order   = '';
         $useRand = false;
-        if (trim($orderby) != 'rand()') {
+        if ('rand()' != trim($orderby)) {
             $order = ' ORDER BY ' . $orderby . ', m.`id` DESC';
         } else {
             $useRand = true;
@@ -124,6 +87,16 @@ class fAdv extends Feed
         }
 
         return (empty($result)) ? [] : $result;
+    }
+
+    /**
+     * @param $query
+     * @param $page
+     * @param $limit
+     */
+    public static function getOpts($query = '', $column = 'm.name')
+    {
+        return self::getPositions();
     }
 
     /**
@@ -151,26 +124,10 @@ class fAdv extends Feed
         $tmp = array_values(array_unique($tmp));
         foreach ($tmp as $i => $v) {
             if ($i < $limit) {
-                $rtn[] = $ary[(ord($v) - 65)];
+                $rtn[] = $ary[ord($v) - 65];
             }
         }
 
         return $rtn;
-    }
-
-    public static function filtered_column()
-    {
-        return ['sh', 'sm', 'eh', 'em'];
-    }
-
-    /**
-     * @param $req
-     */
-    public static function _handleColumn($req)
-    {
-        $req['start_date'] = $req['start_date'] . ' ' . $req['sh'] . ':' . $req['sm'] . ':00';
-        $req['end_date']   = $req['end_date'] . ' ' . $req['eh'] . ':' . $req['em'] . ':00';
-
-        return parent::_handleColumn($req);
     }
 }
