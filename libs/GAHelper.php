@@ -9,20 +9,29 @@ use Google\Analytics\Data\V1beta\Metric;
 use Google\Analytics\Data\V1beta\RunReportRequest;
 use Google\ApiCore\ApiException;
 
+/**
+ * GAHelper 類別提供與 Google Analytics API 的互動功能，
+ * 包括報表查詢與數據格式化。
+ */
 class GAHelper extends Helper
 {
-    const METRIC_PAGE_VIEWS          = 'screenPageViews';
-    const METRIC_SESSIONS            = 'sessions';
-    const METRIC_ACTIVE_1_DAY_USERS  = 'active1DayUsers';
-    const METRIC_ACTIVE_7_DAY_USERS  = 'active7DayUsers';
-    const METRIC_ACTIVE_28_DAY_USERS = 'active28DayUsers';
+    /**
+     * Google Analytics 的常用指標常數。
+     */
+    const METRIC_PAGE_VIEWS          = 'screenPageViews'; // 頁面瀏覽次數
+    const METRIC_SESSIONS            = 'sessions';       // 會話數
+    const METRIC_ACTIVE_1_DAY_USERS  = 'active1DayUsers'; // 1 天內活躍用戶
+    const METRIC_ACTIVE_7_DAY_USERS  = 'active7DayUsers'; // 7 天內活躍用戶
+    const METRIC_ACTIVE_28_DAY_USERS = 'active28DayUsers'; // 28 天內活躍用戶
 
-    private $propertyId;
-    private $client;
+    private $propertyId; // GA Property ID
+    private $client;     // GA API 客戶端
 
     /**
-     * @param string $propertyId            例如 '123456789'
-     * @param string $serviceAccountKeyPath
+     * 建構子，初始化 Google Analytics 客戶端。
+     *
+     * @param string $propertyId GA Property ID，例如 '123456789'
+     * @param string $serviceAccountKeyPath 服務帳戶金鑰路徑
      */
     public function __construct($propertyId, $serviceAccountKeyPath)
     {
@@ -33,10 +42,11 @@ class GAHelper extends Helper
     }
 
     /**
-     * @param string $start
-     * @param string $end
+     * 根據日期範圍查詢頁面瀏覽數據。
      *
-     * @return array [['date' => '2024-05-24', 'cnt' => 123], ...]
+     * @param string $start 起始日期，預設為 '28daysAgo'
+     * @param string $end 結束日期，預設為 'today'
+     * @return array 包含日期與頁面瀏覽數的陣列
      */
     public function byDate(string $start = '28daysAgo', string $end = 'today'): array
     {
@@ -44,10 +54,11 @@ class GAHelper extends Helper
     }
 
     /**
-     * @param string $start
-     * @param string $end
+     * 根據國家查詢頁面瀏覽數據。
      *
-     * @return array [['country' => 'Taiwan', 'cnt' => 123], ...]
+     * @param string $start 起始日期，預設為 '28daysAgo'
+     * @param string $end 結束日期，預設為 'today'
+     * @return array 包含國家與頁面瀏覽數的陣列
      */
     public function byCountry(string $start = '28daysAgo', string $end = 'today'): array
     {
@@ -55,14 +66,13 @@ class GAHelper extends Helper
     }
 
     /**
-     * 通用報表查詢
+     * 通用報表查詢方法。
      *
-     * @param array  $dimensions
-     * @param string $metric
-     * @param string $start
-     * @param string $end
-     *
-     * @return array
+     * @param array $dimensions 維度名稱陣列
+     * @param string $metric 指標名稱
+     * @param string $start 起始日期
+     * @param string $end 結束日期
+     * @return array 查詢結果陣列
      */
     private function runReport(array $dimensions, string $metric, string $start, string $end): array
     {
@@ -98,7 +108,11 @@ class GAHelper extends Helper
     }
 
     /**
-     * 維度值格式化
+     * 格式化維度值。
+     *
+     * @param string $dimension 維度名稱
+     * @param string $value 維度值
+     * @return string 格式化後的維度值
      */
     private static function _formatDimensionValue(string $dimension, string $value): string
     {

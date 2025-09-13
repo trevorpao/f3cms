@@ -3,25 +3,25 @@
 namespace F3CMS;
 
 /**
- * Filecache handler
+ * FCHelper 類別負責處理文件快取操作。
+ * 它提供了保存、讀取、清除快取等功能，並支援快取的歷史記錄與壓縮。
  */
 class FCHelper extends Reaction
 {
     /**
-     * @var int
+     * @var int 是否啟用快取歷史記錄
      */
     public $ifHistory = 0;
+
     /**
-     * @var string
+     * @var string 快取的基礎目錄
      */
     private $base = 'cache';
 
     /**
-     * constructor
+     * 建構子，初始化快取目錄並設定操作類型。
      *
-     * @param object $dbInstance - db instance
-     *
-     * @return none
+     * @param string $action 操作類型
      */
     public function __construct($action)
     {
@@ -35,10 +35,11 @@ class FCHelper extends Reaction
     }
 
     /**
-     * @param $filename
-     * @param $html
+     * 保存快取內容到指定的快取名稱。
      *
-     * @return mixed
+     * @param string $cacheName 快取名稱
+     * @param string $content 快取內容
+     * @return string 返回保存的快取內容
      */
     public function save($cacheName, $content)
     {
@@ -67,7 +68,11 @@ class FCHelper extends Reaction
     }
 
     /**
-     * @param $arg
+     * 根據請求取得快取內容。
+     *
+     * @param object $f3 框架實例
+     * @param array $args 請求參數
+     * @return array 包含 HTML 的快取內容
      */
     public function do_get($f3, $args)
     {
@@ -89,8 +94,10 @@ class FCHelper extends Reaction
     }
 
     /**
-     * @param $cacheName
-     * @param $useWildcard
+     * 清除指定快取名稱的快取。
+     *
+     * @param string $cacheName 快取名稱
+     * @param bool $useWildcard 是否使用通配符
      */
     public function flush($cacheName, $useWildcard)
     {
@@ -101,16 +108,20 @@ class FCHelper extends Reaction
         }
     }
 
+    /**
+     * 清除所有快取。
+     */
     public function flushAll()
     {
         $this->removeFiles('cache.*.html');
     }
 
     /**
-     * @param $cacheName
-     * @param $maxLifetime
+     * 取得指定快取名稱的快取內容。
      *
-     * @return mixed
+     * @param string $cacheName 快取名稱
+     * @param int $maxLifetime 最大存活時間（分鐘）
+     * @return mixed 快取內容或 null
      */
     public function get($cacheName, $maxLifetime = 0)
     {
@@ -130,7 +141,10 @@ class FCHelper extends Reaction
     }
 
     /**
-     * @param $cacheName
+     * 取得快取的歷史記錄。
+     *
+     * @param string $cacheName 快取名稱
+     * @return array 快取歷史記錄
      */
     public function getLog($cacheName)
     {
@@ -147,9 +161,10 @@ class FCHelper extends Reaction
     }
 
     /**
-     * @param $cacheName
+     * 發送請求並設置快取。
      *
-     * @return mixed
+     * @param string $cacheName 快取名稱
+     * @return mixed 請求結果
      */
     public function requestSet($cacheName)
     {
@@ -183,9 +198,11 @@ class FCHelper extends Reaction
     }
 
     /**
-     * @param $path
-     * @param $content
-     * @param $mode
+     * 寫入文件內容。
+     *
+     * @param string $path 文件路徑
+     * @param string $content 文件內容
+     * @param string $mode 文件開啟模式
      */
     private function writeFile($path, $content, $mode = 'w+')
     {
@@ -199,11 +216,10 @@ class FCHelper extends Reaction
     }
 
     /**
-     * Returns cache filename.
+     * 取得快取文件的路徑。
      *
-     * @param string $cacheName
-     *
-     * @return string
+     * @param string $cacheName 快取名稱
+     * @return string 快取文件路徑
      */
     protected function getFilename($cacheName)
     {
@@ -217,9 +233,9 @@ class FCHelper extends Reaction
     }
 
     /**
-     * Returns cache filename.
+     * 取得備份快取文件的路徑。
      *
-     * @return string
+     * @return string 備份文件路徑
      */
     protected function getBackupFilename()
     {
@@ -227,9 +243,9 @@ class FCHelper extends Reaction
     }
 
     /**
-     * Removes files matching given pattern.
+     * 移除符合指定模式的文件。
      *
-     * @param string $pattern
+     * @param string $pattern 文件匹配模式
      */
     protected function removeFiles($pattern)
     {
@@ -241,12 +257,11 @@ class FCHelper extends Reaction
     }
 
     /**
-     * Determines wheater the cache needs to be rebuild or not.
+     * 判斷快取是否需要重建。
      *
-     * @param string $filename
-     * @param int    $maxLifetime
-     *
-     * @return bool
+     * @param string $filename 快取文件名稱
+     * @param int $maxLifetime 最大存活時間（分鐘）
+     * @return bool 是否需要重建
      */
     protected function needRebuild($filename, $maxLifetime)
     {
@@ -275,12 +290,11 @@ class FCHelper extends Reaction
     }
 
     /**
-     * Loads the file of a cached resource.
+     * 讀取快取文件內容。
      *
-     * @param string $cacheName
-     * @param string $filename
-     *
-     * @return mixed
+     * @param string $cacheName 快取名稱
+     * @param string $filename 快取文件名稱
+     * @return mixed 快取內容
      */
     protected function readCache($cacheName, $filename)
     {
@@ -304,11 +318,10 @@ class FCHelper extends Reaction
     }
 
     /**
-     * Loads the file of a cached resource.
+     * 讀取歷史記錄文件內容。
      *
-     * @param string $filename
-     *
-     * @return mixed
+     * @param string $filename 文件名稱
+     * @return mixed 文件內容
      */
     public function readHistory($filename)
     {
@@ -325,9 +338,10 @@ class FCHelper extends Reaction
     }
 
     /**
-     * @param $buffer
+     * 壓縮內容以減少空白字符。
      *
-     * @return mixed
+     * @param string $buffer 要壓縮的內容
+     * @return string 壓縮後的內容
      */
     public static function minify($buffer)
     {

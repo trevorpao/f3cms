@@ -4,18 +4,22 @@ namespace F3CMS;
 use Google\Cloud\BigQuery\BigQueryClient;
 use Google\Cloud\Core\Exception\GoogleException;
 
+/**
+ * BigQueryHelper 類別提供與 Google BigQuery 的互動功能，
+ * 包括資料上傳與查詢。
+ */
 class BigQueryHelper extends Helper
 {
-    private $bigQuery;
-    private $projectId;
-    private $datasetName;
+    private $bigQuery; // BigQuery 客戶端
+    private $projectId; // Google Cloud 專案 ID
+    private $datasetName; // BigQuery 資料集名稱
 
     /**
-     * Constructor to initialize BigQuery client and dataset.
+     * 建構子，初始化 BigQuery 客戶端與資料集。
      *
-     * @param string $projectId
-     * @param string $datasetName
-     * @param string $serviceAccountKeyPath
+     * @param string $projectId Google Cloud 專案 ID
+     * @param string $datasetName BigQuery 資料集名稱
+     * @param string $serviceAccountKeyPath 服務帳戶金鑰路徑
      */
     public function __construct($projectId, $datasetName, $serviceAccountKeyPath)
     {
@@ -28,11 +32,12 @@ class BigQueryHelper extends Helper
     }
 
     /**
-     * Uploads a CSV file to a BigQuery table.
+     * 將 CSV 檔案上傳至 BigQuery 表格。
      *
-     * @param string $tableName
-     * @param string $csvFilePath
-     * @return bool
+     * @param string $tableName 表格名稱
+     * @param string $csvFilePath CSV 檔案路徑
+     * @param array $fields 表格欄位結構
+     * @return bool 是否成功上傳
      */
     public function uploadCsvToTable($tableName, $csvFilePath, $fields)
     {
@@ -88,10 +93,10 @@ class BigQueryHelper extends Helper
     }
 
     /**
-     * Fetches 100 records from a BigQuery table.
+     * 從 BigQuery 表格中提取 100 筆記錄。
      *
-     * @param string $tableName
-     * @return array
+     * @param string $tableName 表格名稱
+     * @return array 提取的記錄陣列
      */
     public function fetchRecordsFromTable($tableName)
     {

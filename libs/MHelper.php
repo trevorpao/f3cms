@@ -4,13 +4,20 @@ namespace F3CMS;
 
 use Medoo\Medoo;
 
+/**
+ * MHelper 類別擴展了 Medoo 資料庫框架，
+ * 提供額外的資料庫操作功能，例如自訂查詢上下文與交易管理。
+ */
 class MHelper extends Medoo
 {
     /**
-     * @var mixed
+     * @var MHelper 實例，用於管理資料庫操作。
      */
     private static $_instance = false;
 
+    /**
+     * 初始化 MHelper 實例，並設置資料庫連線配置。
+     */
     public function __construct()
     {
         // $this->pdo = f3()->get('DB')->pdo();
@@ -24,6 +31,12 @@ class MHelper extends Medoo
         ]);
     }
 
+    /**
+     * 獲取或重新初始化 MHelper 實例。
+     *
+     * @param bool $force 是否強制重新初始化
+     * @return MHelper 實例
+     */
     public static function init($force = false)
     {
         if (!self::$_instance || $force) {
@@ -34,12 +47,15 @@ class MHelper extends Medoo
     }
 
     /**
-     * @param $table
-     * @param $map
-     * @param $join
-     * @param $columns
-     * @param null $where
-     * @param null $column_fn
+     * 建立 SELECT 查詢的上下文。
+     *
+     * @param string $table 資料表名稱
+     * @param array $map 映射參數
+     * @param mixed $join JOIN 條件
+     * @param mixed $columns 查詢欄位
+     * @param mixed $where 查詢條件
+     * @param mixed $columnFn 欄位函式
+     * @return string 組合的 SQL 查詢字串
      */
     protected function selectContext(string $table, array &$map, $join, &$columns = NULL, $where = NULL, $columnFn = NULL): string
     {
@@ -139,9 +155,9 @@ class MHelper extends Medoo
     }
 
     /**
-     *   Begin SQL transaction
+     * 開始 SQL 交易。
      *
-     * @return bool
+     * @return bool 是否成功開始交易
      */
     public function begin()
     {
@@ -151,9 +167,9 @@ class MHelper extends Medoo
     }
 
     /**
-     *   Rollback SQL transaction
+     * 回滾 SQL 交易。
      *
-     * @return bool
+     * @return bool 是否成功回滾交易
      */
     public function rollback()
     {
@@ -163,9 +179,9 @@ class MHelper extends Medoo
     }
 
     /**
-     *   Commit SQL transaction
+     * 提交 SQL 交易。
      *
-     * @return bool
+     * @return bool 是否成功提交交易
      */
     public function commit()
     {
@@ -174,6 +190,11 @@ class MHelper extends Medoo
         return $out;
     }
 
+    /**
+     * 獲取最近的錯誤資訊。
+     *
+     * @return array|null 錯誤資訊或 null
+     */
     public function error()
     {
         if ($this->error) {

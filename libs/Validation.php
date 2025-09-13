@@ -6,16 +6,22 @@ use Rakit\Validation\Validator;
 
 // https://github.com/rakit/validation
 
+/**
+ * Validation 類別提供資料驗證功能，
+ * 使用 Rakit Validation 套件進行表單輸入的驗證。
+ */
 class Validation extends Module
 {
     /**
-     * @var instance
+     * @var Validator 實例，用於執行驗證邏輯。
      */
     private static $_instance = false;
 
     /**
-     * @param $input
-     * @param $rule
+     * 初始化驗證器並設置自訂錯誤訊息。
+     *
+     * @param array $input 使用者輸入的資料
+     * @param array $rule 驗證規則
      */
     public static function init($input, $rule)
     {
@@ -42,8 +48,11 @@ class Validation extends Module
     }
 
     /**
-     * @param $input
-     * @param $rule
+     * 驗證輸入資料是否符合規則。
+     *
+     * @param array $input 使用者輸入的資料
+     * @param array $rule 驗證規則
+     * @return bool 驗證是否通過
      */
     public static function check($input, $rule)
     {
@@ -56,8 +65,11 @@ class Validation extends Module
     }
 
     /**
-     * @param $input
-     * @param $rule
+     * 驗證輸入資料並返回錯誤訊息或成功狀態。
+     *
+     * @param array $input 使用者輸入的資料
+     * @param array $rule 驗證規則
+     * @return mixed 驗證失敗時返回錯誤訊息，成功時返回 1
      */
     public static function return($input, $rule)
     {
@@ -65,7 +77,7 @@ class Validation extends Module
 
         if (self::$_instance->fails()) {
             if (isAjax()) {
-                Reaction::_return(8004, ['msg' => self::$_instance->errors()->all()]);
+                Reaction::_return(8003, ['msg' => self::$_instance->errors()->all()]);
             } else {
                 return self::$_instance->errors()->all('<li>:message</li>');
             }
@@ -74,6 +86,11 @@ class Validation extends Module
         }
     }
 
+    /**
+     * 提供預設的驗證規則。
+     *
+     * @return array 預設的驗證規則陣列
+     */
     private static function _defaultRule()
     {
         return [

@@ -2,13 +2,16 @@
 
 namespace F3CMS;
 
+/**
+ * Reaction 類別提供了後端資料操作的核心功能，包括資料列的新增、刪除、更新與查詢。
+ */
 class Reaction extends Module
 {
     /**
-     * save whole form for backend
+     * 處理後端表單的路由邏輯。
      *
-     * @param object $f3   - $f3
-     * @param array  $args - uri params
+     * @param object $f3 框架實例
+     * @param array $args URI 參數
      */
     public function do_rerouter($f3, $args)
     {
@@ -41,8 +44,11 @@ class Reaction extends Module
     }
 
     /**
-     * @param $f3
-     * @param $args
+     * 列出資料。
+     *
+     * @param object $f3 框架實例
+     * @param array $args URI 參數
+     * @return array 資料列表
      */
     public function do_list($f3, $args)
     {
@@ -60,10 +66,11 @@ class Reaction extends Module
     }
 
     /**
-     * save whole form for backend
+     * 儲存整個表單的資料。
      *
-     * @param object $f3   - $f3
-     * @param array  $args - uri params
+     * @param object $f3 框架實例
+     * @param array $args URI 參數
+     * @return array 儲存結果
      */
     public function do_save($f3, $args)
     {
@@ -83,10 +90,11 @@ class Reaction extends Module
     }
 
     /**
-     * save photo
+     * 上傳照片。
      *
-     * @param object $f3   - $f3
-     * @param array  $args - uri params
+     * @param object $f3 框架實例
+     * @param array $args URI 參數
+     * @return array 上傳結果
      */
     public function do_upload($f3, $args)
     {
@@ -108,10 +116,11 @@ class Reaction extends Module
     }
 
     /**
-     * save photo
+     * 上傳文件。
      *
-     * @param object $f3   - $f3
-     * @param array  $args - uri params
+     * @param object $f3 框架實例
+     * @param array $args URI 參數
+     * @return array 上傳結果
      */
     public function do_upload_file($f3, $args)
     {
@@ -123,10 +132,11 @@ class Reaction extends Module
     }
 
     /**
-     * save one column
+     * 儲存單一欄位的資料。
      *
-     * @param object $f3   - $f3
-     * @param array  $args - uri params
+     * @param object $f3 框架實例
+     * @param array $args URI 參數
+     * @return array 儲存結果
      */
     public function do_save_col($f3, $args)
     {
@@ -145,10 +155,11 @@ class Reaction extends Module
     }
 
     /**
-     * delete one row
+     * 刪除單一資料列。
      *
-     * @param object $f3   - $f3
-     * @param array  $args - uri params
+     * @param object $f3 框架實例
+     * @param array $args URI 參數
+     * @return array 刪除結果
      */
     public function do_del($f3, $args)
     {
@@ -169,10 +180,11 @@ class Reaction extends Module
     }
 
     /**
-     * get one row
+     * 取得單一資料列。
      *
-     * @param object $f3   - $f3
-     * @param array  $args - uri params
+     * @param object $f3 框架實例
+     * @param array $args URI 參數
+     * @return array 資料列內容
      */
     public function do_get($f3, $args)
     {
@@ -205,8 +217,11 @@ class Reaction extends Module
     }
 
     /**
-     * @param $f3
-     * @param $args
+     * 取得選項資料。
+     *
+     * @param object $f3 框架實例
+     * @param array $args URI 參數
+     * @return array 選項資料
      */
     public function do_get_opts($f3, $args)
     {
@@ -227,9 +242,10 @@ class Reaction extends Module
     }
 
     /**
-     * @param array $params
+     * 儲存前的處理邏輯。
      *
-     * @return mixed
+     * @param array $params 資料參數
+     * @return array 處理後的參數
      */
     public static function beforeSave($params = [])
     {
@@ -237,15 +253,21 @@ class Reaction extends Module
     }
 
     /**
-     * @param array $row
+     * 處理單一資料列。
      *
-     * @return mixed
+     * @param array $row 資料列
+     * @return array 處理後的資料列
      */
     public static function handleRow($row = [])
     {
         return $row;
     }
 
+    /**
+     * 格式化訊息。
+     *
+     * @return array 訊息格式
+     */
     public static function formatMsgs()
     {
         return [
@@ -265,12 +287,11 @@ class Reaction extends Module
     }
 
     /**
-     * new return mode
+     * 返回資料的標準格式。
      *
-     * @param mixed $code - whether sucess or error code
-     * @param array $data - the data need to return
-     *
-     * @return array
+     * @param mixed $code 成功或錯誤代碼
+     * @param array $data 返回的資料
+     * @return array 格式化後的返回資料
      */
     public static function _return($code = 1, $data = [])
     {

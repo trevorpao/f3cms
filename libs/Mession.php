@@ -2,6 +2,11 @@
 
 namespace F3CMS;
 
+/**
+ * Mession 類別擴展了 MHelper，
+ * 提供基於資料庫的 Session 管理功能，
+ * 包括開啟、關閉、讀取、寫入、銷毀與清理 Session。
+ */
 class Mession extends MHelper
 {
     //! Session ID
@@ -15,13 +20,17 @@ class Mession extends MHelper
     //! Suspect callback
         protected $onsuspect;
 
+    protected $rtn; // 用於存儲查詢結果
+    protected $tbl; // 資料表名稱
+    protected $logger; // 日誌記錄器
+    protected $debug = false; // 除錯模式
+
     /**
-     *   Open session
+     * 開啟 Session。
      *
-     * @param $path string
-     * @param $name string
-     *
-     * @return true
+     * @param string $path Session 存儲路徑
+     * @param string $name Session 名稱
+     * @return bool 是否成功開啟
      */
     public function open($path, $name)
     {
@@ -29,9 +38,9 @@ class Mession extends MHelper
     }
 
     /**
-     *   Close session
+     * 關閉 Session。
      *
-     * @return true
+     * @return bool 是否成功關閉
      */
     public function close()
     {
@@ -41,11 +50,10 @@ class Mession extends MHelper
     }
 
     /**
-     *   Return session data in serialized format
+     * 讀取 Session 資料。
      *
-     * @param $id string
-     *
-     * @return string
+     * @param string $id Session ID
+     * @return string Session 資料
      */
     public function read($id)
     {
@@ -72,12 +80,11 @@ class Mession extends MHelper
     }
 
     /**
-     *   Write session data
+     * 寫入 Session 資料。
      *
-     * @param $id   string
-     * @param $data string
-     *
-     * @return true
+     * @param string $id Session ID
+     * @param string $data 要寫入的資料
+     * @return bool 是否成功寫入
      */
     public function write($id, $data)
     {
@@ -110,11 +117,10 @@ class Mession extends MHelper
     }
 
     /**
-     *   Destroy session
+     * 銷毀指定的 Session。
      *
-     * @param $id string
-     *
-     * @return true
+     * @param string $id Session ID
+     * @return bool 是否成功銷毀
      */
     public function destroy($id)
     {
@@ -126,11 +132,10 @@ class Mession extends MHelper
     }
 
     /**
-     *   Garbage collector
+     * 清理過期的 Session。
      *
-     * @param $max int
-     *
-     * @return true
+     * @param int $max 最大存活時間（秒）
+     * @return bool 是否成功清理
      */
     public function cleanup($max)
     {
@@ -142,9 +147,9 @@ class Mession extends MHelper
     }
 
     /**
-     *   Return session id (if session has started)
+     * 獲取當前的 Session ID。
      *
-     * @return string|null
+     * @return string|null Session ID 或 null
      */
     public function sid()
     {
@@ -152,9 +157,9 @@ class Mession extends MHelper
     }
 
     /**
-     *   Return anti-CSRF token
+     * 獲取 Anti-CSRF Token。
      *
-     * @return string
+     * @return string Anti-CSRF Token
      */
     public function csrf()
     {
@@ -162,9 +167,9 @@ class Mession extends MHelper
     }
 
     /**
-     *   Return IP address
+     * 獲取用戶的 IP 地址。
      *
-     * @return string
+     * @return string IP 地址
      */
     public function ip()
     {
@@ -172,9 +177,9 @@ class Mession extends MHelper
     }
 
     /**
-     *   Return Unix timestamp
+     * 獲取 Session 的時間戳。
      *
-     * @return string|false
+     * @return string|false 時間戳或 false
      */
     public function stamp()
     {
@@ -186,9 +191,9 @@ class Mession extends MHelper
     }
 
     /**
-     *   Return HTTP user agent
+     * 獲取用戶的 HTTP User Agent。
      *
-     * @return string
+     * @return string User Agent
      */
     public function agent()
     {
@@ -196,26 +201,31 @@ class Mession extends MHelper
     }
 
     /**
-     *   Return TRUE if current cursor position is not mapped to any record
+     * 判斷當前游標位置是否未映射到任何記錄。
      *
-     *   @return bool
-     **/
+     * @return bool 是否為空
+     */
     public function dry()
     {
         return empty($this->rtn) ? true : false;
     }
 
+    /**
+     * 寫入日誌。
+     *
+     * @param string $str 日誌內容
+     */
     public function writeLog($str)
     {
         ($this->debug) ? $this->logger->write($str) : '';
     }
 
     /**
-     *   Instantiate class
+     * 類別建構子，初始化 Session 管理。
      *
-     * @param $force     bool
-     * @param $onsuspect callback
-     * @param $key       string
+     * @param bool $force 是否強制初始化
+     * @param callable|null $onsuspect 可疑行為的回調函式
+     * @param string|null $key Anti-CSRF Token 的鍵名
      */
     public function __construct($force = true, $onsuspect = null, $key = null)
     {

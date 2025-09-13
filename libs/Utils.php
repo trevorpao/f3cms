@@ -1,19 +1,30 @@
 <?php
 
+/**
+ * Utils 檔案提供多種實用的全域函式，
+ * 包括資料庫操作、語言檢測、IP 驗證、CORS 設定、JSON 編碼等功能。
+ */
+
+/**
+ * 獲取 Fat-Free Framework 的 Base 實例。
+ *
+ * @return Base 實例
+ */
 function f3()
 {
-    return \Base::instance();
+    return Base::instance();
 }
 
 /**
- * get db instance
+ * 獲取資料庫操作的實例。
  *
- * @return db obj
+ * @param bool $force 是否強制重新初始化
+ * @return MHelper 資料庫操作實例
  */
 function mh($force = false)
 {
     if (!f3()->exists('MH') || $force) {
-        $mh = \F3CMS\MHelper::init();
+        $mh = F3CMS\MHelper::init($force);
         f3()->set('MH', $mh);
     }
 
@@ -21,15 +32,13 @@ function mh($force = false)
 }
 
 /**
- * get fat free web instance
- * as a Client-Side
- * https://fatfreeframework.com/3.7/web#Instantiation
+ * 獲取 Fat-Free Framework 的 Web 實例。
  *
- * @return instance
+ * @return Web 實例
  */
 function cs()
 {
-    return \Web::instance();
+    return Web::instance();
 }
 
 function tpf()
@@ -58,9 +67,40 @@ function _dzv($key, $object)
  */
 function langTPS($default, $other)
 {
-    return (\F3CMS\Module::_lang() == f3()->get('defaultLang')) ? $default : $other;
+    return (F3CMS\Module::_lang() == f3()->get('defaultLang')) ? $default : $other;
 }
 
+/**
+ * 獲取 CSRF 令牌。
+ *
+ * @return string CSRF 令牌
+ */
+function getCSRF()
+{
+    if ('database' == f3()->get('sessionBase')) {
+        return f3()->get('sess')->csrf();
+    } elseif ('redis' == f3()->get('sessionBase')) {
+        return f3()->get('sess')->csrf();
+    } else {
+        return f3()->CSRF;
+    }
+}
+
+/**
+ * 檢查當前請求是否為 Ajax 請求。
+ *
+ * @return bool 是否為 Ajax 請求
+ */
+function isAjax()
+{
+    return (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 'xmlhttprequest' == strtolower($_SERVER['HTTP_X_REQUESTED_WITH'])) || (!empty($_SERVER['HTTP_ACCEPT']) && false !== strpos(strtolower($_SERVER['HTTP_ACCEPT']), 'json'));
+}
+
+/**
+ * 檢測是否使用 HTTPS。
+ *
+ * @return bool 是否為 HTTPS
+ */
 function is_https()
 {
     if (isset($_SERVER['HTTPS']) && 'on' === strtolower($_SERVER['HTTPS'])) {
@@ -75,7 +115,7 @@ function is_https()
 }
 
 /**
- * Returns if the given ip is on the given whitelist.
+ * 驗證給定的 IP 是否在白名單中。
  * https://stackoverflow.com/a/51524420
  *
  * $whitelist = [
@@ -85,10 +125,10 @@ function is_https()
  *     // '*' would allow any ip btw
  * ];
  *
- * @param string $ip        the ip to check
- * @param array  $whitelist The ip whitelist. An array of strings.
+ * @param string $ip        要檢查的 IP
+ * @param array  $whitelist IP 白名單
  *
- * @return bool
+ * @return bool 是否允許
  */
 function isAllowedIP($ip, array $whitelist)
 {
@@ -119,33 +159,15 @@ function isAllowedIP($ip, array $whitelist)
             return true;
         }
     }
+
     // return false on default
     return false;
 }
 
 /**
- * @param $default
+ * 設定 CORS（跨來源資源共享）。
  *
- * @return mixed
- */
-function detectBrowserLang($default = 'en')
-{
-    $rtn = $default;
-
-    switch (strtolower(substr($_SERVER['HTTP_ACCEPT_LANGUAGE'], 0, 2))) {
-        case 'zh':
-        case 'cn':
-        case 'tw':
-        case 'hk':
-            $rtn = 'tw';
-            break;
-    }
-
-    return $rtn;
-}
-
-/**
- * @param array $allowedOrigins
+ * @param array $allowedOrigins 允許的來源陣列
  */
 function setCORS($allowedOrigins = [])
 {
@@ -181,7 +203,7 @@ function fQuery()
 function rtTrace($flag = '', $debug = 0)
 {
     if (f3()->get('DEBUG') >= $debug) {
-        $logger = new \Log('sql_trace.log');
+        $logger = new Log('sql_trace.log');
         if ('' != $flag) {
             $logger->write($flag);
         }
@@ -220,6 +242,15 @@ function removeZH($string)
     return preg_replace($ascii, '', $string);
 }
 
+function containsCJK($string)
+{
+    // 定義包含中、日、韓文字符的Unicode範圍的正則表達式
+    $cjkPattern = '/[\x{4E00}-\x{9FFF}\x{3040}-\x{30FF}\x{AC00}-\x{D7AF}]/u';
+
+    // 使用preg_match來檢測字串中是否含有中、日、韓文字元
+    return preg_match($cjkPattern, $string);
+}
+
 /**
  * @param $str
  * @param $mode
@@ -238,7 +269,7 @@ function chkRegisterID($str, $mode = 'strict')
  */
 function canDo($authority = '')
 {
-    return \F3CMS\fRole::hasAuth(\F3CMS\fStaff::_current('priv'), $authority);
+    return F3CMS\fRole::hasAuth(F3CMS\fStaff::_current('priv'), $authority);
 }
 
 /**
@@ -246,10 +277,10 @@ function canDo($authority = '')
  */
 function chkAuth($authority = '')
 {
-    \F3CMS\kStaff::_chkLogin();
+    F3CMS\kStaff::_chkLogin();
 
-    if (!canDo($authority)) {
-        \F3CMS\Reaction::_return(8009);
+    if ('' != $authority && !canDo($authority)) {
+        F3CMS\Reaction::_return(8009);
     }
 }
 
@@ -259,11 +290,11 @@ function chkAuth($authority = '')
  */
 function hasAuth($priv = 0, $auth = '')
 {
-    return \F3CMS\fRole::hasAuth($priv, $auth);
+    return F3CMS\fRole::hasAuth($priv, $auth);
 }
 
 /**
- * @param $topic
+ * @param       $topic
  * @param array $detail
  */
 function systemAlert($topic, $detail = [])
@@ -272,15 +303,15 @@ function systemAlert($topic, $detail = [])
     f3()->set('here', gethostname());
     f3()->set('detail', jsonEncode($detail));
 
-    \F3CMS\Sender::sendmail(
+    F3CMS\Sender::sendmail(
         f3()->get('site_title') . ' ' . $topic,
-        \F3CMS\Sender::renderBody('system-alert'),
+        F3CMS\Sender::renderBody('system-alert'),
         f3()->get('webmaster')
     );
 }
 
 /**
- * @return null
+ * 檢查磁碟空間使用情況，並在超過 90% 時發送警告。
  */
 function chkDiskSpace()
 {
@@ -288,7 +319,7 @@ function chkDiskSpace()
         $diskTotalSpace = @disk_total_space(f3()->get('baseDisk'));
         $diskFreeSpace  = @disk_free_space(f3()->get('baseDisk'));
 
-        $canUseSpace = round((100 - ($diskFreeSpace / $diskTotalSpace) * 100), 2);
+        $canUseSpace = round(100 - ($diskFreeSpace / $diskTotalSpace) * 100, 2);
 
         if ($canUseSpace > 90) {
             systemAlert('空間用量警示', [
@@ -309,28 +340,18 @@ function hJsonEncode($obj)
     return htmlentities(jsonEncode($obj));
 }
 
-function getCSRF()
-{
-    if ('database' == f3()->get('sessionBase')) {
-        return f3()->get('sess')->csrf();
-    } elseif ('redis' == f3()->get('sessionBase')) {
-        return f3()->get('sess')->csrf();
-    } else {
-        return f3()->CSRF;
-    }
-}
-
-function isAjax()
-{
-    return (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 'xmlhttprequest' == strtolower($_SERVER['HTTP_X_REQUESTED_WITH'])) || (!empty($_SERVER['HTTP_ACCEPT']) && false !== strpos(strtolower($_SERVER['HTTP_ACCEPT']), 'json'));
-}
-
 /**
  * for human json encode
  */
-function jsonEncode($obj)
+function jsonEncode($obj, $pretty = false)
 {
-    return json_encode($obj, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($pretty) {
+        $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_PRETTY_PRINT;
+    } else {
+        $flags = JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES;
+    }
+
+    return json_encode($obj, $flags);
 }
 
 /**
@@ -395,9 +416,14 @@ function getCaller()
     $caller = $trace[1]['class']; // 1 or 2
     $caller = str_replace(['F3CMS\\', '\\'], ['', ''], $caller);
     $caller = preg_split('/(?<=[fork])(?=[A-Z])/', $caller);
-    $caller = \F3CMS_Autoloader::getType()[$caller[0]];
+    $caller = F3CMS_Autoloader::getType()[$caller[0]];
 
     return $caller;
+}
+
+function safeCount($ary)
+{
+    return (!is_countable($ary)) ? 0 : count($ary);
 }
 
 /**
@@ -415,12 +441,12 @@ function setCookieV2($idx, $val = '', $httponly = true)
         'Samesite' => 'Lax',                                                                                          // None || Lax || Strict
     ];
 
+    if (empty($val)) {
+        $val = '';
+    }
+
     try {
-        if ('7.3' > PHP_VERSION) {
-            setcookie($idx, $val, null, null, null, null, $httponly);
-        } else {
-            setcookie($idx, $val, $opt);
-        }
+        setcookie($idx, $val, $opt['Expires'], $opt['Path'], $opt['Domain'], $opt['Secure'], $opt['Httponly']);
         f3()->set('SESSION.' . $idx, $val);
     } catch (Exception $e) {
         exit('too late for cookie.');
@@ -446,8 +472,8 @@ function getCookie($idx)
 function secure_random_string($length, $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
 {
     $charactersLength = strlen($characters);
-    $randomString = '';
-    for ($i = 0; $i < $length; $i++) {
+    $randomString     = '';
+    for ($i = 0; $i < $length; ++$i) {
         $randomIndex = random_int(0, $charactersLength - 1);
         $randomString .= $characters[$randomIndex];
     }
@@ -461,6 +487,7 @@ function secure_random_string($length, $characters = '0123456789abcdefghijklmnop
 function uuid()
 {
     $chars = secure_random_string(40, '0123456789abcdefghijklmnopqrstuvwxyz');
+
     return substr($chars, 0, 8) . '-'
     . substr($chars, 8, 4) . '-'
     . substr($chars, 12, 4) . '-'

@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * F3CMS_Autoloader 類負責自動加載 F3CMS 框架中的類文件。
+ * 它提供了註冊自動加載器、獲取類型與前綴對應關係，以及根據類名加載文件的功能。
+ */
 class F3CMS_Autoloader
 {
     /**
@@ -64,9 +67,10 @@ class F3CMS_Autoloader
     }
 
     /**
-     * detect a class file exist
+     * detect 方法負責檢測類文件是否存在，並返回文件路徑。
      *
-     * @param string $pClassName Name of the object to load
+     * @param string $pClassName 要檢測的類名
+     * @return string|false 如果找到文件，返回文件路徑；否則返回 false。
      */
     public static function detect($pClassName)
     {
@@ -107,4 +111,5 @@ class F3CMS_Autoloader
     }
 }
 
+// 註冊自動加載器
 F3CMS_Autoloader::Register();

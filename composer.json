@@ -9,13 +9,20 @@
     },
     "require": {
         "bcosca/fatfree-core": "^3.8",
-        "phpoffice/phpspreadsheet": "^1.29.1",
-        "tecnickcom/tcpdf": "^6.7.5",
-        "aws/aws-sdk-php": "^3.288.1",
-        "intervention/image": "^2.7",
+        "phpoffice/phpspreadsheet": "^2.2",
+        "tecnickcom/tcpdf": "^6.7",
+        "aws/aws-sdk-php": "^3.320",
+        "intervention/image": "^3.8",
         "maciejczyzewski/bottomline": "^0.2.3",
         "catfan/medoo": "^2.1",
-        "twig/twig": "^3.14.0",
-        "rakit/validation": "^1.4"
+        "twig/twig": "^3.11",
+        "rakit/validation": "^1.4",
+        "mailgun/mailgun-php": "^4.3",
+        "symfony/http-client": "^6.4",
+        "nyholm/psr7": "^1.8",
+        "google/analytics-data": "^0.22.2",
+        "ezyang/htmlpurifier": "^4.18",
+        "google/cloud-bigquery": "^1.31",
+        "deeplcom/deepl-php": "^1.12"
     }
 }

@@ -2,14 +2,17 @@
 
 namespace F3CMS;
 
+/**
+ * Module 類別提供了多種輔助功能，包括資料轉換、語言設定、裝置檢測等。
+ */
 class Module
 {
     /**
-     * _escape
+     * 對輸入的陣列或字串進行轉義處理，防止 XSS 攻擊。
      *
-     * @param mixed $array - obj need to escape
-     *
-     * @return mixed
+     * @param mixed $array 要轉義的資料
+     * @param bool $quote 是否添加引號
+     * @return mixed 轉義後的資料
      */
     protected static function _escape($array, $quote = true)
     {
@@ -37,7 +40,10 @@ class Module
     }
 
     /**
-     * @param $str
+     * 防止 XSS 攻擊，將字串轉換為 HTML 實體。
+     *
+     * @param string $str 要處理的字串
+     * @return string 處理後的字串
      */
     private static function protectedXss($str)
     {
@@ -45,8 +51,11 @@ class Module
     }
 
     /**
-     * @param $name
-     * @param $target
+     * 根據名稱和目標生成對應的類名。
+     *
+     * @param string $name 類名
+     * @param string $target 目標前綴
+     * @return string 生成的類名
      */
     public static function _shift($name, $target)
     {
@@ -58,9 +67,9 @@ class Module
     }
 
     /**
-     * handle angular post data
+     * 處理 Angular 的 POST 資料，並返回解析後的陣列。
      *
-     * @return array - post data
+     * @return array POST 資料
      */
     public static function _getReq()
     {
@@ -86,7 +95,10 @@ class Module
     }
 
     /**
-     * @param array $args
+     * 設定或取得語言設定。
+     *
+     * @param array $args 語言參數
+     * @return string 當前語言
      */
     public static function _lang($args = [])
     {
@@ -108,7 +120,9 @@ class Module
     }
 
     /**
-     * @return mixed
+     * 檢測使用者的裝置類型。
+     *
+     * @return string 裝置類型
      */
     public static function _mobile_user_agent()
     {
@@ -134,9 +148,10 @@ class Module
     }
 
     /**
-     * @param $text
+     * 將文字轉換為 URL 友好的 slug。
      *
-     * @return mixed
+     * @param string $text 要轉換的文字
+     * @return string 轉換後的 slug
      */
     public static function _slugify($text)
     {

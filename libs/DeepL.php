@@ -7,6 +7,11 @@ use DeepL\Translator;
 class DeepLHelper
 {
     /**
+     * DeepLHelper 是一個用於與 DeepL 翻譯 API 互動的單例類別。
+     * 它提供了翻譯文字的靜態方法，並確保只有一個翻譯器實例被創建。
+     */
+
+    /**
      * @var DeepLHelper|null 單例實例
      */
     private static $instance = null;
@@ -17,7 +22,10 @@ class DeepLHelper
     private $translator;
 
     /**
-     * 私有建構子，防止外部直接實例化
+     * 私有建構子，防止外部直接實例化。
+     * 此方法會從應用程式配置中讀取 DeepL API 金鑰，並初始化 Translator 實例。
+     *
+     * @throws \InvalidArgumentException 如果未提供 API 金鑰。
      */
     private function __construct()
     {
@@ -43,9 +51,11 @@ class DeepLHelper
     }
 
     /**
-     * 獲取單例實例
+     * 獲取單例實例。
      *
-     * @return DeepLHelper
+     * 此方法確保 DeepLHelper 類別的唯一實例，並在需要時進行初始化。
+     *
+     * @return DeepLHelper 單例實例。
      */
     public static function getInstance()
     {
@@ -57,12 +67,15 @@ class DeepLHelper
     }
 
     /**
-     * 靜態翻譯文字
+     * 靜態翻譯文字。
      *
-     * @param string $text - 要翻譯的文字
-     * @param string $targetLang - 目標語言 (例如 'EN', 'ZH', 'JA')
-     * @param string|null $sourceLang - 原始語言 (可選，若為 null 則自動偵測)
-     * @return string - 翻譯後的文字
+     * 此方法使用 DeepL API 將文字翻譯為指定的目標語言。
+     *
+     * @param string $text 要翻譯的文字。
+     * @param string $targetLang 目標語言 (例如 'EN', 'ZH', 'JA')。
+     * @param string|null $sourceLang 原始語言 (可選，若為 null 則自動偵測)。
+     * @return string 翻譯後的文字。
+     * @throws \InvalidArgumentException 如果未提供文字或目標語言。
      */
     public static function translate($text, $targetLang, $sourceLang = null)
     {
@@ -90,7 +103,11 @@ class DeepLHelper
     }
 
     /**
-     * @param $str
+     * 記錄錯誤訊息。
+     *
+     * 此方法將錯誤訊息寫入日誌檔案。
+     *
+     * @param string|array $str 要記錄的訊息。
      */
     private static function _log($str)
     {
