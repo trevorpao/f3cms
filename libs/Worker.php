@@ -4,6 +4,12 @@ namespace F3CMS;
 
 class Worker extends Helper
 {
+    public $class;
+    public $method;
+    public $cuClass;
+    public $logger;
+
+    // ! Instantiate class
     /**
      * @param $module
      * @param $method
@@ -21,20 +27,21 @@ class Worker extends Helper
         if (null != $logger) {
             $this->logger = $logger;
         } else {
-            $this->logger = new \Log($module . '_' . $method . '.log');
+            $this->logger = new \Log(str_replace('\\', '_', $module) . '_' . $method . '.log');
         }
     }
 
     /**
-     * @param $obj
-     * @param $mode
+     * @param array $obj
+     * @param       $mode
      */
-    public function startWorker($obj, $mode = 'All')
+    public function startWorker($obj = [''], $mode = 'All')
     {
         $i        = 0;
         $children = [];
         $doneAry  = [];
         foreach ($obj as $k => $v) {
+            $this->logger->write('param====>' . $v . PHP_EOL);
             $pid = pcntl_fork();
             ++$i;
             $this->logger->write('pid====>' . $pid . PHP_EOL);
@@ -46,7 +53,7 @@ class Worker extends Helper
                     $this->_runChild($v);
                     exit(0);
                 default:
-                    //parent
+                    // parent
                     $children[] = $pid;
             }
 
@@ -94,6 +101,8 @@ class Worker extends Helper
             exit('1004::' . $class . '->' . $method . PHP_EOL);
         }
 
+        $this->cuClass = $class . '::' . $method;
+
         // Create a reflection instance of the module, and obtaining the action method.
         $reflectionClass = new \ReflectionClass($class);
 
@@ -106,17 +115,17 @@ class Worker extends Helper
      */
     private function _runChild($value)
     {
-        $this->logger->write("In child {$value} " . PHP_EOL);
+        // $this->logger->write("In child {$value} ".PHP_EOL);
 
         try {
             usleep(5000); // sleep 0.005s
             // throw new Exception("Error Processing Request ({$value })", 1);
 
             // Invoke module action.
-            $this->method->invokeArgs(
+            $this->logger->write($this->cuClass . ' return ' . $this->method->invokeArgs(
                 $this->class,
                 [$value]
-            );
+            ));
         } catch (\Exception $e) {
             $this->logger->write('Caught exception: ' . $e->getMessage() . PHP_EOL);
         }

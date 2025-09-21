@@ -83,7 +83,7 @@ class Pdf extends Helper
 
         // ---------------------------------------------------------
 
-        //Close and output PDF document
+        // Close and output PDF document
         $pdf->Output($pdfPath . $file_name . '.pdf', 'FD');
 
         return $pdfPath . $file_name . '.pdf';

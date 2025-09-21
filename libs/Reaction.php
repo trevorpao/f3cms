@@ -2,16 +2,21 @@
 
 namespace F3CMS;
 
-/**
- * Reaction 類別提供了後端資料操作的核心功能，包括資料列的新增、刪除、更新與查詢。
- */
+// The Reaction class extends the Module class and handles backend operations.
+// It includes methods for saving, uploading, and retrieving data, as well as managing user interactions.
+
 class Reaction extends Module
 {
+    const RTN_DONE       = 'Done';       // Indicates a successful operation.
+    const RTN_MISSCOLS   = 'MissCols';  // Indicates missing columns in the data.
+    const RTN_WRONGDATA  = 'WrongData'; // Indicates invalid data.
+    const RTN_UNVERIFIED = 'UnVerified'; // Indicates unverified data.
+
     /**
-     * 處理後端表單的路由邏輯。
+     * Handles rerouting logic for backend operations.
      *
-     * @param object $f3 框架實例
-     * @param array $args URI 參數
+     * @param object $f3   The Fat-Free Framework instance.
+     * @param array  $args The URI parameters.
      */
     public function do_rerouter($f3, $args)
     {
@@ -19,12 +24,16 @@ class Reaction extends Module
             $args = parent::_escape($args, false);
 
             // Create an instance of the module class.
-            $class = '\F3CMS\r' . ucfirst($args['module']);
+            $class = '\PCMS\r' . ucfirst($args['module']);
 
             // Check if the action has a corresponding method.
             $method = sprintf('do_%s', $args['method']);
             if (!method_exists($class, $method)) {
-                return self::_return(1004, ['class' => $class, 'method' => $method]);
+                $class = str_replace('PCMS', 'F3CMS', $class);
+
+                if (!method_exists($class, $method)) {
+                    return self::_return(1004, ['class' => $class, 'method' => $method]);
+                }
             }
 
             // Create a reflection instance of the module, and obtaining the action method.
@@ -44,67 +53,91 @@ class Reaction extends Module
     }
 
     /**
-     * 列出資料。
+     * Retrieves a list of records based on the provided query.
      *
-     * @param object $f3 框架實例
-     * @param array $args URI 參數
-     * @return array 資料列表
+     * @param object $f3   The Fat-Free Framework instance.
+     * @param array  $args The URI parameters.
+     * @return array The list of retrieved records.
      */
     public function do_list($f3, $args)
     {
-        $req  = parent::_getReq();
-        $feed = parent::_shift(get_called_class(), 'feed');
-        chkAuth($feed::PV_R);
+        $req  = parent::_getReq(); // Retrieve the request data.
+        $that = get_called_class(); // Get the current class name.
+        $feed = parent::_shift($that, 'feed'); // Shift to the Feed module.
 
-        $req['page'] = ($req['page']) ? ($req['page'] - 1) : 1;
+        chkAuth($feed::PV_R); // Check read permissions.
 
-        $rtn = $feed::limitRows($req['query'], $req['page']);
+        // Set pagination parameters.
+        $req['page']  = (isset($req['page'])) ? ($req['page'] - 1) : 0;
+        $maxLimit     = ($feed::PAGELIMIT > 24) ? $feed::PAGELIMIT : 24;
+        $req['limit'] = (!empty($req['limit'])) ? max(min($req['limit'] * 1, $maxLimit), 12) : $maxLimit;
 
-        $rtn['query'] = $query;
+        if (!isset($req['query'])) {
+            $req['query'] = '';
+        }
 
-        return self::_return(1, $rtn);
+        // Retrieve the records based on the query.
+        $rtn = $feed::limitRows($req['query'], $req['page'], $req['limit']);
+
+        // Process each record using a custom iteratee function.
+        $rtn['subset'] = \__::map($rtn['subset'], function ($row) use ($that) {
+            return $that::handleIteratee($row);
+        });
+
+        return self::_return(1, $rtn); // Return the processed records.
     }
 
     /**
-     * 儲存整個表單的資料。
+     * Saves data to the backend.
      *
-     * @param object $f3 框架實例
-     * @param array $args URI 參數
-     * @return array 儲存結果
+     * @param object $f3   The Fat-Free Framework instance.
+     * @param array  $args The URI parameters.
+     * @return array The result of the save operation.
      */
     public function do_save($f3, $args)
     {
-        $req  = parent::_getReq();
-        $feed = parent::_shift(get_called_class(), 'feed');
-        chkAuth($feed::PV_U);
+        $req  = parent::_getReq(); // Retrieve the request data.
+        $feed = parent::_shift(get_called_class(), 'feed'); // Shift to the Feed module.
+        $kit  = parent::_shift(get_called_class(), 'kit'); // Shift to the Kit module.
+
+        chkAuth($feed::PV_U); // Check update permissions.
 
         if (!isset($req['id'])) {
             return self::_return(8004);
         }
 
-        $id = $feed::save($req);
+        if (parent::_exists($kit)) {
+            $chkRule = $kit::rule('save');
+            if (!empty($chkRule)) {
+                // return self::_return(1, $chkRule);
+                Validation::return($req, $chkRule);
+            }
+        }
 
-        $feed::handleSave($req);
+        $req = self::beforeSave($req); // Preprocess the data before saving.
 
-        return self::_return(1, ['id' => $id]);
+        $id = $feed::save($req); // Save the data using the Feed module.
+
+        $feed::handleSave($req); // Perform additional save handling.
+
+        return self::_return(1, ['id' => $id]); // Return the ID of the saved record.
     }
 
     /**
-     * 上傳照片。
+     * Handles file uploads.
      *
-     * @param object $f3 框架實例
-     * @param array $args URI 參數
-     * @return array 上傳結果
+     * @param object $f3   The Fat-Free Framework instance.
+     * @param array  $args The URI parameters.
      */
     public function do_upload($f3, $args)
     {
-        kStaff::_chkLogin();
+        kStaff::_chkLogin(); // Check if the user is logged in.
 
-        $name = str_replace(['F3CMS\\', '\\'], ['', ''], get_called_class());
+        $name = str_replace(['F3CMS\\', '\\'], ['', ''], get_called_class()); // Normalize the class name.
 
-        [$type, $className] = preg_split('/(?<=[rfo])(?=[A-Z])/', $name);
+        [$type, $className] = preg_split('/(?<=[rfo])(?=[A-Z])/', $name); // Split the class name into type and name.
 
-        $thumb_str = strtolower($className) . '_thn';
+        $thumb_str = strtolower($className) . '_thn'; // Generate a thumbnail string.
 
         $default = f3()->exists($thumb_str) ? f3()->get($thumb_str) : f3()->get('default_thn');
 
@@ -116,11 +149,10 @@ class Reaction extends Module
     }
 
     /**
-     * 上傳文件。
+     * save photo
      *
-     * @param object $f3 框架實例
-     * @param array $args URI 參數
-     * @return array 上傳結果
+     * @param object $f3   - $f3
+     * @param array  $args - uri params
      */
     public function do_upload_file($f3, $args)
     {
@@ -132,34 +164,10 @@ class Reaction extends Module
     }
 
     /**
-     * 儲存單一欄位的資料。
+     * delete one row
      *
-     * @param object $f3 框架實例
-     * @param array $args URI 參數
-     * @return array 儲存結果
-     */
-    public function do_save_col($f3, $args)
-    {
-        $req  = parent::_getReq();
-        $feed = parent::_shift(get_called_class(), 'feed');
-
-        chkAuth($feed::PV_U);
-
-        if (!isset($req['id'])) {
-            return self::_return(8004);
-        }
-
-        $id = $feed::save_col($req);
-
-        return self::_return(1, ['id' => $id]);
-    }
-
-    /**
-     * 刪除單一資料列。
-     *
-     * @param object $f3 框架實例
-     * @param array $args URI 參數
-     * @return array 刪除結果
+     * @param object $f3   - $f3
+     * @param array  $args - uri params
      */
     public function do_del($f3, $args)
     {
@@ -174,17 +182,20 @@ class Reaction extends Module
             return self::_return(8004);
         }
 
+        if (1 != $feed::HARD_DEL) {
+            return self::_return(8008);
+        }
+
         $feed::delRow($req['id']);
 
         return self::_return(1);
     }
 
     /**
-     * 取得單一資料列。
+     * get one row
      *
-     * @param object $f3 框架實例
-     * @param array $args URI 參數
-     * @return array 資料列內容
+     * @param object $f3   - $f3
+     * @param array  $args - uri params
      */
     public function do_get($f3, $args)
     {
@@ -217,18 +228,18 @@ class Reaction extends Module
     }
 
     /**
-     * 取得選項資料。
+     * Retrieves options for a specific query.
      *
-     * @param object $f3 框架實例
-     * @param array $args URI 參數
-     * @return array 選項資料
+     * @param object $f3   The Fat-Free Framework instance.
+     * @param array  $args The URI parameters.
+     * @return array The retrieved options.
      */
     public function do_get_opts($f3, $args)
     {
         $that = get_called_class();
         $feed = parent::_shift($that, 'feed');
 
-        kStaff::_chkLogin(); // chkAuth($feed::PV_R);
+        chkAuth($feed::PV_R);
 
         $req = self::_getReq();
 
@@ -242,10 +253,9 @@ class Reaction extends Module
     }
 
     /**
-     * 儲存前的處理邏輯。
+     * @param array $params
      *
-     * @param array $params 資料參數
-     * @return array 處理後的參數
+     * @return mixed
      */
     public static function beforeSave($params = [])
     {
@@ -253,21 +263,36 @@ class Reaction extends Module
     }
 
     /**
-     * 處理單一資料列。
+     * Processes a single row of data.
      *
-     * @param array $row 資料列
-     * @return array 處理後的資料列
+     * @param array $row The row of data to process.
+     * @return array The processed row.
+     */
+    public static function handleIteratee($row = [])
+    {
+        return $row;
+    }
+
+    /**
+     * @param array $row
+     *
+     * @return mixed
      */
     public static function handleRow($row = [])
     {
         return $row;
     }
 
-    /**
-     * 格式化訊息。
-     *
-     * @return array 訊息格式
-     */
+    public static function _parseBackendQuery($query)
+    {
+        $feed = parent::_shift(get_called_class(), 'feed');
+
+        $query = str_replace(['=', '&'], [':', ','], $query);
+        $query = str_replace(',amp;', ',', $query);
+
+        return (!empty($query)) ? $feed::genFilter($query) : [];
+    }
+
     public static function formatMsgs()
     {
         return [
@@ -287,11 +312,12 @@ class Reaction extends Module
     }
 
     /**
-     * 返回資料的標準格式。
+     * new return mode
      *
-     * @param mixed $code 成功或錯誤代碼
-     * @param array $data 返回的資料
-     * @return array 格式化後的返回資料
+     * @param mixed $code - whether sucess or error code
+     * @param array $data - the data need to return
+     *
+     * @return array
      */
     public static function _return($code = 1, $data = [])
     {
@@ -301,18 +327,43 @@ class Reaction extends Module
             $return['data'] = $data;
         }
 
-        f3()->set('SESSION.csrf', f3()->get('sess')->csrf());
+        f3()->set('SESSION.csrf', getCSRF());
 
         $return['csrf'] = f3()->get('SESSION.csrf');
 
         // detect jsonp or json
-        if (f3()->get('GET.callback') &&
-            (0 === strpos(f3()->get('GET.callback'), '__jp') || 0 === strpos(f3()->get('GET.callback'), 'ng_jsonp_callback_'))) {
+        if (f3()->get('GET.callback')
+            && (0 === strpos(f3()->get('GET.callback'), '__jp') || 0 === strpos(f3()->get('GET.callback'), 'ng_jsonp_callback_'))) {
             header('Content-Type: application/javascript; charset=utf-8');
             exit(f3()->get('GET.callback') . ' (' . json_encode($return) . ');');
         } else {
             header('Content-Type: application/json; charset=utf-8');
             exit(json_encode($return));
         }
+    }
+
+    /**
+     * _hashKey
+     *
+     * @param string $action - action name
+     * @param array  $args   - hash source
+     * @param string $secret - secret
+     *
+     * @return string
+     */
+    public static function _hashKey($action, $args, $secret)
+    {
+        $that      = get_called_class();
+        $feed      = parent::_shift($that, 'feed');
+        $hash_data = '';
+        $keyAry    = $feed::hashGrid($action);
+
+        // Create the string to be hashed.
+        foreach ($keyAry as $k) {
+            $hash_data .= ($args[$k] ?? '') . '-';
+        }
+
+        // Create hash key.
+        return hash_hmac('sha256', $hash_data . round(time() / 300), $secret);
     }
 }

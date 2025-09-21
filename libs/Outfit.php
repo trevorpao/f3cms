@@ -2,18 +2,17 @@
 
 namespace F3CMS;
 
-/**
- * Outfit 類別提供多種與頁面渲染、靜態檔案處理、
- * 中介層邏輯與其他輔助功能相關的操作。
- */
+// The Outfit class extends the Module class and provides additional utility methods.
+// It includes methods for handling breadcrumbs, pagination, and formatting data.
+
 class Outfit extends Module
 {
-    const JUST_RETURN_STR = true;
+    const JUST_RETURN_STR = true; // Constant to indicate whether to return a string directly.
 
     /**
-     * 顯示靜態檔案。
+     * Displays content based on the provided arguments.
      *
-     * @param array $args 請求參數
+     * @param array $args The arguments for displaying content.
      */
     public static function show($args)
     {
@@ -22,11 +21,10 @@ class Outfit extends Module
     }
 
     /**
-     * 處理動態方法呼叫。
+     * Magic method to handle dynamic method calls.
      *
-     * @param string $method 方法名稱
-     * @param array $args 方法參數
-     * @return mixed 方法執行結果
+     * @param string $method The name of the method being called.
+     * @param array  $args   The arguments passed to the method.
      */
     public function __call($method, $args)
     {
@@ -49,9 +47,9 @@ class Outfit extends Module
     }
 
     /**
-     * 路由前的處理邏輯。
+     * Executes logic before routing.
      *
-     * @param array $args 請求參數
+     * @param array $args The arguments for the pre-route logic.
      */
     public static function _beforeRoute($args)
     {
@@ -72,20 +70,19 @@ class Outfit extends Module
     }
 
     /**
-     * 路由後的處理邏輯。
+     * Executes logic after routing.
      *
-     * @param array $args 請求參數
+     * @param array $args The arguments for the post-route logic.
      */
     public static function _afterRoute($args)
     {
     }
 
     /**
-     * 中介層邏輯處理。
+     * Middleware logic to process requests and responses.
      *
-     * @param array $args 請求參數
-     * @param string $next 下一個方法名稱
-     * @return mixed 中介層執行結果
+     * @param array  $args The arguments for the middleware.
+     * @param string $next The next middleware or handler to execute.
      */
     public static function _middleware($args, string $next)
     {
@@ -107,10 +104,10 @@ class Outfit extends Module
     }
 
     /**
-     * 處理靜態檔案。
+     * Handles static file requests.
      *
-     * @param array $args 請求參數
-     * @param bool $force 是否強制重新生成
+     * @param array $args  The arguments for the static file request.
+     * @param bool  $force Whether to force the handling of the static file.
      */
     public static function _staticFile($args, $force = false)
     {
@@ -151,9 +148,9 @@ class Outfit extends Module
     }
 
     /**
-     * 設定 Excel 檔案的 HTTP 標頭。
+     * set excel header
      *
-     * @param string $filename 檔案名稱
+     * @param string $filename - file name to user
      */
     public static function _setXls($filename)
     {
@@ -173,9 +170,9 @@ class Outfit extends Module
     }
 
     /**
-     * 輸出 XML 檔案。
+     * Outputs XML content.
      *
-     * @param string $filename 檔案名稱
+     * @param string $filename The name of the XML file.
      */
     public static function _echoXML($filename)
     {
@@ -190,7 +187,7 @@ class Outfit extends Module
     }
 
     /**
-     * 顯示除錯變數。
+     * Displays variables for debugging purposes.
      */
     public static function _showVariables()
     {
@@ -200,12 +197,12 @@ class Outfit extends Module
     }
 
     /**
-     * 生成麵包屑導航。
+     * Generates a breadcrumb navigation structure.
      *
-     * @param array $ary 導航資料
-     * @param bool $isLi 是否使用 <li> 標籤
-     * @param string $home 首頁名稱
-     * @return mixed 生成的麵包屑 HTML
+     * @param array  $ary   The breadcrumb items.
+     * @param bool   $isLi  Whether to format the breadcrumb as a list.
+     * @param string $home  The label for the home link.
+     * @return string The generated breadcrumb HTML.
      */
     public static function breadcrumb($ary, $isLi = true, $home = '')
     {
@@ -231,11 +228,11 @@ class Outfit extends Module
     }
 
     /**
-     * @param      $ary
-     * @param      $isLi
-     * @param true $home
+     * Generates a breadcrumb navigation structure as a string.
      *
-     * @return mixed
+     * @param array $ary  The breadcrumb items.
+     * @param bool  $isLi Whether to format the breadcrumb as a list.
+     * @return string The generated breadcrumb string.
      */
     public static function breadcrumb_str($ary, $isLi = true)
     {
@@ -253,7 +250,10 @@ class Outfit extends Module
     }
 
     /**
-     * @param $string
+     * Converts a string to UTF-8 XML format.
+     *
+     * @param string $string The input string.
+     * @return string The UTF-8 XML formatted string.
      */
     public static function utf8Xml($string)
     {
@@ -261,12 +261,11 @@ class Outfit extends Module
     }
 
     /**
-     * render thumbnail file name
+     * Generates a thumbnail for a given path and type.
      *
-     * @param string $path - old path
-     * @param string $type - thumb type
-     *
-     * @return string - new path
+     * @param string $path The path to the image.
+     * @param string $type The type of thumbnail to generate.
+     * @return string The generated thumbnail path.
      */
     public static function thumbnail($path, $type)
     {
@@ -282,6 +281,12 @@ class Outfit extends Module
         return $newpath;
     }
 
+    /**
+     * Converts URLs in a text to clickable links.
+     *
+     * @param string $text The input text containing URLs.
+     * @return string The text with URLs converted to links.
+     */
     public static function convertUrlsToLinks($text)
     {
         // 正則表達式匹配模式，用於識別 https 開頭的 URL
@@ -299,12 +304,11 @@ class Outfit extends Module
     }
 
     /**
-     * render pathByDevice file name
+     * Adjusts a file path based on the device type.
      *
-     * @param string $path - old path
-     * @param string $type - thumb type
-     *
-     * @return string - new path
+     * @param string $path The original file path.
+     * @param string $type The device type (e.g., mobile, desktop).
+     * @return string The adjusted file path.
      */
     public static function pathByDevice($path, $type)
     {
@@ -322,34 +326,10 @@ class Outfit extends Module
     }
 
     /**
-     * @param $total
-     * @param $limit
-     * @param $link
-     * @param $current
-     * @param $range
+     * Handles tags and processes them as needed.
      *
-     * @return mixed
-     */
-    public static function paginate($total, $limit = 10, $link = '', $current = -1, $range = 5)
-    {
-        $pages = new Pagination($total, $limit);
-        $pages->setTemplate(f3()->get('theme') . '/parter/pagination.html');
-        if (!empty($link)) {
-            $pages->setLinkPath($link);
-        }
-        if (-1 != $current) {
-            $pages->setCurrent($current);
-        }
-        $pages->setRouteKeyPrefix('?page=');
-        $pages->setRange($range);
-
-        return $pages->serve();
-    }
-
-    /**
-     * @param $tags
-     *
-     * @return mixed
+     * @param array $tags The tags to process.
+     * @return array The processed tags.
      */
     public static function handleTag($tags)
     {
@@ -367,8 +347,11 @@ class Outfit extends Module
     }
 
     /**
-     * @param $val
-     * @param $format
+     * Converts a value to a formatted date string.
+     *
+     * @param mixed  $val    The value to format.
+     * @param string $format The date format.
+     * @return string The formatted date string.
      */
     public static function date($val, $format)
     {
@@ -376,8 +359,11 @@ class Outfit extends Module
     }
 
     /**
-     * @param $val
-     * @param $format
+     * Calculates the duration between two timestamps.
+     *
+     * @param int $start The start timestamp.
+     * @param int $end   The end timestamp.
+     * @return string The calculated duration.
      */
     public static function during($start, $end)
     {
@@ -388,6 +374,12 @@ class Outfit extends Module
         }
     }
 
+    /**
+     * Fixes and formats a slug string.
+     *
+     * @param string $val The input slug string.
+     * @return string The fixed slug string.
+     */
     public static function fixSlug($val)
     {
         return ucwords(preg_replace('/[-_]/', ' ', $val));
@@ -679,18 +671,12 @@ class Outfit extends Module
 
         _dzv('page.breadcrumb', self::breadcrumb(['title' => $title, 'slug' => $slug, 'sire' => f3()->get('breadcrumb_sire')]));
 
-        $tmp = FSHelper::openFile(f3()->get('configpath') . '/setting.json');
-        if (empty($tmp)) {
-            $tmp = FSHelper::openFile(dirname(f3()->get('configpath')) . '/themeSetting.json');
-        }
-        $setting = jsonDecode($tmp);
         $opts    = fOption::load('', 'Preload');
 
         if (!empty($opts['default']['color_name'])) {
             $setting['colorName'] = $opts['default']['color_name'];
         }
 
-        _dzv('setting', $setting);
         f3()->set('opts', $opts);
         _dzv('opts', $opts);
 
@@ -788,6 +774,9 @@ class Outfit extends Module
         $filter = new \Twig\TwigFilter('repathUri', '\F3CMS\Outfit::repathUri');
         $twig->addFilter($filter);
 
+        $filter = new \Twig\TwigFilter('gmapI18n', '\F3CMS\Outfit::gmapI18n');
+        $twig->addFilter($filter);
+
         $filter = new \Twig\TwigFilter('str2hashtag', '\F3CMS\Outfit::str2hashtag');
         $twig->addFilter($filter);
 
@@ -817,6 +806,10 @@ class Outfit extends Module
         $page = fOption::load('page');
 
         f3()->set('page.site_name', $page['title']);
+        if (empty($page['subtitle'])) {
+            $page['subtitle'] = '';
+        }
+        f3()->set('page.site_subtitle', $page['subtitle']);
 
         if (f3()->exists('page')) {
             $new  = f3()->get('page', $page);

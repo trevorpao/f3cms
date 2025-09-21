@@ -96,6 +96,8 @@ class Screenshot
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_TIMEOUT        => 20,
             CURLOPT_SSL_VERIFYPEER => 0,
+            CURLOPT_HTTP_VERSION   => CURL_HTTP_VERSION_1_1,
+            CURLOPT_IPRESOLVE      => CURL_IPRESOLVE_V4,
             CURLOPT_HTTPHEADER     => ['Expect:'],
             CURLOPT_USERAGENT      => 'Screenshotmachine for PHP',
             CURLOPT_URL            => $this->buildUrl(),

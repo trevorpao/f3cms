@@ -3,20 +3,17 @@
 namespace F3CMS;
 
 /**
- * SRHelper 類別負責靜態檔案的處理，
- * 包括快取生成、讀取、清除與壓縮等功能。
+ * static file render handler
  */
 class SRHelper extends Helper
 {
     const NOT_LOG_HISTORY = false;
 
     /**
-     * 儲存靜態檔案。
+     * @param $filename
+     * @param $html
      *
-     * @param string $staticPath 靜態檔案路徑
-     * @param string $content 檔案內容
-     * @param bool $follow 是否記錄歷史（預設為 true）
-     * @return string 儲存的檔案內容
+     * @return mixed
      */
     public static function save($staticPath, $content, $follow = true)
     {
@@ -44,10 +41,8 @@ class SRHelper extends Helper
     }
 
     /**
-     * 清除指定靜態檔案。
-     *
-     * @param string $staticPath 靜態檔案路徑
-     * @param bool $useWildcard 是否使用萬用字元
+     * @param $staticPath
+     * @param $useWildcard
      */
     public static function flush($staticPath, $useWildcard)
     {
@@ -58,20 +53,16 @@ class SRHelper extends Helper
         }
     }
 
-    /**
-     * 清除所有靜態檔案。
-     */
     public static function flushAll()
     {
         self::removeFiles('cache.*.html');
     }
 
     /**
-     * 讀取靜態檔案內容。
+     * @param $staticPath
+     * @param $maxLifetime
      *
-     * @param string $staticPath 靜態檔案路徑
-     * @param int $maxLifetime 最大生命週期（分鐘，預設為 0）
-     * @return string|null 檔案內容或 null
+     * @return mixed
      */
     public static function get($staticPath, $maxLifetime = 0)
     {
@@ -90,12 +81,6 @@ class SRHelper extends Helper
         }
     }
 
-    /**
-     * 取得靜態檔案的歷史記錄。
-     *
-     * @param string $staticPath 靜態檔案路徑
-     * @return array 歷史記錄陣列
-     */
     public static function getLog($staticPath)
     {
         $filename = self::getFilename($staticPath);
@@ -110,12 +95,6 @@ class SRHelper extends Helper
         }
     }
 
-    /**
-     * 發送請求並設定靜態檔案。
-     *
-     * @param string $staticPath 靜態檔案路徑
-     * @return string 請求結果
-     */
     public static function requestSet($staticPath)
     {
         $curl = curl_init();
@@ -148,38 +127,54 @@ class SRHelper extends Helper
     }
 
     /**
-     * 壓縮檔案內容。
+     * Returns cache filename.
      *
-     * @param string $buffer 檔案內容
-     * @return string 壓縮後的內容
+     * @param string $staticPath
+     *
+     * @return string
      */
-    public static function minify($buffer)
+    protected static function getFilename($staticPath)
     {
-        // return $buffer;
+        FSHelper::mkdir(f3()->get('UPLOAD_PATH') . $staticPath);
 
-        $search = [
-            '/\>[^\S ]+/s', // strip whitespaces after tags, except space
-            '/[^\S ]+\</s', // strip whitespaces before tags, except space
-            '/(\s)+/s', // shorten multiple whitespace sequences
-        ];
-
-        $replace = [
-            '>',
-            '<',
-            '\\1',
-        ];
-
-        $buffer = preg_replace($search, $replace, $buffer);
-
-        return $buffer;
+        return $staticPath . '/index.html';
     }
 
     /**
-     * 判斷是否需要重新生成快取。
+     * Returns cache filename.
      *
-     * @param string $filename 檔案名稱
-     * @param int $maxLifetime 最大生命週期（分鐘）
-     * @return bool 是否需要重新生成
+     * @return string
+     */
+    protected static function getBackupFilename($staticPath)
+    {
+        return $staticPath . '/' . date('ymdHis') . '.html';
+    }
+
+    /**
+     * Removes index matching given path.
+     *
+     * @param string $path
+     */
+    protected static function removeFiles($path)
+    {
+        // TODO: lang ary
+        $files = FSHelper::ls(f3()->get('UPLOAD_PATH') . $path);
+        foreach ($files as $file) {
+            if ('index.html' == basename($file)) {
+                if (file_exists($file)) {
+                    unlink($file);
+                }
+            }
+        }
+    }
+
+    /**
+     * Determines wheater the cache needs to be rebuild or not.
+     *
+     * @param string $filename
+     * @param int    $maxLifetime
+     *
+     * @return bool
      */
     protected static function needRebuild($filename, $maxLifetime)
     {
@@ -208,11 +203,12 @@ class SRHelper extends Helper
     }
 
     /**
-     * 讀取快取檔案內容。
+     * Loads the file of a cached resource.
      *
-     * @param string $staticPath 靜態檔案路徑
-     * @param string $filename 檔案名稱
-     * @return string 檔案內容
+     * @param string $staticPath
+     * @param string $filename
+     *
+     * @return mixed
      */
     protected static function readCache($staticPath, $filename)
     {
@@ -257,44 +253,28 @@ class SRHelper extends Helper
     }
 
     /**
-     * Returns cache filename.
+     * @param $buffer
      *
-     * @param string $staticPath
-     *
-     * @return string
+     * @return mixed
      */
-    protected static function getFilename($staticPath)
+    public static function minify($buffer)
     {
-        FSHelper::mkdir(f3()->get('UPLOAD_PATH') . $staticPath);
+        // return $buffer;
 
-        return $staticPath . '/index.html';
-    }
+        $search = [
+            '/\>[^\S ]+/s', // strip whitespaces after tags, except space
+            '/[^\S ]+\</s', // strip whitespaces before tags, except space
+            '/(\s)+/s', // shorten multiple whitespace sequences
+        ];
 
-    /**
-     * Returns cache filename.
-     *
-     * @return string
-     */
-    protected static function getBackupFilename($staticPath)
-    {
-        return $staticPath . '/' . date('ymdHis') . '.html';
-    }
+        $replace = [
+            '>',
+            '<',
+            '\\1',
+        ];
 
-    /**
-     * Removes index matching given path.
-     *
-     * @param string $path
-     */
-    protected static function removeFiles($path)
-    {
-        // TODO: lang ary
-        $files = FSHelper::ls(f3()->get('UPLOAD_PATH') . $path);
-        foreach ($files as $file) {
-            if ('index.html' == basename($file)) {
-                if (file_exists($file)) {
-                    unlink($file);
-                }
-            }
-        }
+        $buffer = preg_replace($search, $replace, $buffer);
+
+        return $buffer;
     }
 }

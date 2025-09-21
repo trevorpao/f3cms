@@ -2,7 +2,7 @@
 
 namespace F3CMS;
 
-use Predis\Client as Client;
+use Predis\Client;
 
 class RHelper extends Client
 {

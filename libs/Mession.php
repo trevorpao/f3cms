@@ -3,34 +3,45 @@
 namespace F3CMS;
 
 /**
- * Mession 類別擴展了 MHelper，
- * 提供基於資料庫的 Session 管理功能，
- * 包括開啟、關閉、讀取、寫入、銷毀與清理 Session。
+ * Mession class handles session management, including opening, closing, reading, writing,
+ * destroying sessions, and garbage collection. It also provides utility methods for session-related
+ * data like CSRF tokens, IP addresses, and user agents.
  */
 class Mession extends MHelper
 {
-    //! Session ID
+    // Session ID
     protected $sid;
-    //! Anti-CSRF token
-        protected $_csrf;
-    //! User agent
-        protected $_agent;
-    //! IP,
-        protected $_ip;
-    //! Suspect callback
-        protected $onsuspect;
 
-    protected $rtn; // 用於存儲查詢結果
-    protected $tbl; // 資料表名稱
-    protected $logger; // 日誌記錄器
-    protected $debug = false; // 除錯模式
+    // Anti-CSRF token
+    protected $_csrf;
+
+    // User agent string of the client
+    protected $_agent;
+
+    // Client's IP address
+    protected $_ip;
+
+    // Callback function for handling suspicious activity
+    protected $onsuspect;
+
+    // Database table for storing session data
+    protected $tbl;
+
+    // Logger instance for debugging and logging session activities
+    protected $logger;
+
+    // Debug mode flag
+    protected $debug;
+
+    // Stores the result of the last database query
+    protected $rtn;
 
     /**
-     * 開啟 Session。
+     * Opens a session. This method is required by the session handler interface.
      *
-     * @param string $path Session 存儲路徑
-     * @param string $name Session 名稱
-     * @return bool 是否成功開啟
+     * @param string $path Path to the session storage (not used here).
+     * @param string $name Name of the session (not used here).
+     * @return bool Always returns true.
      */
     public function open($path, $name)
     {
@@ -38,27 +49,25 @@ class Mession extends MHelper
     }
 
     /**
-     * 關閉 Session。
+     * Closes a session. This method is required by the session handler interface.
      *
-     * @return bool 是否成功關閉
+     * @return bool Always returns true.
      */
     public function close()
     {
         $this->sid = null;
-
         return true;
     }
 
     /**
-     * 讀取 Session 資料。
+     * Reads session data from the database.
      *
-     * @param string $id Session ID
-     * @return string Session 資料
+     * @param string $id Session ID.
+     * @return string Serialized session data or an empty string if no data is found.
      */
     public function read($id)
     {
         $this->sid = $id;
-
         $this->writeLog('select------::' . $id);
         $this->rtn = $this->get($this->tbl, '*', ['session_id' => $id]);
         $this->writeLog('data:' . json_encode($this->rtn));
@@ -67,24 +76,15 @@ class Mession extends MHelper
             return '';
         }
 
-        // IP check ?
-        // if ($this->rtn['ip'] != $this->_ip || $this->rtn['agent'] != $this->_agent) {
-        //     f3()->call($this->onsuspect,[$this, $id]);
-        //     $this->destroy($id);
-        //     $this->close();
-        //     unset(f3()->{'COOKIE.'.session_name()});
-        //     f3()->error(403);
-        // }
-
         return $this->rtn['data'];
     }
 
     /**
-     * 寫入 Session 資料。
+     * Writes session data to the database.
      *
-     * @param string $id Session ID
-     * @param string $data 要寫入的資料
-     * @return bool 是否成功寫入
+     * @param string $id Session ID.
+     * @param string $data Serialized session data.
+     * @return bool Always returns true.
      */
     public function write($id, $data)
     {
@@ -117,10 +117,10 @@ class Mession extends MHelper
     }
 
     /**
-     * 銷毀指定的 Session。
+     * Destroys a session by removing its data from the database.
      *
-     * @param string $id Session ID
-     * @return bool 是否成功銷毀
+     * @param string $id Session ID.
+     * @return bool Always returns true.
      */
     public function destroy($id)
     {
@@ -132,10 +132,10 @@ class Mession extends MHelper
     }
 
     /**
-     * 清理過期的 Session。
+     * Cleans up old session data from the database.
      *
-     * @param int $max 最大存活時間（秒）
-     * @return bool 是否成功清理
+     * @param int $max Maximum lifetime of sessions in seconds (not used here).
+     * @return bool Always returns true.
      */
     public function cleanup($max)
     {
@@ -147,9 +147,9 @@ class Mession extends MHelper
     }
 
     /**
-     * 獲取當前的 Session ID。
+     * Returns the current session ID.
      *
-     * @return string|null Session ID 或 null
+     * @return string|null Session ID or null if no session is active.
      */
     public function sid()
     {
@@ -157,9 +157,9 @@ class Mession extends MHelper
     }
 
     /**
-     * 獲取 Anti-CSRF Token。
+     * Returns the anti-CSRF token.
      *
-     * @return string Anti-CSRF Token
+     * @return string CSRF token.
      */
     public function csrf()
     {
@@ -167,9 +167,9 @@ class Mession extends MHelper
     }
 
     /**
-     * 獲取用戶的 IP 地址。
+     * Returns the client's IP address.
      *
-     * @return string IP 地址
+     * @return string IP address.
      */
     public function ip()
     {
@@ -177,9 +177,9 @@ class Mession extends MHelper
     }
 
     /**
-     * 獲取 Session 的時間戳。
+     * Returns the timestamp of the session.
      *
-     * @return string|false 時間戳或 false
+     * @return string|false Timestamp or false if no session data is available.
      */
     public function stamp()
     {
@@ -191,9 +191,9 @@ class Mession extends MHelper
     }
 
     /**
-     * 獲取用戶的 HTTP User Agent。
+     * Returns the HTTP user agent string of the client.
      *
-     * @return string User Agent
+     * @return string User agent string.
      */
     public function agent()
     {
@@ -201,9 +201,9 @@ class Mession extends MHelper
     }
 
     /**
-     * 判斷當前游標位置是否未映射到任何記錄。
+     * Checks if the current cursor position is not mapped to any record.
      *
-     * @return bool 是否為空
+     * @return bool True if no record is found, false otherwise.
      */
     public function dry()
     {
@@ -211,9 +211,9 @@ class Mession extends MHelper
     }
 
     /**
-     * 寫入日誌。
+     * Logs a message if debugging is enabled.
      *
-     * @param string $str 日誌內容
+     * @param string $str Message to log.
      */
     public function writeLog($str)
     {
@@ -221,11 +221,12 @@ class Mession extends MHelper
     }
 
     /**
-     * 類別建構子，初始化 Session 管理。
+     * Constructor for the Mession class. Initializes session handling and sets up
+     * anti-CSRF tokens, logging, and other configurations.
      *
-     * @param bool $force 是否強制初始化
-     * @param callable|null $onsuspect 可疑行為的回調函式
-     * @param string|null $key Anti-CSRF Token 的鍵名
+     * @param bool $force Whether to force session initialization.
+     * @param callable|null $onsuspect Callback for handling suspicious activity.
+     * @param string|null $key Key for storing the CSRF token.
      */
     public function __construct($force = true, $onsuspect = null, $key = null)
     {

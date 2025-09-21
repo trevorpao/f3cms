@@ -6,6 +6,7 @@
  * HTMLPurifier 提供了豐富的配置選項，可以根據需要自定義清理規則。
  * 這個類別中，我們創建了一個 PFHelper 類，該類使用單例模式來確保只有一個 HTMLPurifier 實例被創建。
  **/
+
 namespace F3CMS;
 
 class PFHelper extends Helper
@@ -13,7 +14,7 @@ class PFHelper extends Helper
     /**
      * @var PFHelper|null
      */
-    private static $instance = null;
+    private static $instance;
 
     /**
      * @var mixed
@@ -33,7 +34,7 @@ class PFHelper extends Helper
             $config->set('Cache.SerializerPath', $serializerPath);
 
             $def = $config->getHTMLDefinition(true);
-            $def->addElement('figure', 'Block', 'Flow', 'Common', ['class' => 'Text', ]);
+            $def->addElement('figure', 'Block', 'Flow', 'Common', ['class' => 'Text']);
 
             $this->purifier = new \HTMLPurifier($config);
         } catch (\Exception $e) {
@@ -48,23 +49,29 @@ class PFHelper extends Helper
 
     /**
      * 單例取得方法
+     *
      * @return PFHelper
      */
     public static function getInstance()
     {
-        if (self::$instance === null) {
+        if (null === self::$instance) {
             self::$instance = new self();
         }
+
         return self::$instance;
     }
 
     /**
      * 禁止 clone
      */
-    private function __clone() {}
+    private function __clone()
+    {
+    }
 
     /**
      * 禁止 unserialize
      */
-    public function __wakeup() {}
+    public function __wakeup()
+    {
+    }
 }

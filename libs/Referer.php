@@ -7,15 +7,17 @@ class Referer extends Module
     /**
      * setting referer url
      */
-    public static function set()
+    public static function set($uri = '')
     {
-        $referer = $_SERVER['HTTP_REFERER'];
+        if (empty($uri)) {
+            $referer = $_SERVER['HTTP_REFERER'];
 
-        if (!empty($referer)) {
-            $uri = $referer;
-        } else {
-            $parse = parse_url($_SERVER['REQUEST_URI']);
-            $uri   = ((!empty($parse['query'])) ? $parse['query'] : '/');
+            if (!empty($referer)) {
+                $uri = $referer;
+            } else {
+                $parse = parse_url($_SERVER['REQUEST_URI']);
+                $uri   = ((!empty($parse['canonical'])) ? $parse['canonical'] : '/');
+            }
         }
 
         f3()->set('SESSION.referer', $uri);

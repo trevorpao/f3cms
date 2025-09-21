@@ -4,7 +4,7 @@ namespace F3CMS;
 
 class Helper
 {
-    //! Instantiate class
+    // ! Instantiate class
     public function __construct()
     {
     }

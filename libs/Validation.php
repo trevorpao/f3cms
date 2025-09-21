@@ -4,30 +4,31 @@ namespace F3CMS;
 
 use Rakit\Validation\Validator;
 
-// https://github.com/rakit/validation
-
 /**
- * Validation 類別提供資料驗證功能，
- * 使用 Rakit Validation 套件進行表單輸入的驗證。
+ * Validation class provides methods for input validation using the Rakit Validation library.
+ * It supports custom error messages and validation rules.
  */
 class Validation extends Module
 {
     /**
-     * @var Validator 實例，用於執行驗證邏輯。
+     * Singleton instance of the Validator class.
+     *
+     * @var Validator|false
      */
     private static $_instance = false;
 
     /**
-     * 初始化驗證器並設置自訂錯誤訊息。
+     * Initializes the Validator instance with input data and validation rules.
      *
-     * @param array $input 使用者輸入的資料
-     * @param array $rule 驗證規則
+     * @param array $input The input data to validate.
+     * @param array $rule The validation rules to apply.
      */
     public static function init($input, $rule)
     {
         if (!self::$_instance) {
             self::$_instance = new Validator();
 
+            // Set custom error messages for validation rules
             self::$_instance->setMessages([
                 'required'  => ':attribute 為必填欄位',
                 'email'     => ':email 格式不符',
@@ -36,28 +37,29 @@ class Validation extends Module
                 'alpha_num' => ':attribute 限用英數字',
                 'regex'     => ':attribute 不符合格式要求',
                 'numeric'   => ':attribute 限用數字',
-                // etc
+                // Additional custom messages can be added here
             ]);
         }
 
-        // make it
+        // Create a validation instance with the input and rules
         self::$_instance = self::$_instance->make($input, $rule);
 
-        // then validate
+        // Perform validation
         self::$_instance->validate();
     }
 
     /**
-     * 驗證輸入資料是否符合規則。
+     * Validates the input data against the rules and outputs errors if validation fails.
      *
-     * @param array $input 使用者輸入的資料
-     * @param array $rule 驗證規則
-     * @return bool 驗證是否通過
+     * @param array $input The input data to validate.
+     * @param array $rule The validation rules to apply.
+     * @return bool True if validation passes, false otherwise.
      */
     public static function check($input, $rule)
     {
         self::init($input, $rule);
 
+        // Output validation errors for debugging purposes
         var_dump(self::$_instance->errors()->all());
         exit;
 
@@ -65,11 +67,11 @@ class Validation extends Module
     }
 
     /**
-     * 驗證輸入資料並返回錯誤訊息或成功狀態。
+     * Validates the input data and returns errors or success response.
      *
-     * @param array $input 使用者輸入的資料
-     * @param array $rule 驗證規則
-     * @return mixed 驗證失敗時返回錯誤訊息，成功時返回 1
+     * @param array $input The input data to validate.
+     * @param array $rule The validation rules to apply.
+     * @return mixed Validation errors or success response.
      */
     public static function return($input, $rule)
     {
@@ -77,19 +79,21 @@ class Validation extends Module
 
         if (self::$_instance->fails()) {
             if (isAjax()) {
+                // Return errors in JSON format for AJAX requests
                 Reaction::_return(8003, ['msg' => self::$_instance->errors()->all()]);
             } else {
+                // Return errors as an HTML list for non-AJAX requests
                 return self::$_instance->errors()->all('<li>:message</li>');
             }
         } else {
-            return 1;
+            return 1; // Validation passed
         }
     }
 
     /**
-     * 提供預設的驗證規則。
+     * Provides a default set of validation rules.
      *
-     * @return array 預設的驗證規則陣列
+     * @return array The default validation rules.
      */
     private static function _defaultRule()
     {

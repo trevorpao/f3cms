@@ -2,20 +2,12 @@
 
 namespace F3CMS;
 
-/**
- * Upload 類別提供多種檔案上傳與處理功能，
- * 包括圖片上傳、檔案上傳、截圖生成、Excel 讀取與 GIF 調整大小。
- */
 class Upload extends Helper
 {
     /**
-     * 儲存上傳的圖片並生成縮圖。
-     *
-     * @param array $files 上傳的檔案陣列
-     * @param array $thumbnails 縮圖設定
-     * @param string $column 圖片欄位名稱
-     * @param array $acceptable 可接受的檔案類型
-     * @return array 包含圖片路徑與相關資訊的陣列
+     * @param       $files
+     * @param array $thumbnails
+     * @param       $column
      */
     public static function savePhoto($files, $thumbnails = [], $column = 'photo', $acceptable = [])
     {
@@ -54,12 +46,10 @@ class Upload extends Helper
     }
 
     /**
-     * 儲存上傳的檔案。
+     * @param       $files
+     * @param array $acceptable
      *
-     * @param array $files 上傳的檔案陣列
-     * @param array $acceptable 可接受的檔案類型
-     * @param string $column 檔案欄位名稱
-     * @return string 儲存後的檔案路徑
+     * @return mixed
      */
     public static function saveFile($files, $acceptable = [], $column = 'file')
     {
@@ -101,10 +91,9 @@ class Upload extends Helper
     }
 
     /**
-     * 生成網頁截圖。
+     * @param $uri
      *
-     * @param string $uri 網頁的 URL
-     * @return string 截圖檔案的路徑
+     * @return mixed
      */
     public static function takeScreenshot($uri)
     {
@@ -134,13 +123,14 @@ class Upload extends Helper
     }
 
     /**
-     * 讀取 Excel 檔案的指定範圍資料。
+     * adapter for PHPExcel
      *
-     * @param string $filename Excel 檔案名稱
-     * @param int $startRow 起始列
-     * @param int $endRow 結束列
-     * @param array $columns 欄位名稱陣列
-     * @return array 讀取的資料陣列
+     * @param string $filename -
+     * @param int    $startRow -
+     * @param int    $endRow   -
+     * @param array  $columns  -
+     *
+     * @return array
      */
     public static function readExcel($filename, $startRow, $endRow, $columns)
     {
@@ -167,12 +157,10 @@ class Upload extends Helper
     }
 
     /**
-     * 調整 GIF 圖片的大小。
-     *
-     * @param string $source 原始 GIF 檔案路徑
-     * @param string $dist 儲存調整後的 GIF 檔案路徑
-     * @param int $width 調整後的寬度
-     * @param int $height 調整後的高度
+     * @param $source
+     * @param $dist
+     * @param $width
+     * @param $height
      */
     public static function resizGif($source, $dist, $width = 600, $height = 600)
     {

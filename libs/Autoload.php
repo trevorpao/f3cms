@@ -1,20 +1,19 @@
 <?php
-/**
- * F3CMS_Autoloader 類負責自動加載 F3CMS 框架中的類文件。
- * 它提供了註冊自動加載器、獲取類型與前綴對應關係，以及根據類名加載文件的功能。
- */
+
+// This file is responsible for autoloading classes and managing dependencies.
+// It ensures that required classes are loaded dynamically when needed.
+
 class F3CMS_Autoloader
 {
-    /**
-     * 註冊自動加載器
-     *
-     * @return bool 成功返回 true，失敗返回 false
-     */
+    // Registers the autoloader function to PHP's SPL autoload stack.
     public static function Register()
     {
+        // If a legacy __autoload function exists, register it with SPL.
         if (function_exists('__autoload')) {
             spl_autoload_register('__autoload');
         }
+
+        // Register the custom autoloader function based on PHP version.
         if (version_compare(PHP_VERSION, '5.3.0') >= 0) {
             return spl_autoload_register(['F3CMS_Autoloader', 'Load'], true, true);
         } else {
@@ -22,11 +21,7 @@ class F3CMS_Autoloader
         }
     }
 
-    /**
-     * 獲取前綴對應的類型
-     *
-     * @return array 前綴對應的類型
-     */
+    // Returns a mapping of type prefixes to their corresponding module names.
     public static function getType()
     {
         return [
@@ -37,11 +32,7 @@ class F3CMS_Autoloader
         ];
     }
 
-    /**
-     * 獲取類型對應的前綴
-     *
-     * @return array 類型對應的前綴
-     */
+    // Returns a mapping of module names to their corresponding type prefixes.
     public static function getPrefix()
     {
         return [
@@ -53,56 +44,66 @@ class F3CMS_Autoloader
     }
 
     /**
-     * Load 方法根據提供的類名自動加載對應的類。它首先使用 detect 方法來找到類文件的路徑，
-     * 如果找到，則包含該文件以加載類。
+     * Autoload a class identified by name.
      *
-     * @param string $pClassName 要加載的類名
+     * @param string $pClassName Name of the object to load.
      */
     public static function Load($pClassName)
     {
+        // Detect the file path for the given class name.
         $fileName = self::detect($pClassName);
+
+        // If a valid file path is found, include the file.
         if (false !== $fileName) {
             require $fileName;
         }
     }
 
     /**
-     * detect 方法負責檢測類文件是否存在，並返回文件路徑。
+     * Detects the file path of a class file based on its name.
      *
-     * @param string $pClassName 要檢測的類名
-     * @return string|false 如果找到文件，返回文件路徑；否則返回 false。
+     * @param string $pClassName Name of the object to load.
+     * @return string|false The file path if found, or false if not.
      */
     public static function detect($pClassName)
     {
-        if ((class_exists($pClassName, false)) || (0 !== strpos($pClassName, 'F3CMS'))) {
+        // Skip detection if the class already exists or does not belong to the F3CMS or PCMS namespace.
+        if (class_exists($pClassName, false) || ((0 !== strpos($pClassName, 'F3CMS')) && (0 !== strpos($pClassName, 'PCMS')))) {
             return false;
         }
 
+        // Normalize the class name and initialize variables for namespace and file path.
         $className = ltrim($pClassName, '\\');
         $fileName  = '';
         $namespace = '';
+
+        // Extract the namespace and class name if a namespace exists.
         if ($lastNsPos = strrpos($className, '\\')) {
             $namespace = substr($className, 0, $lastNsPos);
             $className = substr($className, $lastNsPos + 1);
             $fileName  = str_replace('\\', DIRECTORY_SEPARATOR, $namespace) . DIRECTORY_SEPARATOR;
         }
 
+        // Handle module-specific class names with type prefixes.
         if (preg_match('/(^[fork])+([A-Z]\S*)/', $className, $match)) {
-            $type = $match[1];
+            $type       = $match[1];
             $moduleName = $match[2];
 
+            // Construct the file path based on the module type and name.
             $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $moduleName) . DIRECTORY_SEPARATOR . self::getType()[$type] . '.php';
 
+            // Check for the file in two possible locations.
             $fileName = str_replace('libs', 'modules', __DIR__) . str_replace('F3CMS', '', $fileName);
 
-            if (false === file_exists($fileName)) {
-                $fileName = str_replace('/f3cms', '', $fileName);
-            }
+            // Use the first valid file path found.
+            $fileName = $fileName;
         } else {
+            // Handle standard class names without type prefixes.
             $fileName .= str_replace('_', DIRECTORY_SEPARATOR, $className) . '.php';
             $fileName = __DIR__ . str_replace('F3CMS', '', $fileName);
         }
 
+        // Return false if the file does not exist or is not readable.
         if ((false === file_exists($fileName)) || (false === is_readable($fileName))) {
             return false;
         }
@@ -111,5 +112,5 @@ class F3CMS_Autoloader
     }
 }
 
-// 註冊自動加載器
+// Register the autoloader when this file is included.
 F3CMS_Autoloader::Register();

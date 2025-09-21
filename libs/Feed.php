@@ -2,34 +2,34 @@
 
 namespace F3CMS;
 
-/**
- * Feed 類別提供後端資料處理功能，
- * 包括儲存、發佈、欄位處理與批量查詢等操作。
- */
+// The Feed class extends the Module class and uses the Belong trait.
+// It provides methods for managing content feeds, including saving, publishing, and retrieving data.
+
 class Feed extends Module
 {
     use Belong;
 
-    const MULTILANG      = 1;
-    const PAGELIMIT      = 12;
-    const BE_COLS        = 'm.id';
-    const PK_COL         = 'id';
-    const LANG_ARY_MERGE = 0;
-    const LANG_ARY_ALONE = 1;
-    const LANG_ARY_SKIP  = 2;
+    // Constants defining various configurations for the Feed class.
+    const MULTILANG      = 1; // Indicates support for multiple languages.
+    const PAGELIMIT      = 12; // Default number of items per page.
+    const BE_COLS        = 'm.id'; // Default backend columns.
+    const PK_COL         = 'id'; // Primary key column.
+    const LANG_ARY_MERGE = 0; // Language array merge mode.
+    const LANG_ARY_ALONE = 1; // Language array standalone mode.
+    const LANG_ARY_SKIP  = 2; // Language array skip mode.
 
-    const PV_R = 'base.cms';
-    const PV_U = 'base.cms';
-    const PV_D = 'mgr.cms';
+    const PV_R = 'base.cms'; // Permission value for reading.
+    const PV_U = 'base.cms'; // Permission value for updating.
+    const PV_D = 'mgr.cms'; // Permission value for deleting.
 
-    const HARD_DEL = 0;
+    const HARD_DEL = 0; // Indicates hard deletion mode.
 
     /**
-     * 儲存後端表單資料。
+     * Saves data to the specified table.
      *
-     * @param array $req 請求資料
-     * @param string $tbl 資料表名稱
-     * @return int|null 儲存的資料 ID 或 null
+     * @param array  $req The request data to save.
+     * @param string $tbl The name of the table (optional).
+     * @return int The ID of the saved record.
      */
     public static function save($req, $tbl = '')
     {
@@ -65,12 +65,11 @@ class Feed extends Module
     }
 
     /**
-     * 儲存後的處理邏輯。
+     * Performs actions after saving data.
      *
-     * @param int $pid 資料 ID
-     * @param array $other 其他資料
-     * @param array $data 主資料
-     * @return int
+     * @param int   $pid   The ID of the saved record.
+     * @param array $other Additional data to process.
+     * @param array $data  The saved data.
      */
     public static function _afterSave($pid, $other, $data = [])
     {
@@ -90,11 +89,11 @@ class Feed extends Module
     }
 
     /**
-     * 發佈後端表單資料。
+     * Publishes content based on the provided request.
      *
-     * @param array $req 請求資料
-     * @param string $tbl 資料表名稱
-     * @return int|null 發佈結果
+     * @param array  $req The request data.
+     * @param string $tbl The name of the table (optional).
+     * @return bool True if the content was published successfully, false otherwise.
      */
     public static function published($req, $tbl = '')
     {
@@ -120,10 +119,9 @@ class Feed extends Module
     }
 
     /**
-     * 處理請求欄位資料。
+     * Handles column-specific operations for the provided request.
      *
-     * @param array $req 請求欄位資料
-     * @return array 處理後的主資料與其他資料
+     * @param array $req The request data.
      */
     public static function _handleColumn($req)
     {
@@ -187,14 +185,14 @@ class Feed extends Module
     }
 
     /**
-     * 批量查詢資料。
+     * Retrieves a list of records based on the specified conditions.
      *
-     * @param array $condition 查詢條件
-     * @param string|array $cols 查詢欄位
-     * @param mixed $join JOIN 條件
-     * @param int $limit 查詢限制
-     * @param string $table 資料表名稱
-     * @return array 查詢結果
+     * @param array  $condition The conditions for filtering records.
+     * @param string $cols      The columns to retrieve (default: '*').
+     * @param array  $join      The join conditions (optional).
+     * @param int    $limit     The maximum number of records to retrieve (default: 500).
+     * @param string $table     The name of the table (optional).
+     * @return array The list of retrieved records.
      */
     public static function lots($condition, $cols = '*', $join = null, $limit = 500, $table = '')
     {
@@ -217,36 +215,11 @@ class Feed extends Module
     }
 
     /**
-     * @param $pid
-     * @param $sorter
-     */
-    public static function lotsTag($pid, $sorter = false)
-    {
-        $that = get_called_class();
-
-        $pk = $that::MTB . '_id';
-        $fk = 'tag_id';
-
-        $filter = [
-            'r.' . $pk => $pid,
-            't.status' => fTag::ST_ON,
-        ];
-
-        if ($sorter) {
-            $filter['ORDER'] = 'r.sorter';
-        }
-
-        return mh()->select($that::fmTbl('tag') . '(r)',
-            ['[>]' . fTag::fmTbl() . '(t)'          => ['r.tag_id' => 'id'],
-                '[>]' . fTag::fmTbl('lang') . '(l)' => ['t.id' => 'parent_id', 'l.lang' => '[SV]' . Module::_lang()]],
-            ['t.id', 't.slug', 'l.title', 't.counter'], $filter);
-    }
-
-    /**
-     * @param $pid
-     * @param $key
+     * Retrieves metadata for a specific record.
      *
-     * @return mixed
+     * @param int    $pid The ID of the record.
+     * @param string $key The metadata key (optional).
+     * @return array The metadata for the record.
      */
     public static function lotsMeta($pid, $key = '')
     {
@@ -271,10 +244,11 @@ class Feed extends Module
     }
 
     /**
-     * @param $pid
-     * @param $lang
+     * Retrieves language-specific data for a specific record.
      *
-     * @return array
+     * @param int    $pid  The ID of the record.
+     * @param string $lang The language code (optional).
+     * @return array The language-specific data for the record.
      */
     public static function lotsLang($pid, $lang = '')
     {
@@ -319,11 +293,12 @@ class Feed extends Module
     }
 
     /**
-     * @param $pid
-     * @param $data
-     * @param $replace
+     * Saves metadata for a specific record.
      *
-     * @return int
+     * @param int   $pid     The ID of the record.
+     * @param array $data    The metadata to save.
+     * @param bool  $replace Whether to replace existing metadata (default: false).
+     * @return bool True if the metadata was saved successfully, false otherwise.
      */
     public static function saveMeta($pid, $data = [], $replace = false)
     {
@@ -356,11 +331,11 @@ class Feed extends Module
     }
 
     /**
-     * @param $pid
-     * @param $data
-     * @param $replace
+     * Saves language-specific data for a specific record.
      *
-     * @return int
+     * @param int   $pid  The ID of the record.
+     * @param array $data The language-specific data to save.
+     * @return bool True if the data was saved successfully, false otherwise.
      */
     public static function saveLang($pid, $data = [])
     {
@@ -395,7 +370,11 @@ class Feed extends Module
     }
 
     /**
-     * @param $query
+     * Retrieves a single option based on the provided query.
+     *
+     * @param string $query  The query to execute.
+     * @param string $column The column to retrieve (default: 'title').
+     * @return array The retrieved option.
      */
     public static function getOpts($query = '', $column = 'title')
     {
@@ -462,10 +441,11 @@ class Feed extends Module
     }
 
     /**
-     * @param $pid
-     * @param $status
+     * Changes the status of a specific record.
      *
-     * @return null
+     * @param int $pid    The ID of the record.
+     * @param int $status The new status value.
+     * @return bool True if the status was changed successfully, false otherwise.
      */
     public static function changeStatus($pid, $status)
     {
@@ -478,8 +458,11 @@ class Feed extends Module
     }
 
     /**
-     * @param $pid
-     * @param $value
+     * Updates the sorter value for a specific record.
+     *
+     * @param int $pid    The ID of the record.
+     * @param int $sorter The new sorter value.
+     * @return bool True if the sorter was updated successfully, false otherwise.
      */
     public static function update_sorter($pid, $sorter)
     {
@@ -494,10 +477,13 @@ class Feed extends Module
     }
 
     /**
-     * @param $query
-     * @param $page
-     * @param $limit
-     * @param $cols
+     * Retrieves a paginated list of records based on the provided query.
+     *
+     * @param string $query The query to execute.
+     * @param int    $page  The page number (default: 0).
+     * @param int    $limit The number of records per page (default: 0).
+     * @param string $cols  The columns to retrieve (optional).
+     * @return array The paginated list of records.
      */
     public static function limitRows($query = '', $page = 0, $limit = 0, $cols = '')
     {
@@ -516,11 +502,13 @@ class Feed extends Module
     }
 
     /**
-     * get a row
+     * Retrieves a single record based on the provided value and column.
      *
-     * @param mixed $val - condition
-     *
-     * @return array
+     * @param mixed  $val        The value to search for.
+     * @param string $col        The column to search in (default: 'id').
+     * @param array  $condition  Additional conditions for the query (optional).
+     * @param int    $multilang  Whether to include multilingual data (default: 1).
+     * @return array The retrieved record.
      */
     public static function one($val, $col = 'id', $condition = [], $multilang = 1)
     {

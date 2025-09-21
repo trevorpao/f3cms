@@ -6,22 +6,13 @@ use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\PhpWord;
 use PhpOffice\PhpWord\Shared\Converter;
 
-/**
- * WHelper 類別提供與 Word 文件相關的操作功能，
- * 包括新建頁面、生成證書、保存文件以及輸出文件。
- */
 class WHelper extends PhpWord
 {
     /**
-     * @var WHelper 實例，用於管理 Word 文件操作。
+     * @var mixed
      */
     private static $_instance = false;
 
-    /**
-     * 初始化 WHelper 實例。
-     *
-     * @return WHelper 實例
-     */
     public static function init()
     {
         if (!self::$_instance) {
@@ -32,9 +23,7 @@ class WHelper extends PhpWord
     }
 
     /**
-     * 新建一個 Word 文件頁面。
-     *
-     * @return mixed 新建的頁面物件
+     * @return mixed
      */
     public function newPage()
     {
@@ -54,11 +43,9 @@ class WHelper extends PhpWord
     }
 
     /**
-     * 生成證書圖片。
+     * @param $company
      *
-     * @param string $company 公司名稱
-     * @param string $year 年份
-     * @return string 生成的證書圖片路徑
+     * @return mixed
      */
     public function newCert($company, $year)
     {
@@ -93,10 +80,8 @@ class WHelper extends PhpWord
     }
 
     /**
-     * 保存 Word 文件到指定路徑。
-     *
-     * @param string $filename 文件名稱
-     * @param string $type 文件類型 [ODText|Word2007]
+     * @param $filename
+     * @param $type     [ODText|Word2007]
      */
     public function done($filename, $type = 'ODText')
     {
@@ -116,10 +101,8 @@ class WHelper extends PhpWord
     }
 
     /**
-     * 將 Word 文件輸出為下載。
-     *
-     * @param string $filename 文件名稱
-     * @param string $type 文件類型 [ODText|Word2007]
+     * @param $filename
+     * @param $type     [ODText|Word2007]
      */
     public function output($filename, $type = 'ODText')
     {

@@ -4,10 +4,6 @@ namespace F3CMS;
 
 use Mailgun\Mailgun;
 
-/**
- * Sender 類別提供多種郵件發送功能，
- * 支援 SMTP、PHP mail 和 Mailgun 等多種服務。
- */
 class Sender extends Helper
 {
     public const MAILGUN_KEY    = 'key-';
@@ -16,13 +12,12 @@ class Sender extends Helper
     // TODO: add bcc mode
 
     /**
-     * 發送郵件。
+     * @param $subject
+     * @param $content
+     * @param $receiver
+     * @param $service
      *
-     * @param string $subject 郵件主旨
-     * @param string $content 郵件內容
-     * @param string $receiver 收件者（預設為空）
-     * @param string $service 使用的郵件服務（預設為 'smtp'）
-     * @return string 發送結果
+     * @return string done
      */
     public static function mail($subject, $content, $receiver = '', $service = 'smtp')
     {
@@ -40,13 +35,14 @@ class Sender extends Helper
     }
 
     /**
-     * 發送郵件的別名方法。
+     * Alias of mail
      *
-     * @param string $subject 郵件主旨
-     * @param string $content 郵件內容
-     * @param string $receiver 收件者（預設為空）
-     * @param string $service 使用的郵件服務（預設為 'smtp'）
-     * @return string 發送結果
+     * @param $subject
+     * @param $content
+     * @param $receiver
+     * @param $service
+     *
+     * @return string done
      */
     public static function sendmail($subject, $content, $receiver = '', $service = 'smtp')
     {
@@ -54,12 +50,13 @@ class Sender extends Helper
     }
 
     /**
-     * 使用 SMTP 發送郵件。
+     * adapter for SMTP
      *
-     * @param string $subject 郵件主旨
-     * @param string $content 郵件內容
-     * @param string $receiver 收件者（預設為空）
-     * @return string 發送結果或錯誤訊息
+     * @param string $subject
+     * @param string $content
+     * @param email  $receiver
+     *
+     * @return string done or error message
      */
     public static function bySmtp($subject, $content, $receiver = '')
     {
@@ -102,12 +99,13 @@ class Sender extends Helper
     }
 
     /**
-     * 使用 PHP mail 函式發送郵件。
+     * by php mail
      *
-     * @param string $subject 郵件主旨
-     * @param string $content 郵件內容
-     * @param string $receiver 收件者（預設為空）
-     * @return string 發送結果
+     * @param string $subject
+     * @param string $content
+     * @param email  $receiver
+     *
+     * @return none
      */
     public static function byMail($subject, $content, $receiver = '')
     {
@@ -131,12 +129,13 @@ class Sender extends Helper
     }
 
     /**
-     * 使用 Mailgun 發送郵件。
+     * byMailgun
      *
-     * @param string $subject 郵件主旨
-     * @param string $content 郵件內容
-     * @param string $receiver 收件者（預設為空）
-     * @return string 發送結果
+     * @param string $subject
+     * @param string $content
+     * @param email  $receiver
+     *
+     * @return none
      */
     public static function byMailgun($subject, $content, $receiver = '')
     {
@@ -161,10 +160,9 @@ class Sender extends Helper
     }
 
     /**
-     * 渲染郵件內容模板。
+     * @param $tmplname
      *
-     * @param string $tmplname 模板名稱
-     * @return mixed 渲染後的郵件內容
+     * @return mixed
      */
     public static function renderBody($tmplname)
     {
@@ -174,9 +172,7 @@ class Sender extends Helper
     }
 
     /**
-     * 記錄郵件發送日誌。
-     *
-     * @param string $txt 日誌內容
+     * @param $txt
      */
     private static function log($txt)
     {
@@ -185,10 +181,7 @@ class Sender extends Helper
     }
 
     /**
-     * 編碼郵件標題或內容。
-     *
-     * @param string $str 要編碼的字串
-     * @return string 編碼後的字串
+     * @param $str
      */
     private static function encode($str)
     {

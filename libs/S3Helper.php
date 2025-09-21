@@ -5,17 +5,36 @@ namespace F3CMS;
 use Aws\S3\Exception\S3Exception;
 use Aws\S3\S3Client;
 
-// use \Aws\S3\Sync\DownloadSyncBuilder;
-
 /**
- * S3Helper 類別提供與 AWS S3 互動的功能，包括檔案上傳、下載、刪除與檢查。
+ * S3Helper class provides utility methods for interacting with AWS S3,
+ * including uploading, downloading, deleting, and listing objects in an S3 bucket.
  */
 class S3Helper extends Helper
 {
     /**
-     * 建構子，初始化 S3 客戶端與相關設定。
+     * @var string The name of the S3 bucket.
+     */
+    private $bucket;
+
+    /**
+     * @var string The target directory path for local file operations.
+     */
+    private $taDirPath;
+
+    /**
+     * @var string The base URI for the S3 bucket.
+     */
+    private $uri;
+
+    /**
+     * @var S3Client The AWS S3 client instance.
+     */
+    private $client;
+
+    /**
+     * Constructor initializes the S3 client and sets up bucket-specific configurations.
      *
-     * @param string $bucket S3 儲存桶名稱
+     * @param string $bucket The name of the bucket to interact with.
      */
     public function __construct($bucket = '')
     {
@@ -38,9 +57,9 @@ class S3Helper extends Helper
     }
 
     /**
-     * 列出所有 S3 儲存桶。
+     * Lists all buckets available in the S3 account.
      *
-     * @return array 儲存桶列表
+     * @return array List of buckets.
      */
     public function buckets()
     {
@@ -50,10 +69,10 @@ class S3Helper extends Helper
     }
 
     /**
-     * 上傳檔案到 S3。
+     * Uploads a file to the S3 bucket.
      *
-     * @param string $filePath 檔案路徑，需以 / 開頭
-     * @return string 上傳後的檔案 URL
+     * @param string $filePath The path of the file to upload, starting with '/'.
+     * @return string|null The URL of the uploaded file or null if an error occurs.
      */
     public function put($filePath)
     {
@@ -67,25 +86,21 @@ class S3Helper extends Helper
             ]);
 
             $result = $this->uri . '/' . $newPath;
-
-            // Fatal error: Allowed memory size of 134217728 bytes exhausted (tried to allocate 69210112 bytes)
-            // $result = $this->client->waitUntil('ObjectExists', array(
-            //     'Bucket' => $this->bucket,
-            //     'Key'    => $newPath
-            // ));
         } catch (S3Exception $e) {
             $logger = new \Log('s3.log');
-            $logger->write('The put was rejected with ' . $e->getAwsErrorCode()); // $e->getAwsErrorMessage();
+            $logger->write('The put was rejected with ' . $e->getAwsErrorCode());
+
+            return null;
         }
 
         return $result;
     }
 
     /**
-     * 非同步上傳檔案到 S3。
+     * Asynchronously uploads a file to the S3 bucket.
      *
-     * @param string $filePath 檔案路徑
-     * @return PromiseInterface 非同步操作的 Promise
+     * @param string $filePath The path of the file to upload.
+     * @return \GuzzleHttp\Promise\PromiseInterface|null A promise for the upload operation or null if an error occurs.
      */
     public function putAsync($filePath)
     {
@@ -98,27 +113,27 @@ class S3Helper extends Helper
                 'SourceFile' => $filePath,
             ])->then(
                 function ($result) {
-                    // echo "File uploaded successfully. ETag: " . $result['ETag'] . PHP_EOL;
+                    // Handle successful upload
                 },
                 function ($reason) {
-                    // echo "Failed to upload file. Reason: " . $reason . PHP_EOL;
+                    // Handle failed upload
                 }
             );
 
             return $promise;
         } catch (S3Exception $e) {
             $logger = new \Log('s3.log');
-            $logger->write('The put was rejected with ' . $e->getAwsErrorCode()); // $e->getAwsErrorMessage();
+            $logger->write('The put was rejected with ' . $e->getAwsErrorCode());
 
             return null;
         }
     }
 
     /**
-     * 從 S3 下載檔案。
+     * Downloads a file from the S3 bucket.
      *
-     * @param string $filename 檔案名稱，需以 / 開頭
-     * @return mixed 下載結果
+     * @param string $filename The name of the file to download, starting with '/'.
+     * @return mixed The result of the download operation or an error code if it fails.
      */
     public function get($filename)
     {
@@ -137,17 +152,17 @@ class S3Helper extends Helper
                 'SaveAs' => $this->taDirPath . $filename,
             ]);
         } catch (S3Exception $e) {
-            $result = $e->getAwsErrorCode(); // $e->getAwsErrorMessage();
+            $result = $e->getAwsErrorCode();
         }
 
         return $result;
     }
 
     /**
-     * 刪除 S3 上的檔案。
+     * Deletes a file from the S3 bucket.
      *
-     * @param string $filename 檔案名稱，需以 / 開頭
-     * @return mixed 刪除結果
+     * @param string $filename The name of the file to delete, starting with '/'.
+     * @return mixed The result of the delete operation or an error code if it fails.
      */
     public function del($filename)
     {
@@ -157,16 +172,16 @@ class S3Helper extends Helper
                 'Key'    => substr($filename, 1),
             ]);
         } catch (S3Exception $e) {
-            $result = $e->getAwsErrorCode(); // $e->getAwsErrorMessage();
+            $result = $e->getAwsErrorCode();
         }
 
         return $result;
     }
 
     /**
-     * 列出指定路徑下的所有檔案。
+     * Lists objects in a specific path within the S3 bucket.
      *
-     * @param string $path 路徑
+     * @param string $path The path to list objects from.
      */
     public function ls($path)
     {
@@ -183,11 +198,11 @@ class S3Helper extends Helper
     }
 
     /**
-     * 檢查指定路徑的檔案是否存在於 S3。
+     * Checks if a specific object exists in the S3 bucket.
      *
-     * @param string $path 路徑
-     * @param int $echo 是否輸出檢查結果
-     * @return int 檢查結果，1 表示存在，0 表示不存在
+     * @param string $path The path of the object to check.
+     * @param int $echo Whether to output debug information (0 or 1).
+     * @return int 1 if the object exists, 0 otherwise.
      */
     public function check($path, $echo = 0)
     {
@@ -217,11 +232,11 @@ class S3Helper extends Helper
     }
 
     /**
-     * 檢查指定路徑的檔案是否存在於 S3（另一種實現）。
+     * Checks if a specific object exists in the S3 bucket (alternative method).
      *
-     * @param string $path 路徑
-     * @param int $echo 是否輸出檢查結果
-     * @return int 檢查結果，1 表示存在，0 表示不存在
+     * @param string $path The path of the object to check.
+     * @param int $echo Whether to output debug information (0 or 1).
+     * @return int 1 if the object exists, 0 otherwise.
      */
     public function checkExist($path, $echo = 0)
     {
