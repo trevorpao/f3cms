@@ -18,14 +18,10 @@ class oDictionary extends Outfit
             f3()->error(404);
         }
 
-        f3()->set('cu', $cu);
+        _dzv('cu', $cu);
 
-        f3()->set('bc_ary', [
-            ['link' => 'javascript:;', 'title' => $cu['title']],
-        ]);
+        f3()->set('breadcrumb_sire', ['title' => '首頁', 'slug' => '/home']);
 
-        f3()->set('nav', rMenu::sort_menus(1, 0, '', 0));
-
-        parent::wrapper('dictionary.html', $cu['title'] . ' - 小知識', '/d/' . $cu['id'] . '/' . $cu['slug']);
+        parent::render('post.twig', $cu['title'] . ' - 小知識', '/d/' . $cu['id'] . '/' . $cu['slug']);
     }
 }

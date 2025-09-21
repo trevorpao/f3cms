@@ -32,7 +32,7 @@ class oEdm extends Outfit
 
         f3()->set('cates', $cates);
 
-        parent::wrapper(f3()->get('theme') . '/edm.html', $cu['lang']['title'], '/edm/' . $cu['slug']);
+        parent::wrapper('/edm.html', $cu['lang']['title'], '/edm/' . $cu['slug']);
     }
 
     /**
@@ -50,7 +50,7 @@ class oEdm extends Outfit
         f3()->set('email', f3()->get('webmaster'));
 
         $tp   = \Template::instance();
-        $html = $tp->render(f3()->get('theme') . '/edm.html');
+        $html = $tp->render('/edm.html');
 
         $sent = Sender::sendmail($cu['title'] . ' - 測試信', $html, f3()->get('webmaster'));
 
@@ -77,7 +77,7 @@ class oEdm extends Outfit
      */
     public static function preview($args)
     {
-        rStaff::_chkLogin();
+        kStaff::_chkLogin();
 
         $cu = fEdm::one($args['slug'], 'slug', [], 0);
         if (empty($cu)) {
@@ -86,6 +86,6 @@ class oEdm extends Outfit
         f3()->set('cu', $cu);
         f3()->set('email', f3()->get('webmaster'));
 
-        parent::wrapper(f3()->get('theme') . '/edm.html', $cu['title'], '/edm/' . $cu['slug']);
+        parent::wrapper('/edm.html', $cu['title'], '/edm/' . $cu['slug']);
     }
 }

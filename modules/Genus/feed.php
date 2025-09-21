@@ -9,8 +9,8 @@ class fGenus extends Feed
 {
     const MTB = 'genus';
 
-    const PV_R = 'base.cms';
-    const PV_U = 'mgr.site';
+    const PV_R = 'mgr.cms';
+    const PV_U = 'mgr.cms';
     const PV_D = 'mgr.site';
 
     const ST_ON  = 'Enabled';

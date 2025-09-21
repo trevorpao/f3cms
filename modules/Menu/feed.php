@@ -7,22 +7,30 @@ namespace F3CMS;
  */
 class fMenu extends Feed
 {
-    public const MTB = 'menu';
+    const MTB = 'menu';
 
-    public const ST_ON  = 'Enabled';
-    public const ST_OFF = 'Disabled';
+    const ST_ON  = 'Enabled';
+    const ST_OFF = 'Disabled';
 
-    public const PV_R = 'use.menu.config';
-    public const PV_U = 'use.menu.config';
-    public const PV_D = 'use.menu.config';
+    const PV_R = 'mgr.site';
+    const PV_U = 'mgr.site';
+    const PV_D = 'mgr.site';
+
+    const PAGELIMIT = 1000;
+
+    const HARD_DEL = 1;
 
     /**
      * @param $query
      * @param $page
      * @param $limit
      */
-    public static function limitRows($query = '', $page = 0, $limit = 1000, $cols = '')
+    public static function limitRows($query = '', $page = 0, $limit = 0, $cols = '')
     {
+        if (0 == $limit) {
+            $limit = self::PAGELIMIT;
+        }
+
         return [
             'subset' => rMenu::sort_menus(0, 0, '', 0, 1),
             'limit'  => $limit,
@@ -42,6 +50,7 @@ class fMenu extends Feed
     {
         $lang = Module::_lang();
 
+        $cols      = 'c.id, l1.title, c.uri, c.theme, c.blank, l1.badge, c.color, c.icon, c.parent_id, l2.title AS parent';
         $condition = ' where 1 ';
         $join      = ' LEFT JOIN `' . self::fmTbl('lang') . '` l2 ON l2.parent_id=c.parent_id AND l2.lang = \'' . $lang . '\' ';
 
@@ -51,11 +60,13 @@ class fMenu extends Feed
 
         if (!$force) {
             $condition .= ' AND c.`status` = \'' . self::ST_ON . '\' ';
+        } else {
+            $cols .= ', c.status';
         }
 
         $join .= ' LEFT JOIN `' . self::fmTbl('lang') . '` l1 ON l1.parent_id=c.id AND l1.lang = \'' . $lang . '\' ';
 
-        $rows = mh()->query('SELECT c.id, l1.title, c.uri, c.theme, c.blank, l1.badge, c.color, c.parent_id, l2.title AS parent FROM `' . self::fmTbl() . '` c ' . $join . $condition . ' ORDER BY c.sorter, c.id ')->fetchAll(\PDO::FETCH_ASSOC);
+        $rows = mh()->query('SELECT ' . $cols . ' FROM `' . self::fmTbl() . '` c ' . $join . $condition . ' ORDER BY c.sorter, c.id ')->fetchAll(\PDO::FETCH_ASSOC);
 
         return $rows;
     }
@@ -97,7 +108,7 @@ class fMenu extends Feed
      */
     public static function getOpts($query = '', $column = 'title')
     {
-        $menus = rMenu::sort_menus(0, 0, '--', 0);
+        $menus = rMenu::sort_menus(0, 0, ' 　 　', 0);
         $rtn   = [];
 
         if (is_array($menus) && !empty($menus)) {
@@ -121,8 +132,57 @@ class fMenu extends Feed
         }
     }
 
+    /**
+     * @param object $menu
+     * @param int    $parent_id
+     *
+     * @return int new menu id
+     */
+    public static function cloneMenu($menu, $parent_id)
+    {
+        unset($menu['id']);
+        $menu['parent_id'] = $parent_id;
+
+        return self::save($menu);
+    }
+
     public static function freezeNode()
     {
-        return [1, 2, 15, 16, 17, 24];
+        return [1, 2, 16];
+    }
+
+    /**
+     * delete one row
+     *
+     * @param int $pid
+     */
+    public static function delRow($pid, $sub_table = '')
+    {
+        $data = mh()->delete(self::fmTbl(), [
+            'id' => $pid,
+        ]);
+
+        if (self::chkErr($data->rowCount()) > 0) {
+            self::removeOrphanNode();
+
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+    private static function removeOrphanNode()
+    {
+        $rowCount = self::exec('DELETE FROM `' . self::fmTbl() . '` WHERE `parent_id` IN (SELECT l.`parent_id` FROM `' . self::fmTbl() . '` l LEFT JOIN `' .
+            self::fmTbl() . '` a ON a.`id`=l.`parent_id` WHERE a.`id` is NULL AND l.`parent_id` != 0);');
+
+        if (self::chkErr($rowCount) > 0) {
+            $rowCount = self::exec('DELETE FROM `' . self::fmTbl('lang') . '` WHERE `parent_id` IN (SELECT l.`parent_id` FROM `' . self::fmTbl('lang') . '` l LEFT JOIN `' .
+                self::fmTbl() . '` a ON a.`id`=l.`parent_id` WHERE a.`id` is NULL);');
+
+            if (self::chkErr($rowCount) > 0) {
+                self::removeOrphanNode();
+            }
+        }
     }
 }

@@ -10,55 +10,31 @@ class rContact extends Reaction
      */
     public function do_add_new($f3, $args)
     {
-        $req = f3()->get('POST'); //parent::getReq();
+        $req = parent::_getReq();
 
-        if (empty($req['name'])) {
-            return parent::_return(8002, ['msg' => '姓名未填寫!!']);
-        }
+        // if (!chkCSRF()) {
+        //     return parent::_return(8002, ['msg' => '欄位未填寫，請重新確認! (miss_token)']);
+        // }
 
-        if (empty($req['email'])) {
-            return parent::_return(8002, ['msg' => 'Email 未填寫!!']);
-        }
-
-        if (empty($req['message'])) {
-            return parent::_return(8002, ['msg' => '訊息未填寫!!']);
-        }
+        Validation::return($req, kContact::rule('add_new'));
 
         fContact::insert($req);
 
         f3()->set('name', $req['name']);
         f3()->set('email', $req['email']);
+
+        f3()->set('phone', !empty($req['phone']) ? $req['phone'] : '');
+        f3()->set('type', !empty($req['type']) ? $req['type'] : '');
+        f3()->set('company', !empty($req['company']) ? $req['company'] : '');
+
         f3()->set('message', nl2br($req['message']));
 
-        $tp      = \Template::instance();
-        $content = $tp->render('mail/contact.html');
-
-        $sent = Sender::sendmail('網站詢問通知', $content, f3()->get('opts.default.contact_mail'));
-
-        return parent::_return(1, ['pid' => $obj->id, 'msg' => '感謝您~~']);
-    }
-
-    /**
-     * @param $f3
-     * @param $args
-     */
-    public function do_dl_csv($f3, $args)
-    {
-        rStaff::_chkLogin();
-
-        $rows = $this->_db->exec(
-            'SELECT * FROM `' . self::fmTbl() . '` ORDER BY insert_ts DESC '
+        $sent = Sender::sendmail(
+            f3()->get('site_title') . ' 網站詢問通知',
+            Sender::renderBody('contact'),
+            f3()->get('opts.default.contact_mail')
         );
 
-        if (!$rows) {
-            header('Content-Type:text/html; charset=utf-8');
-            echo '無結果';
-        } else {
-            $template = new Template();
-            f3()->set('rows', $rows);
-
-            Outfit::_setXls('contact_' . date('YmdHis'));
-            echo $template->render('contact.dl.html', 'application/vnd.ms-excel');
-        }
+        return parent::_return(1, ['msg' => '感謝您~~']);
     }
 }

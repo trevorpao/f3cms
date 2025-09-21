@@ -9,10 +9,6 @@ class fCategory extends Feed
 {
     const MTB = 'category';
 
-    const PV_R = 'mgr.site';
-    const PV_U = 'mgr.site';
-    const PV_D = 'mgr.site';
-
     const ST_ON  = 'Enabled';
     const ST_OFF = 'Disabled';
 

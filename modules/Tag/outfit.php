@@ -24,19 +24,11 @@ class oTag extends Outfit
             f3()->error(404);
         }
 
-        $subset = fPress::lotsByTag($tag['id']);
+        $tag['title'] = (empty($tag['title'])) ? '' : $tag['title'];
 
-        $subset['subset'] = \__::map($subset['subset'], function ($cu) {
-            $cu['tags'] = fPress::lotsTag($cu['id']);
-            $cu['authors'] = fPress::lotsAuthor($cu['id']);
-            $cu['metas'] = fPress::lotsMeta($cu['id']);
+        _dzv('cu', $tag);
+        _dzv('srcType', 'tag');
 
-            return $cu;
-        });
-
-        f3()->set('rows', $subset);
-        f3()->set('cate', $tag);
-
-        parent::wrapper(f3()->get('theme') . '/presses.html', $tag['title'], '/tag/' . $tag['slug']);
+        self::render('press/list.twig', $tag['title'], '/tag/' . $tag['slug']);
     }
 }

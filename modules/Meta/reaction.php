@@ -30,4 +30,22 @@ class rMeta extends Reaction
 
         return $row;
     }
+
+    /**
+     * @param $f3
+     * @param $args
+     */
+    public function do_all($f3, $args)
+    {
+        $req = parent::_getReq();
+        $req['query'] = (!isset($req['query'])) ? '' : $req['query'];
+
+        $rtn = fMeta::limitRows($req['query'], 0, 100);
+
+        foreach ($rtn['subset'] as $k => $row) {
+            $rtn['subset'][$k]['tags'] = '[' . implode('],[', \__::pluck(fMeta::lotsGenus($row['id']), 'id')) . ']';
+        }
+
+        return self::_return(1, $rtn['subset']);
+    }
 }

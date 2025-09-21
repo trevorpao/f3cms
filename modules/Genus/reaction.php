@@ -13,7 +13,7 @@ class rGenus extends Reaction
      */
     public function do_get_opts($f3, $args)
     {
-        chkAuth(fGenus::PV_R);
+        kStaff::_chkLogin();
 
         $req   = self::_getReq();
         $query = '';

@@ -15,7 +15,7 @@ class rMenu extends Reaction
      */
     public function do_save($f3, $args)
     {
-        rStaff::_chkLogin(); // chkAuth($feed::PV_U);
+        chkAuth(fMenu::PV_U);
 
         $req = parent::_getReq();
 
@@ -92,6 +92,10 @@ class rMenu extends Reaction
 
         $req = parent::_getReq();
 
+        if (empty($req['menuID'])) {
+            return parent::_return(8002);
+        }
+
         $fc = new FCHelper('menu');
 
         $rtn = $fc->get('menu_' . parent::_lang() . '_' . $req['menuID'], 1); // 1 mins
@@ -106,6 +110,37 @@ class rMenu extends Reaction
         return parent::_return(1, $rtn);
     }
 
+    public static function do_deepClone()
+    {
+        chkAuth(fMenu::PV_U);
+
+        $req = parent::_getReq();
+
+        if (!isset($req['id'])) {
+            return self::_return(8004);
+        }
+
+        self::deepCloneMenu($req['id']);
+
+        return parent::_return(1);
+    }
+
+    public static function deepCloneMenu($menuID, $parent_id = 0)
+    {
+        $menu = fMenu::one($menuID);
+        if (!$menu) {
+            return false;
+        }
+
+        $newMenuId = fMenu::cloneMenu($menu, $parent_id);
+
+        // 複製子節點
+        $childMenus = self::sort_menus($menuID, 0, '', 0);
+        foreach ($childMenus as $childMenu) {
+            self::deepCloneMenu($childMenu['id'], $newMenuId);
+        }
+    }
+
     /**
      * save sorter
      *
@@ -116,7 +151,7 @@ class rMenu extends Reaction
      */
     public function do_update_sorter($f3, $args)
     {
-        rStaff::_chkLogin(); // chkAuth($feed::PV_U);
+        chkAuth(fMenu::PV_U);
 
         $req = parent::_getReq();
 

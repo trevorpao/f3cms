@@ -7,39 +7,51 @@ namespace F3CMS;
  */
 class fMedia extends Feed
 {
-    public const MTB = 'media';
+    const MTB = 'media';
 
-    public const ST_ON  = 'Enabled';
-    public const ST_OFF = 'Disabled';
+    const ST_ON  = 'Enabled';
+    const ST_OFF = 'Disabled';
 
-    public const PV_R = 'use.cms';
-    public const PV_U = 'use.cms';
-    public const PV_D = 'use.cms';
-
-    public const PV_SOP = 'see.other.press';
-
-    public const BE_COLS = 'm.id,m.title,m.slug,m.status,m.pic,info,m.last_ts';
+    const BE_COLS = 'm.id,l.title,m.target,m.slug,m.status,m.pic,l.info,m.last_ts';
 
     /**
-     * @param $query
-     * @param $page
-     * @param $limit
-     * @param $cols
-     *
-     * @return mixed
+     * @param $req
      */
-    public static function limitRows($query = '', $page = 0, $limit = 12, $cols = '')
+    public static function insert($req)
     {
-        $filter = self::genQuery($query);
+        $now = date('Y-m-d H:i:s');
 
-        // if (!canDo(self::PV_SOP)) {
-        // $filter['m.insert_user'] = rStaff::_CStaff();
-        // }
+        $data = [
+            'title'     => $req['title'],
+            'slug'      => $req['slug'],
+            'parent_id' => $req['parent_id'],
+            'target'    => ucfirst($req['target']),
+            'pic'       => $req['pic'],
+            'status'    => self::ST_ON,
+            'last_ts'   => $now,
+            'insert_ts' => $now,
+        ];
 
-        $filter['ORDER'] = ['m.insert_ts' => 'DESC'];
+        mh()->insert(self::fmTbl(), $data);
 
-        $join = ['[>]' . fStaff::fmTbl() . '(s)' => ['m.insert_user' => 'id']];
+        $pid = self::chkErr(mh()->id());
 
-        return self::paginate(self::fmTbl() . '(m)', $filter, $page, $limit, explode(',', self::BE_COLS), $join);
+        if ($pid) {
+            mh()->insert(self::fmTbl('lang'), [
+                'parent_id' => $pid,
+                'from_ai'   => 'No',
+                'lang'      => Module::_lang(),
+                'title'     => $req['title'],
+                'last_ts'   => $now,
+                'insert_ts' => $now,
+            ]);
+        }
+
+        return $pid;
+    }
+
+    public static function genOrder()
+    {
+        return ['m.sorter' => 'ASC', 'm.insert_ts' => 'DESC'];
     }
 }

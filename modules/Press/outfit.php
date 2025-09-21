@@ -7,27 +7,37 @@ namespace F3CMS;
  */
 class oPress extends Outfit
 {
-    public function list($args)
+    /**
+     * @param $args
+     *
+     * @return mixed
+     */
+    public static function list($args)
     {
-        $req = parent::_getReq();
+        $langTxts = [
+            'tw' => '文章清單',
+            'en' => 'Articles',
+            'ja' => '記事一覧',
+            'ko' => '기사 목록',
+        ];
 
-        $req['page'] = ($req['page']) ? ($req['page'] - 1) : 0;
+        $title = $langTxts[Module::_lang()]; // '文章清單';
 
-        $subset = fPress::limitRows('status:' . fPress::ST_PUBLISHED, $req['page']);
+        _dzv('cu', ['title' => $title, 'id' => 0]);
+        _dzv('srcType', 'tag');
 
-        $subset['subset'] = \__::map($subset['subset'], function ($cu) {
-            $cu['tags'] = fPress::lotsTag($cu['id']);
-            $cu['authors'] = fPress::lotsAuthor($cu['id']);
-            $cu['metas'] = fPress::lotsMeta($cu['id']);
+        self::render('press/list.twig', $title, '/presses');
+    }
 
-            return $cu;
-        });
+    /**
+     * @param $args
+     */
+    public static function search($args)
+    {
+        $req = self::_getReq();
+        _dzv('searchStr', $req['q']);
 
-        f3()->set('rows', $subset);
-
-        f3()->set('breadcrumb_sire', ['title' => '首頁', 'slug' => '/home']);
-
-        parent::wrapper(f3()->get('theme') . '/presses.html', '消息', '/presses');
+        parent::render('press/search_results.twig', '搜尋結果：' . $req['q'], '/search?q=' . $req['q']);
     }
 
     /**
@@ -41,7 +51,7 @@ class oPress extends Outfit
             $html = $fc->get('press_' . parent::_lang() . '_' . $args['slug']);
 
             if (empty($html)) {
-                if (!rStaff::_isLogin()) {
+                if (!kStaff::_isLogin()) {
                     f3()->error(404);
                 } else {
                     $html = self::_render($args['slug']);
@@ -57,19 +67,27 @@ class oPress extends Outfit
         }
 
         echo $html;
+        self::_showVariables();
     }
 
     /**
      * @param $args
      */
-    public static function force($args)
+    public static function buildPage($args)
     {
+        if (!kStaff::_isLogin()) {
+            f3()->error(404);
+        }
+
         $fc            = new FCHelper('press');
-        $fc->ifHistory = 1;
+        $fc->ifHistory = 0;
 
-        $html = self::_render($args['slug']);
+        foreach (f3()->get('acceptLang') as $n) {
+            parent::_lang(['lang' => $n]);
 
-        $fc->save('press_' . parent::_lang() . '_' . $args['slug'], $html);
+            $html = self::_render($args['slug'], false, true);
+            $fc->save('press_' . $n . '_' . $args['slug'], $html); // renew cache
+        }
     }
 
     /**
@@ -77,7 +95,7 @@ class oPress extends Outfit
      */
     public static function preview($args)
     {
-        if (!rStaff::_isLogin()) {
+        if (!kStaff::_isLogin()) {
             f3()->error(404);
         }
 
@@ -90,62 +108,129 @@ class oPress extends Outfit
      *
      * @return mixed
      */
-    private static function _render($id = 0, $published = true)
+    private static function _render($id = 0, $published = true, $history = false)
     {
         $filter = [];
         if ($published) {
             $filter['status'] = [fPress::ST_PUBLISHED, fPress::ST_CHANGED];
         }
 
-        $cu = fPress::one($id, 'id', $filter, 0);
+        if (is_numeric($id)) {
+            $cu = fPress::one($id, 'id', $filter, 0);
+        } else {
+            $cu = fPress::one(parent::_slugify($id), 'slug', $filter, 0);
+        }
 
         if (empty($cu)) {
             f3()->error(404);
         }
 
-        if (3 == $cu['site_id']) {
-            f3()->set('uri', f3()->get('us_uri'));
-        }
-
-        $tags     = fPress::lotsTag($cu['id']);
+        $cate     = fCategory::one($cu['cate_id'], 'id', ['status' => fCategory::ST_ON], 0);
+        $tags     = fPress::lotsTag($cu['id'], true);
         $authors  = fPress::lotsAuthor($cu['id']);
         $relateds = fPress::lotsRelated($cu['id']);
+        $terms    = fPress::lotsTerm($cu['id']);
         $metas    = fPress::lotsMeta($cu['id']);
 
         $seo = [
             'desc'    => $cu['info'],
-            'img'     => $cu['pic'],
-            'keyword' => $cu['keyword'],
-            'header'  => '消息',
+            'img'     => f3()->get('uri') . ((empty($cu['banner'])) ? $cu['cover'] : $cu['banner']),
+            'keyword' => '',
+            'header'  => '文章',
         ];
 
-        if (!empty($metas['seo_desc'])) {
-            $seo['desc'] = $metas['seo_desc'];
+        if (!empty($tags)) {
+            $seo['keyword'] .= implode(',', \__::pluck($tags, 'title'));
         }
 
-        if (!empty($metas['seo_keyword'])) {
-            $seo['keyword']       = $metas['seo_keyword'];
-            $metas['seo_keyword'] = explode(',', $metas['seo_keyword']);
+        $recommends = [];
+        if (safeCount($tags) > 0) {
+            $recommends = fPress::relatedTag($cu['id'], \__::pluck($tags, 'id'), 5);
         }
+
+        if (safeCount($relateds) > 0) {
+            foreach ($relateds as $k => $row) {
+                $relateds[$k]['tags']    = fPress::lotsTag($row['id']);
+                $relateds[$k]['authors'] = fPress::lotsAuthor($row['id']);
+            }
+        }
+
+        $cu['content'] = parent::convertUrlsToLinks($cu['content']);
+
+        $subset = fMedia::limitRows([
+            'm.status'    => fMedia::ST_ON,
+            'm.target'    => 'Press',
+            'm.parent_id' => $cu['id'],
+        ], 0, 30);
+
+        _dzv('medias', $subset['subset']);
+
+        _dzv('cu', $cu);
+        _dzv('cate', $cate);
+        _dzv('metas', $metas);
+        _dzv('tags', $tags);
+        _dzv('authors', $authors);
+        _dzv('relateds', $relateds);
+        _dzv('recommends', $recommends);
+        _dzv('terms', $terms);
+
+        _dzv('next', fPress::neighbor($cu, 'next'));
+        _dzv('prev', fPress::neighbor($cu, 'prev'));
 
         f3()->set('page', $seo);
 
-        f3()->set('cu', $cu);
-        // f3()->set('cate', $cate);
-        f3()->set('metas', $metas);
-        f3()->set('tags', $tags);
-        f3()->set('authors', $authors);
-        f3()->set('relateds', $relateds);
+        $link = '/p/' . $cu['id'] . '/' . $cu['slug'];
 
-        f3()->set('next', fPress::load_next($cu, 0, 'online_date'));
-        f3()->set('prev', fPress::load_prev($cu, 0, 'online_date'));
+        _dzv('ldjson', self::ldjson(
+            $cu['title'],
+            $seo['desc'],
+            f3()->get('uri') . $link,
+            $seo['img'],
+            $cu['last_ts'],
+            $cu['online_date']
+        ));
 
-        f3()->set('act_link', str_replace('/', '', $cate['slug']));
+        kPress::fartherData($cu['id']);
 
-        f3()->set('breadcrumb_sire', ['title' => '消息', 'slug' => '/presses', 'sire' => ['title' => '首頁', 'slug' => '/home']]);
+        f3()->set('breadcrumb_sire', ['title' => '文章', 'slug' => '/presses', 'sire' => ['title' => '首頁', 'slug' => '/home']]);
 
-        $html = self::wrapper(f3()->get('theme') . '/press.html', $cu['title'], '/p/' . $cu['id'] . '/' . $cu['slug'], true);
+        $html = self::render('press/show.twig', $cu['title'], $link, true);
+
+        if ($history) {
+            kHistory::save('Press', $cu['id'], $cu['title'], $html);
+        }
 
         return $html;
+    }
+
+    public static function ldjson($title, $desc, $link, $img, $last_ts, $online_date)
+    {
+        switch (parent::_lang()) {
+            case 'en':
+                $lang = 'en-US';
+                break;
+            case 'ja':
+                $lang = 'ja-JP';
+                break;
+            case 'ko':
+                $lang = 'ko-KR';
+                break;
+            default:
+                $lang = 'zh-TW';
+                break;
+        }
+
+        // TODO: use @graph, add ImageObject, BreadcrumbList, Person
+        return '<script type="application/ld+json">' . jsonEncode([
+            '@context'         => 'https://schema.org',
+            '@type'            => 'NewsArticle',
+            'headline'         => parent::safeRaw($title),
+            'description'      => parent::safeRaw($desc),
+            'contentUrl'       => $link,
+            'image'            => [$img],
+            'dateModified'     => date('c', strtotime($last_ts)),
+            'datePublished'    => date('c', strtotime($online_date)),
+            'inLanguage'       => $lang,
+        ]) . '</script>';
     }
 }

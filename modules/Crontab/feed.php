@@ -8,6 +8,10 @@ class fCrontab extends Feed
     const ST_ON  = 'Enabled';
     const ST_OFF = 'Disabled';
 
+    const PV_R = 'mgr.site';
+    const PV_U = 'mgr.site';
+    const PV_D = 'mgr.site';
+
     public static function many($freq, $tally)
     {
         return mh()->select(self::fmTbl() . '(m)', '*', [

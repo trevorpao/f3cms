@@ -10,6 +10,10 @@ class fShorten extends Feed
     public const ST_OFF = 'Disabled';
     public const ST_ON  = 'Enabled';
 
+    const PV_R = 'base.member';
+    const PV_U = 'base.member';
+    const PV_D = 'mgr.site';
+
     public const BE_COLS = 'm.id,m.status,m.origin,m.token,m.note,m.hits,m.last_ts,m.finished,m.cap';
 
     /**

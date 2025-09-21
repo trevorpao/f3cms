@@ -10,6 +10,10 @@ class fDoorman extends Feed
     const MTB       = 'doorman';
     const MULTILANG = 0;
 
+    const PV_R = 'mgr.site';
+    const PV_U = 'mgr.site';
+    const PV_D = 'mgr.site';
+
     const T_MEMBER = 'Member';
     const T_STAFF  = 'Staff';
     const T_ADMIN  = 'Admin';

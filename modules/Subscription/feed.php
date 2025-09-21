@@ -29,7 +29,7 @@ class fSubscription extends Feed
      */
     public static function cancel($email)
     {
-        $rows = self::exec('SELECT `id`, `status` FROM `' . self::fmTbl() . '` WHERE `email`=:email', [':email' => $email]);
+        $rows = self::exec('SELECT `id`, `status` FROM `' . self::fmTbl() . '` WHERE `email`=?', self::_fixAry([$email]));
 
         if ($rows) {
             parent::change_status($rows[0]['id'], 'Disabled');
@@ -41,7 +41,7 @@ class fSubscription extends Feed
      */
     public static function confirm($email)
     {
-        $rows = self::exec('SELECT `id`, `status` FROM `' . self::fmTbl() . '` WHERE `email`=:email', [':email' => $email]);
+        $rows = self::exec('SELECT `id`, `status` FROM `' . self::fmTbl() . '` WHERE `email`=?', self::_fixAry([$email]));
 
         if ($rows) {
             parent::change_status($rows[0]['id'], 'Enabled');

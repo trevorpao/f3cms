@@ -7,32 +7,13 @@ namespace F3CMS;
  */
 class fTag extends Feed
 {
-    public const MTB    = 'tag';
-    public const ST_ON  = 'Enabled';
-    public const ST_OFF = 'Disabled';
+    const MTB    = 'tag';
+    const ST_ON  = 'Enabled';
+    const ST_OFF = 'Disabled';
 
-    public const PV_R = 'see.other.press';
-    public const PV_U = 'see.other.press';
-    public const PV_D = 'see.other.press';
+    const PAGELIMIT = 1000;
 
-    public const BE_COLS = 'm.id,l.title,m.slug,m.counter';
-
-    /**
-     * @param $query
-     * @param $page
-     * @param $limit
-     * @param $cols
-     *
-     * @return mixed
-     */
-    public static function limitRows($query = '', $page = 0, $limit = 1000, $cols = '')
-    {
-        $rtn = parent::limitRows($query, $page, $limit);
-
-        // TODO: add the title of parent
-
-        return $rtn;
-    }
+    const BE_COLS = 'm.id,l.title,m.slug,m.cate_id,m.counter';
 
     /**
      * @param $req
@@ -87,9 +68,15 @@ class fTag extends Feed
      *
      * @return array
      */
-    public static function detail($pid)
+    public static function detail($pid, $type = 'all')
     {
-        $rows = self::exec('SELECT * FROM `' . self::fmTbl('detail') . '` WHERE `parent_id`=? LIMIT 1 ', $pid);
+        if ('all' == $type) {
+            $cols = '*';
+        } else {
+            $cols = '`cover`, `banner`, `info`';
+        }
+
+        $rows = self::exec('SELECT ' . $cols . ' FROM `' . self::fmTbl('detail') . '` WHERE `parent_id`=:pid LIMIT 1 ', [':pid' => $pid]);
 
         if (1 != count($rows)) {
             return null;
@@ -98,63 +85,19 @@ class fTag extends Feed
         }
     }
 
-    /**
-     * get a tag by tag id
-     *
-     * @param int $cid - type id
-     *
-     * @return array
-     */
-    public static function get_tag($cid)
+    public static function setPressCnt($pid)
     {
-        $rows = self::exec('SELECT * FROM `' . self::fmTbl() . '` WHERE `id`=? LIMIT 1 ', $cid);
+        $cnt = self::exec('SELECT COUNT(r.`press_id`) AS `cnt` FROM `' . fPress::fmTbl('tag') . '` AS `r` ' .
+            ' INNER JOIN `' . fPress::fmTbl() . '` AS `m` ON `r`.`press_id` = `m`.`id` AND `m`.`status` IN (\'' . fPress::ST_PUBLISHED . '\', \'' . fPress::ST_CHANGED . '\') ' .
+            'WHERE `r`.`tag_id` = :pid LIMIT 1', [':pid' => $pid], true);
+        $cnt = ($cnt) ? $cnt['cnt'] * 1 : 0;
 
-        if (1 != count($rows)) {
-            return null;
-        } else {
-            $cu            = $rows[0];
-            $cu['subrows'] = self::get_tags($cu['id']);
+        $rtn = mh()->update(self::fmTbl(), [
+            'counter' => $cnt,
+        ], [
+            'id' => $pid,
+        ]);
 
-            return $cu;
-        }
-    }
-
-    /**
-     * get a tag by slug
-     *
-     * @param string $slug - slug
-     *
-     * @return array
-     */
-    public static function get_tag_by_slug($slug)
-    {
-        $rows = self::exec('SELECT * FROM `' . self::fmTbl() . '` WHERE `slug`=? LIMIT 1 ', $slug);
-
-        if (1 != count($rows)) {
-            return null;
-        } else {
-            $cu            = $rows[0];
-            $cu['subrows'] = self::get_tags($cu['id']);
-
-            return $cu;
-        }
-    }
-
-    /**
-     * get tags by parent id
-     *
-     * @param int $parent_id - parent type id
-     *
-     * @return array
-     */
-    public static function get_tags($parent_id = -1)
-    {
-        $condition = '';
-
-        if (-1 != $parent_id) {
-            $condition = " where c.parent_id='" . $parent_id . "' ";
-        }
-
-        return self::exec('SELECT c.`id`, c.title, c.`slug` FROM `' . self::fmTbl() . '` c ' . $condition);
+        return self::chkErr($rtn->rowCount());
     }
 }

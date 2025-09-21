@@ -68,6 +68,8 @@ class rStats extends Reaction
 
         $rtn['presses'] = fPress::limitRows(['m.status' => fPress::ST_DRAFT], 0, 5)['subset'];
 
+        $rtn['property_id'] = f3()->get('gcp_property');
+
         return parent::_return(1, ['subset' => $rtn]);
     }
 }

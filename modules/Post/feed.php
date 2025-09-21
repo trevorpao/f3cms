@@ -7,13 +7,13 @@ namespace F3CMS;
  */
 class fPost extends Feed
 {
-    public const MTB    = 'post';
-    public const ST_ON  = 'Enabled';
-    public const ST_OFF = 'Disabled';
+    const MTB    = 'post';
+    const ST_ON  = 'Enabled';
+    const ST_OFF = 'Disabled';
 
-    public const PV_R = 'use.web.config';
-    public const PV_U = 'use.web.config';
-    public const PV_D = 'use.web.config';
+    const PV_R = 'mgr.site';
+    const PV_U = 'mgr.site';
+    const PV_D = 'mgr.site';
 
-    public const BE_COLS = 'm.id,l.title,m.status,m.slug,m.cover,m.last_ts';
+    const BE_COLS = 'm.id,l.title,m.status,m.slug,m.cover,m.last_ts';
 }

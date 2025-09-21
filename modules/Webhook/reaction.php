@@ -26,6 +26,62 @@ class rWebhook extends Reaction
     }
 
     /**
+     * @param $f3
+     * @param $args
+     */
+    public function do_getCode($f3, $args)
+    {
+        $req = self::_req();
+
+        $logger = new \Log('wh_get_code.log');
+        $logger->write(jsonEncode($req));
+
+        $msg = Validation::msg($req, kWebhook::rule('getCode'));
+
+        if ('' == $msg) {
+            $msg = 'Success!';
+        }
+
+        if (is_array($msg)) {
+            $msg = implode(', ', $msg);
+        }
+
+        $cwm = new CWMhelper();
+
+        $json = $cwm->_decrypt($req['payload']);
+
+        $rows = jsonDecode($json);
+
+        if (!is_array($rows)) {
+            $logger->write($rows); // not json
+            f3()->status(400);
+        }
+
+        $rtn = \__::pluck($rows, 'invNum');
+
+        fWebhook::insert('CMoney', 'getCode',
+            jsonEncode($rows),
+            jsonEncode(['message' => $msg])
+        );
+
+        if ('Success!' != $msg) {
+            f3()->status(404);
+        }
+
+        $data = kInvoice::formatSum($rows);
+
+        if (!empty($data)) {
+            fInvoice::autoInsert($data);
+        }
+
+        self::_rtn([
+            'code'    => 200,
+            'msg'     => 'success',
+            'payload' => $cwm->_encrypt($rtn),
+        ]);
+    }
+
+    /**
      * handle angular post data
      *
      * @return array - post data

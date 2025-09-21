@@ -10,16 +10,16 @@ class rEdm extends Reaction
      */
     public function do_send($f3, $args)
     {
-        rStaff::_chkLogin();
+        kStaff::_chkLogin();
 
         $req = parent::_getReq();
 
         if (empty($req['edm_id'])) {
-            return parent::_return(8002, ['msg' => 'Edm is required!!']);
+            return self::_return(8002, ['msg' => 'Edm is required!!']);
         }
 
         if (empty($req['emails'])) {
-            return parent::_return(8002, ['msg' => 'Emails is required!!']);
+            return self::_return(8002, ['msg' => 'Emails is required!!']);
         }
 
         $data = [
@@ -34,7 +34,7 @@ class rEdm extends Reaction
             $sentEmails[] = $e;
         }
 
-        return parent::_return(1, ['emails' => $sentEmails]);
+        return self::_return(1, ['emails' => $sentEmails]);
     }
 
     /**
@@ -55,7 +55,7 @@ class rEdm extends Reaction
 
         return [
             'title' => $cu['title'],
-            'html'  => $tp->render(f3()->get('theme') . '/edm.html'),
+            'html'  => $tp->render('/edm.html'),
         ];
     }
 }

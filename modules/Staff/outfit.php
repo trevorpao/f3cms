@@ -32,6 +32,6 @@ class oStaff extends Outfit
 
         fStaff::_setCurrent($cu['account'], $cu['id'], $cu['email'], '', $role['priv'], $role['menu_id']);
 
-        f3()->reroute(f3()->get('uri') . '/backend/site/staff/simple/mine/' . $cu['id']);
+        f3()->reroute(f3()->get('uri') . '/backend/board/stats/simple/mine/' . $cu['id']);
     }
 }

@@ -7,14 +7,21 @@ namespace F3CMS;
  */
 class fOption extends Feed
 {
-    public const MTB       = 'option';
-    public const MULTILANG = 0;
+    const MTB       = 'option';
+    const MULTILANG = 0;
 
-    public const COUNTYTB  = 'county';
-    public const ZIPCODETB = 'zipcode';
+    const COUNTYTB  = 'county';
+    const ZIPCODETB = 'zipcode';
 
-    public const ST_ON  = 'Enabled';
-    public const ST_OFF = 'Disabled';
+    const ST_ON  = 'Enabled';
+    const ST_OFF = 'Disabled';
+
+    const PV_R = 'mgr.site';
+    const PV_U = 'mgr.site';
+    const PV_D = 'mgr.site';
+
+    const BE_COLS   = 'id,group,loader,status,name,content';
+    const PAGELIMIT = 100;
 
     /**
      * @param $group
@@ -59,7 +66,10 @@ class fOption extends Feed
      */
     public static function get($name)
     {
-        $rows = mh()->query('SELECT * FROM `' . self::fmTbl() . "` WHERE `name`=? AND `status`='" . self::ST_ON . "' LIMIT 1 ", $name);
+        $rows = self::exec('SELECT * FROM `' . self::fmTbl() . '` WHERE `name`=:name AND `status`=:status LIMIT 1 ', [
+            ':name'   => $name,
+            ':status' => self::ST_ON,
+        ]);
 
         if (1 != count($rows)) {
             return null;
@@ -69,13 +79,19 @@ class fOption extends Feed
     }
 
     /**
-     * @return mixed
+     * @param $ids
+     * @param $page
+     * @param $limit
      */
-    public static function load_counties()
+    public static function listCounties($ids = '')
     {
-        $rows = mh()->query('SELECT * FROM `' . tpf() . self::COUNTYTB . '` ORDER BY `id`');
+        $filter = ['ORDER' => 'm.id'];
 
-        return $rows;
+        if ('' != $ids) {
+            $filter['m.id'] = (is_string($ids)) ? explode(',', $ids) : $ids;
+        }
+
+        return mh()->select(tpf() . self::COUNTYTB . '(m)', ['m.id', 'm.county(title)', 'm.county'], $filter);
     }
 
     /**
@@ -83,9 +99,11 @@ class fOption extends Feed
      *
      * @return mixed
      */
-    public static function load_zipcodes($county)
+    public static function loadZipcodes($county)
     {
-        $rows = mh()->query('SELECT `zipcode`, `town`, CONCAT(`county`, `town`) AS `full_name` FROM `' . tpf() . self::ZIPCODETB . '` WHERE `county`= ? ORDER BY `zipcode`', $county);
+        $rows = self::exec('SELECT `zipcode`, `town`, CONCAT(`county`, `town`) AS `full_name` FROM `' . tpf() . self::ZIPCODETB . '` WHERE `county`= :county ORDER BY `zipcode`', [
+            ':county' => $county,
+        ]);
 
         return $rows;
     }
@@ -121,22 +139,7 @@ class fOption extends Feed
     }
 
     /**
-     * @param $query
-     * @param $page
-     * @param $limit
-     * @param $cols
-     */
-    public static function limitRows($query = '', $page = 0, $limit = 10, $cols = '')
-    {
-        $lang = Module::_lang();
-
-        $filter = self::genQuery($query);
-
-        return parent::paginate(self::fmTbl(), $filter, $page, $limit, ['id', 'group', 'loader', 'status', 'name', 'content']);
-    }
-
-    /**
-     * @param $str
+     * @param       $str
      * @param array $cols
      *
      * @return mixed

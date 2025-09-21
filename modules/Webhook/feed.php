@@ -10,6 +10,10 @@ class fWebhook extends Feed
     const MTB       = 'webhook';
     const MULTILANG = 0;
 
+    const PV_R = 'mgr.site';
+    const PV_U = 'mgr.site';
+    const PV_D = 'mgr.site';
+
     const BE_COLS = 'm.id,m.insert_ts,m.source,m.action,m.req,m.res,m.ip';
 
     /**

@@ -14,8 +14,8 @@ class fStream extends Feed
 
     const MULTILANG = 0;
 
-    const PV_R = 'mgr.site';
-    const PV_U = 'mgr.site';
+    const PV_R = 'base.member';
+    const PV_U = 'base.member';
     const PV_D = 'mgr.site';
 
     const BE_COLS   = 'm.id,s.email(staff),s.account,m.content,m.status,m.insert_ts,m.target';
