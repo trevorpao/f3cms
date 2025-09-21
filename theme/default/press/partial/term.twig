@@ -1,0 +1,1 @@
+{% for term in terms %}<section class="article-dictionary"><h3>{{ term.title | safeRaw }}</h3><p>{{ term.summary | safeRaw | nl2br }}</p><div id="term-{{term.id}}" class="j-term-alias hide">{{ term.title | safeRaw }},{{term.alias}}</div></section>{% endfor %}

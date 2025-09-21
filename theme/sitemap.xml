@@ -2,18 +2,39 @@
   xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
   xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
-    <loc>{{@uri}}/tag/news</loc>
+    <loc>{{@uri}}/about-us</loc>
     <changefreq>daily</changefreq>
   </url>
   <url>
-    <loc>{{@uri}}/about</loc>
+    <loc>{{@uri}}/s/navigation</loc>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>{{@uri}}/s/faq</loc>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>{{@uri}}/s/links</loc>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>{{@uri}}/art-pedia</loc>
+    <changefreq>daily</changefreq>
+  </url>
+  <url>
+    <loc>{{@uri}}/videos</loc>
     <changefreq>daily</changefreq>
   </url>
   <repeat group="{{ @rows.subset }}" value="{{ @row }}" counter="{{ @ctr }}">
-    <url>
-      <loc>{{@uri}}/p/{{ @row.id }}</loc>
+    <url><check if="{{ isset(@row.duration) }}"><true>
+      <loc>{{@uri}}/v/{{ @row.id }}/{{ @row.slug }}</loc>
+      <changefreq>daily</changefreq>
+      <lastmod>{{ @row.last_ts, 'c' | date }}</lastmod>
+    </true>
+    <false>
+      <loc>{{@uri}}/p/{{ @row.id }}/{{ @row.slug }}</loc>
       <changefreq>daily</changefreq>
       <lastmod>{{ @row.online_date, 'c' | date }}</lastmod>
-    </url>
+    </false></check></url>
   </repeat>
 </urlset>
