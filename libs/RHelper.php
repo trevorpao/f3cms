@@ -10,7 +10,7 @@ class RHelper extends Client
     // https://blog.jjonline.cn/phptech/241.html
     private static $_instance = false;
 
-    public static function init()
+    public static function getInstance()
     {
         if (!self::$_instance) {
             self::$_instance = new self([
@@ -25,17 +25,23 @@ class RHelper extends Client
 
     public static function s($key, $value)
     {
+        $instance = self::getInstance();
         if (is_array($value)) {
             $value = json_encode($value);
         }
-        self::$_instance->set($key, $value);
+        $instance->set($key, $value);
     }
 
     public static function g($key)
     {
-        $content = self::$_instance->get($key);
+        $instance = self::getInstance();
+        $content = $instance->get($key);
 
-        $jsonObj = json_decode($content, true);
+        if (null === $content) {
+            return null;
+        }
+
+        $jsonObj = jsonDecode($content);
 
         if (null === $jsonObj && JSON_ERROR_NONE !== json_last_error()) {
             return $content;

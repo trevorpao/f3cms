@@ -21,14 +21,26 @@ if (!is_https() && $f3->get('forceHTTPS') === 1) {
     exit();
 }
 
-$sess = new \F3CMS\Mession(true, function ($session) {
-    $logger = new \Log('session.log');
-    if (($ip = $session->ip()) != f3()->get('IP')) {
-        $logger->write('user changed IP:' . $ip);
-    } else {
-        $logger->write('user changed browser/device:' . f3()->get('AGENT'));
-    }
-});
+if ($f3->get('sessionBase') == 'redis') {
+    $sess = new \F3CMS\Ression(true, function ($session) {
+        $logger = new \Log('session.log');
+        if (($ip = $session->ip()) != f3()->get('IP')) {
+            $logger->write('user changed IP:' . $ip);
+        } else {
+            $logger->write(
+            'user changed browser/device:' . f3()->get('AGENT'));
+        }
+    });
+} else {
+    $sess = new \F3CMS\Mession(true, function ($session) {
+        $logger = new \Log('session.log');
+        if (($ip = $session->ip()) != f3()->get('IP')) {
+            $logger->write('user changed IP:' . $ip);
+        } else {
+            $logger->write('user changed browser/device:' . f3()->get('AGENT'));
+        }
+    });
+}
 
 $f3->set('sess', $sess);
 

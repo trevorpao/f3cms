@@ -30,6 +30,20 @@ function mh($force = false)
 }
 
 /**
+ * get redis instance
+ * @return redis obj
+ */
+function rc()
+{
+    if (!f3()->exists('RH')) {
+        $rc = \F3CMS\RHelper::getInstance();
+        f3()->set('RH', $rc);
+    }
+
+    return f3()->get('RH');
+}
+
+/**
  * Retrieves the Fat-Free Web instance for client-side operations.
  *
  * @return object The Web instance.
@@ -403,9 +417,5 @@ function uuid()
 {
     $chars = secure_random_string(40, '0123456789abcdefghijklmnopqrstuvwxyz');
 
-    return substr($chars, 0, 8) . '-'
-    . substr($chars, 8, 4) . '-'
-    . substr($chars, 12, 4) . '-'
-    . substr($chars, 16, 4) . '-'
-    . substr($chars, 20, 12);
+    return preg_replace('/(.{8})(.{4})(.{4})(.{4})(.{12})(.+)/', '$1-$2-$3-$4-$5', $chars);
 }
