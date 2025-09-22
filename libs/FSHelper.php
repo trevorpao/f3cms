@@ -190,6 +190,18 @@ class FSHelper extends Helper
         return $contents;
     }
 
+    public static function loadConfig($path)
+    {
+        $path = preg_replace('/\.{2,}/', '/', '/' . $path);
+        $path = preg_replace('/\/{2,}/', '/', $path);
+
+        $tmp = self::openFile(f3()->get('configpath') . $path);
+        if (empty($tmp)) {
+            $tmp = self::openFile(f3()->get('configpath') .'/..'. $path);
+        }
+        return jsonDecode($tmp);
+    }
+
     /**
      * Returns all paths inside a directory.
      *

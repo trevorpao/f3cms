@@ -672,10 +672,28 @@ class Outfit extends Module
         _dzv('page.breadcrumb', self::breadcrumb(['title' => $title, 'slug' => $slug, 'sire' => f3()->get('breadcrumb_sire')]));
 
         $opts    = fOption::load('', 'Preload');
+        $lang = f3()->get('lang');
 
-        if (!empty($opts['default']['color_name'])) {
-            $setting['colorName'] = $opts['default']['color_name'];
+        if (!f3()->exists('themeSetting')) {
+            $setting = FSHelper::loadConfig('themeSetting.json');
+
+            if ($lang  ==  'tw') {
+                $setting['langScript'] = 'zh-Hant';
+            } else {
+                $setting['langScript'] = $lang;
+            }
+
+            if (!empty($opts['default']['color_name'])) {
+                $setting['colorName'] = $opts['default']['color_name'];
+            }
+
+            f3()->set('themeSetting', $setting, 7200);
+        } else {
+            $setting = f3()->get('themeSetting');
         }
+
+        _dzv('lang', $lang);
+        _dzv('setting', $setting);
 
         f3()->set('opts', $opts);
         _dzv('opts', $opts);
@@ -684,7 +702,6 @@ class Outfit extends Module
         _dzv('theme', f3()->get('theme'));
         _dzv('uri', f3()->get('uri'));
         _dzv('main_domain', f3()->get('main_domain'));
-        _dzv('lang', f3()->get('lang'));
         _dzv('csrf', f3()->get('SESSION.csrf'));
         _dzv('assetsUri', '/assets/');
         // _dzv('liffID', f3()->get('line_liff'));
