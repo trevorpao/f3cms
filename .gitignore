@@ -1,7 +1,8 @@
 composer.phar
 vendor/
 tmp/
-backend/
+backend
+tmpls
 upload/img/
 html/
 cache/

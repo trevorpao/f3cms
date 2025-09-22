@@ -215,6 +215,32 @@ class Feed extends Module
     }
 
     /**
+     * @param $pid
+     * @param $sorter
+     */
+    public static function lotsTag($pid, $sorter = false)
+    {
+        $that = get_called_class();
+
+        $pk = $that::MTB . '_id';
+        $fk = 'tag_id';
+
+        $filter = [
+            'r.' . $pk => $pid,
+            't.status' => fTag::ST_ON,
+        ];
+
+        if ($sorter) {
+            $filter['ORDER'] = 'r.sorter';
+        }
+
+        return mh()->select($that::fmTbl('tag') . '(r)',
+            ['[>]' . fTag::fmTbl() . '(t)'          => ['r.tag_id' => 'id'],
+                '[>]' . fTag::fmTbl('lang') . '(l)' => ['t.id' => 'parent_id', 'l.lang' => '[SV]' . Module::_lang()]],
+            ['t.id', 't.slug', 'l.title', 't.counter'], $filter);
+    }
+
+    /**
      * Retrieves metadata for a specific record.
      *
      * @param int    $pid The ID of the record.

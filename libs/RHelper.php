@@ -43,7 +43,7 @@ class RHelper extends Client
 
         $jsonObj = jsonDecode($content);
 
-        if (null === $jsonObj && JSON_ERROR_NONE !== json_last_error()) {
+        if (is_string($jsonObj) && JSON_ERROR_NONE !== json_last_error()) {
             return $content;
         } else {
             return $jsonObj;

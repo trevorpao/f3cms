@@ -335,6 +335,11 @@ function getCSRF()
     }
 }
 
+function isAjax()
+{
+    return (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 'xmlhttprequest' == strtolower($_SERVER['HTTP_X_REQUESTED_WITH'])) || (!empty($_SERVER['HTTP_ACCEPT']) && false !== strpos(strtolower($_SERVER['HTTP_ACCEPT']), 'json'));
+}
+
 /**
  * Encodes an object to JSON format.
  *
