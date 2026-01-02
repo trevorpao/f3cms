@@ -8,7 +8,7 @@
 
 namespace F3CMS;
 
-class Ression
+class Ression implements \SessionHandlerInterface
 {
     // ! Session ID
     protected $sid;
@@ -35,7 +35,7 @@ class Ression
      *
      * @return true
      */
-    public function open($path, $name)
+    public function open(string $path, string $name): bool
     {
         return true;
     }
@@ -45,7 +45,7 @@ class Ression
      *
      * @return true
      */
-    public function close()
+    public function close(): bool
     {
         $this->sid = null;
 
@@ -59,7 +59,7 @@ class Ression
      *
      * @return string
      */
-    public function read($id)
+    public function read(string $id): string
     {
         $this->sid = $id;
 
@@ -91,7 +91,7 @@ class Ression
      *
      * @return true
      */
-    public function write($id, $data)
+    public function write(string $id, string $data): bool
     {
         $logger = new \Log('session.log');
         if ($this->dry()) {
@@ -126,7 +126,7 @@ class Ression
      *
      * @return true
      */
-    public function destroy($id)
+    public function destroy(string $id): bool
     {
         rc()::del($this->prefix . $id);
 
@@ -140,9 +140,18 @@ class Ression
      *
      * @return true
      */
-    public function cleanup($max)
+    public function cleanup(int $max)
     {
-        return true;
+        return $this->gc($max);
+    }
+
+    /**
+     * Garbage collector required by \SessionHandlerInterface.
+     */
+    public function gc(int $max): int|false
+    {
+        // Redis handles expiration via TTL; return success indicator.
+        return 1;
     }
 
     /**
@@ -235,14 +244,7 @@ class Ression
             $this->prefix = 'sess_';
             $this->ttl    = ini_get('session.gc_maxlifetime');
 
-            session_set_save_handler(
-                [$this, 'open'],
-                [$this, 'close'],
-                [$this, 'read'],
-                [$this, 'write'],
-                [$this, 'destroy'],
-                [$this, 'cleanup']
-            );
+            session_set_save_handler($this, true);
 
             register_shutdown_function('session_commit');
             $this->_csrf = f3()->SEED . '.' . f3()->hash(mt_rand());

@@ -262,4 +262,62 @@ class S3Helper extends Helper
 
         return $check;
     }
+
+    /**
+     * 啟動分段上傳，並取得上傳 ID。
+     *
+     * @param string $key 檔案的 S3 路徑。
+     * @return string 上傳 ID。
+     */
+    public function createMultipartUpload($key)
+    {
+        $result = $this->client->createMultipartUpload([
+            'Bucket' => $this->bucket,
+            'Key'    => $key,
+        ]);
+
+        return $result['UploadId'];
+    }
+
+    /**
+     * 取得每個部分的預先簽署 URL，並行上傳大物件的各部分。
+     *
+     * @param string $key 檔案的 S3 路徑。
+     * @param string $uploadId 上傳 ID。
+     * @param int $partNumber 部分編號。
+     * @return string 預先簽署的 URL。
+     */
+    public function getPresignedUrlForPart($key, $uploadId, $partNumber)
+    {
+        $cmd = $this->client->getCommand('UploadPart', [
+            'Bucket'     => $this->bucket,
+            'Key'        => $key,
+            'UploadId'   => $uploadId,
+            'PartNumber' => $partNumber,
+        ]);
+
+        $request = $this->client->createPresignedRequest($cmd, '+1 hour');
+
+        return (string) $request->getUri();
+    }
+
+    /**
+     * 完成分段上傳。
+     *
+     * @param string $key 檔案的 S3 路徑。
+     * @param string $uploadId 上傳 ID。
+     * @param array $parts 包含 ETag 和 PartNumber 的部分資訊。
+     * @return void
+     */
+    public function completeMultipartUpload($key, $uploadId, $parts)
+    {
+        $this->client->completeMultipartUpload([
+            'Bucket'   => $this->bucket,
+            'Key'      => $key,
+            'UploadId' => $uploadId,
+            'MultipartUpload' => [
+                'Parts' => $parts,
+            ],
+        ]);
+    }
 }

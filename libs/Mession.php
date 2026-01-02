@@ -7,7 +7,7 @@ namespace F3CMS;
  * destroying sessions, and garbage collection. It also provides utility methods for session-related
  * data like CSRF tokens, IP addresses, and user agents.
  */
-class Mession extends MHelper
+class Mession extends MHelper implements \SessionHandlerInterface
 {
     // Session ID
     protected $sid;
@@ -43,7 +43,7 @@ class Mession extends MHelper
      * @param string $name Name of the session (not used here).
      * @return bool Always returns true.
      */
-    public function open($path, $name)
+    public function open(string $path, string $name): bool
     {
         return true;
     }
@@ -53,7 +53,7 @@ class Mession extends MHelper
      *
      * @return bool Always returns true.
      */
-    public function close()
+    public function close(): bool
     {
         $this->sid = null;
         return true;
@@ -65,7 +65,7 @@ class Mession extends MHelper
      * @param string $id Session ID.
      * @return string Serialized session data or an empty string if no data is found.
      */
-    public function read($id)
+    public function read(string $id): string
     {
         $this->sid = $id;
         $this->writeLog('select------::' . $id);
@@ -86,7 +86,7 @@ class Mession extends MHelper
      * @param string $data Serialized session data.
      * @return bool Always returns true.
      */
-    public function write($id, $data)
+    public function write(string $id, string $data): bool
     {
         $logger = new \Log('session.log');
         if ($this->dry()) {
@@ -122,7 +122,7 @@ class Mession extends MHelper
      * @param string $id Session ID.
      * @return bool Always returns true.
      */
-    public function destroy($id)
+    public function destroy(string $id): bool
     {
         $this->delete($this->tbl, [
             'session_id' => $id,
@@ -137,13 +137,24 @@ class Mession extends MHelper
      * @param int $max Maximum lifetime of sessions in seconds (not used here).
      * @return bool Always returns true.
      */
-    public function cleanup($max)
+    public function cleanup(int $max)
+    {
+        return $this->gc($max);
+    }
+
+    /**
+     * Garbage collector required by \SessionHandlerInterface.
+     *
+     * @param int $max Maximum lifetime of sessions in seconds.
+     * @return bool Always returns true.
+     */
+    public function gc(int $max): int|false
     {
         $this->delete($this->tbl, [
             'stamp[<]' => time() - 86400 * 30,
         ]);
 
-        return true;
+        return 1;
     }
 
     /**
@@ -245,14 +256,7 @@ class Mession extends MHelper
             $this->onsuspect = $onsuspect;
             $this->tbl       = 'sessions';
 
-            session_set_save_handler(
-                [$this, 'open'],
-                [$this, 'close'],
-                [$this, 'read'],
-                [$this, 'write'],
-                [$this, 'destroy'],
-                [$this, 'cleanup']
-            );
+            session_set_save_handler($this, true);
 
             register_shutdown_function('session_commit');
             $this->_csrf = f3()->SEED . '.' . f3()->hash(mt_rand());
