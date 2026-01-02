@@ -2,6 +2,7 @@ composer.phar
 vendor/
 tmp/
 backend
+docu
 tmpls
 upload/img/
 html/
