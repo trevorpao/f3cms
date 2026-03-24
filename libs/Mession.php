@@ -67,6 +67,10 @@ class Mession extends MHelper implements \SessionHandlerInterface
      */
     public function read(string $id): string
     {
+        // check session id format
+        if (!preg_match('/^[a-zA-Z0-9,-]{22,40}$/', $id)) {
+            return '';
+        }
         $this->sid = $id;
         $this->writeLog('select------::' . $id);
         $this->rtn = $this->get($this->tbl, '*', ['session_id' => $id]);
@@ -248,6 +252,12 @@ class Mession extends MHelper implements \SessionHandlerInterface
         $headers   = f3()->HEADERS;
         $agentBots = ['bot', 'crawl', 'curl', 'dataprovider', 'search', 'get', 'spider', 'find', 'java', 'majesticsEO', 'google', 'yahoo', 'teoma', 'contaxe', 'yandex', 'libwww-perl', 'facebookexternalhit'];
         $blockIps  = [];
+
+        f3()->JAR = [
+            'lifetime' => (86400 * f3()->get('token_expired')),
+            'samesite' => 'Strict',          // [重點] 限制跨站請求 (防範 CSRF)，可視需求改為 Lax || Strict
+            'secure' => true,
+        ];
 
         $this->_agent = $headers['User-Agent'] ?? '';
         $this->_ip    = f3()->IP;

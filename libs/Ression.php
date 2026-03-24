@@ -61,8 +61,12 @@ class Ression implements \SessionHandlerInterface
      */
     public function read(string $id): string
     {
-        $this->sid = $id;
+        // check session id format
+        if (!preg_match('/^[a-zA-Z0-9,-]{22,40}$/', $id)) {
+            return '';
+        }
 
+        $this->sid = $id;
         $this->writeLog('select------::' . $id);
         $this->rtn = rc()::g($this->prefix . $id);
         $this->writeLog('data:' . json_encode($this->rtn));
@@ -234,11 +238,18 @@ class Ression implements \SessionHandlerInterface
     {
         $headers   = f3()->HEADERS;
         $agentBots = ['bot', 'crawl', 'curl', 'dataprovider', 'search', 'get', 'spider', 'find', 'java', 'majesticsEO', 'google', 'yahoo', 'teoma', 'contaxe', 'yandex', 'libwww-perl', 'facebookexternalhit'];
+        $blockIps  = [];
+
+        f3()->JAR = [
+            'lifetime' => (86400 * f3()->get('token_expired')),
+            'samesite' => 'Strict',          // [重點] 限制跨站請求 (防範 CSRF)，可視需求改為 Lax || Strict
+            'secure' => true,
+        ];
 
         $this->_agent = $headers['User-Agent'] ?? '';
         $this->_ip    = f3()->IP;
 
-        if (!preg_match('/' . implode('|', $agentBots) . '/i', $this->_agent)) {
+        if (!preg_match('/' . implode('|', $agentBots) . '/i', $this->_agent) && !in_array($this->_ip, $blockIps)) {
             $this->onsuspect = $onsuspect;
 
             $this->prefix = 'sess_';
