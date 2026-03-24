@@ -1,9 +1,15 @@
 <?php
-$f3->set('AUTOLOAD', './modules/;./libs/;../vendor/;');
 
-$f3->set('vendors', '../vendor/');
+$f3->set('AUTOLOAD', './modules/;./libs/;./vendor/;');
+
+$f3->set('vendors', './vendor/');
 
 $f3->set('PACKAGE', 'F3CMS');
+
+// $f3->set('CACHE', '/tmp');
+$f3->set('CACHE','redis');
+
+$f3->set('redis_host', 'redis');
 
 $f3->set('LOGS', $f3->get('TEMP') . 'logs/');
 
@@ -17,14 +23,20 @@ $f3->set('DEBUG', 2);
 
 $f3->set('forceHTTPS', 0);
 
-$f3->set('siteBeginDate', 'Mar 31 2099 23:59:00'); // remove this after online
+$f3->set('siteBeginDate', 'Mar 31 2018 23:59:00'); // remove this after online
 
 $f3->set('abspath', dirname(__FILE__) . '/');
 
-$f3->set('fe_version', '180807001');
+$f3->set('configpath', __DIR__);
+
+$f3->set('feVersion', '180807001');
+
+$f3->set('sessionBase', 'redis'); // file, database, redis
 
 $f3->set('cache.post', 5);
 $f3->set('cache.press', 5); // 0 : only use published static file
+
+$f3->set('token_expired', 7);
 
 // db setting
 $f3->set('db_host', 'mariadb');
@@ -42,14 +54,23 @@ $f3->set('theme', 'default');
 
 $f3->set('defaultLang', 'tw');
 
-$f3->set('acceptLang', ['tw', 'en']);
+$f3->set('acceptLang', ['tw', 'en', 'ja', 'ko']);
+
+$f3->set('readyLang', [
+    ['idx' => 'tw'],
+    ['idx' => 'en'],
+    ['idx' => 'ja'],
+    ['idx' => 'ko']
+]);
 
 // for Class:Upload
 //thumbnail
 $f3->set('post_thn', [260, 196]);
-$f3->set('author_thn', [400, 300]);
-$f3->set('default_thn', [300, 300]);
+$f3->set('media_thn', [260, 196]);
+$f3->set('author_thn', [300, 300]);
+$f3->set('press_thn', [400, 300]);
 $f3->set('adv_thn', [293, 293]);
+$f3->set('default_thn', [300, 300]);
 $f3->set('all_thn', [128, 128]);
 // acceptable file type
 $f3->set('photo_acceptable', [
