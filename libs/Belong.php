@@ -178,6 +178,21 @@ trait Belong
     }
 
     /**
+     * @param $id
+     * @param $page
+     * @param $limit
+     * @param $cols
+     *
+     * @return mixed
+     */
+    public static function lotsByTag($id, $page = 0, $limit = 6, $cols = '')
+    {
+        $that = get_called_class();
+
+        return $that::lotsByID($that::byTag($id), $page, $limit, $cols);
+    }
+
+    /**
      * Retrieves a list of target IDs associated with a specific tag.
      *
      * @param int|array $id The ID or list of IDs of the tag(s).
