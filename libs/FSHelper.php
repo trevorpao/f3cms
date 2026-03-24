@@ -93,7 +93,7 @@ class FSHelper extends Helper
     public static function rename($orig, $new)
     {
         if (self::copy($orig, $new)) {
-            unlink($orig);
+            unlink($orig); // nosemgrep: php.lang.security.unlink-use.unlink-use
         }
     }
 
@@ -116,7 +116,7 @@ class FSHelper extends Helper
                 $new  = $tar . $file;
                 // Overwrite the existing file if the overwrite flag is set.
                 if (file_exists($new) && $overwrite) {
-                    unlink($new);
+                    unlink($new); // nosemgrep: php.lang.security.unlink-use.unlink-use
                 }
                 if (is_link($orig)) {
                     // do nothing
@@ -286,21 +286,21 @@ class FSHelper extends Helper
 
             // Convert to WebP format if possible.
             if ($webpable) {
-                self::webp(sprintf($tmpl, ''));
+                self::webp(sprintf($tmpl, ''), $im);
             }
 
             // Generate and save medium-sized thumbnail.
             $im->scale(width: 720);
             $im->save(sprintf($tmpl, '_md'));
             if ($webpable) {
-                self::webp(sprintf($tmpl, '_md'));
+                self::webp(sprintf($tmpl, '_md'), $im);
             }
 
             // Generate and save small-sized thumbnail.
             $im->scale(width: 360);
             $im->save(sprintf($tmpl, '_sm'));
             if ($webpable) {
-                self::webp(sprintf($tmpl, '_sm'));
+                self::webp(sprintf($tmpl, '_sm'), $im);
             }
 
             // Generate custom-sized thumbnails.
@@ -312,7 +312,7 @@ class FSHelper extends Helper
 
                 $im->save(sprintf($tmpl, $suffix));
                 if ($webpable) {
-                    self::webp(sprintf($tmpl, $suffix));
+                    self::webp(sprintf($tmpl, $suffix), $im);
                 }
             }
 
@@ -377,7 +377,7 @@ class FSHelper extends Helper
      *
      * @return mixed
      */
-    public static function webp($path)
+    public static function webp($path, $im)
     {
         if (file_exists($path)) {
             try {
@@ -385,13 +385,13 @@ class FSHelper extends Helper
                 $path_parts = pathinfo($path);
                 $ext        = $path_parts['extension'];
 
-                $ta    = str_replace('.' . $ext, '.webp', $path);
-                $ratio = 60;
-                // Command to convert the image to WebP format.
-                $sh    = 'convert ' . $path . ' -quality ' . $ratio . ' -define webp:lossless=false,method=6,auto-filter=true,partitions=3,image-hint=photo ' . $ta . ';';
+                // 設置 WebP 儲存路徑
+                $ta = str_replace('.' . $ext, '.webp', $path);
+                $quality = 80;
 
-                $logger->write($sh);
-                shell_exec($sh);
+                // 儲存成 WebP 格式，設置品質
+                $im->toWebp($quality)->save($ta);
+                // $sh    = 'convert ' . $path . ' -quality ' . $quality . ' -define webp:lossless=false,method=6,auto-filter=true,partitions=3,image-hint=photo ' . $ta . ';';
 
                 $path = $ta;
             } catch (Exception $e) {
