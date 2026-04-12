@@ -1,0 +1,71 @@
+{
+  "workflow": {
+    "code": "PRESS_BASIC",
+    "title": "Press 基本發布流程",
+    "version": 1,
+    "status": "active",
+    "sourceType": "json",
+    "entryStageCode": "DRAFT",
+    "terminalStateCodes": [],
+    "roleConstants": {
+      "ROLE_EDITOR": "編輯",
+      "ROLE_PUBLISHER": "發布者"
+    },
+    "stages": [
+      {
+        "stageCode": "DRAFT",
+        "stageTitle": "草稿",
+        "stageType": "single",
+        "allowedRoleConstants": [
+          "ROLE_EDITOR",
+          "ROLE_PUBLISHER"
+        ]
+      },
+      {
+        "stageCode": "PUBLISHED",
+        "stageTitle": "已發布",
+        "stageType": "single",
+        "allowedRoleConstants": [
+          "ROLE_PUBLISHER"
+        ]
+      },
+      {
+        "stageCode": "OFFLINED",
+        "stageTitle": "已下架",
+        "stageType": "single",
+        "allowedRoleConstants": [
+          "ROLE_PUBLISHER"
+        ]
+      }
+    ],
+    "transitions": [
+      {
+        "transitionCode": "PRESS_PUBLISH_FROM_DRAFT",
+        "fromStageCode": "DRAFT",
+        "actionCode": "PUBLISH",
+        "actionLabel": "發布",
+        "transitionKind": "forward",
+        "toStageCode": "PUBLISHED",
+        "toStateCode": "Published"
+      },
+      {
+        "transitionCode": "PRESS_OFFLINE_FROM_PUBLISHED",
+        "fromStageCode": "PUBLISHED",
+        "actionCode": "OFFLINE",
+        "actionLabel": "下架",
+        "transitionKind": "forward",
+        "toStageCode": "OFFLINED",
+        "toStateCode": "Offlined"
+      },
+      {
+        "transitionCode": "PRESS_REPUBLISH_FROM_OFFLINED",
+        "fromStageCode": "OFFLINED",
+        "actionCode": "PUBLISH",
+        "actionLabel": "重新發布",
+        "transitionKind": "forward",
+        "toStageCode": "PUBLISHED",
+        "toStateCode": "Published"
+      }
+    ]
+  }
+}
