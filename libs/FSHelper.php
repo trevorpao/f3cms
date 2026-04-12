@@ -359,6 +359,24 @@ class FSHelper extends Helper
         return $all_headers;
     }
 
+    public static function getMp3Duration($filePath)
+    {
+        $root    = f3()->get('ROOT') . f3()->get('BASE'); // rtrim(f3()->get('abspath'), '/');
+
+        $command = "ffmpeg -i " . escapeshellarg($root . $filePath) . " 2>&1";
+        $output = shell_exec($command);
+
+        if (preg_match('/Duration: (\d+):(\d+):(\d+\.\d+)/', $output, $matches)) {
+            $hours = (int)$matches[1];
+            $minutes = (int)$matches[2];
+            $seconds = (float)$matches[3];
+            $duration = ($hours * 3600) + ($minutes * 60) + $seconds;
+            return round($duration);
+        } else {
+            return -1; // 無法取得時長
+        }
+    }
+
     protected static function defaultHeaders()
     {
         return [

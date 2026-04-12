@@ -742,7 +742,7 @@ class WorkflowEngine extends Helper
             return $definitionMap[$workflowCode];
         }
 
-        $fixturePath = dirname(__DIR__) . '/scripts/workflow_fixtures/' . strtolower($workflowCode) . '.json';
+        $fixturePath = dirname(__DIR__, 2) . '/tests/fixtures/workflow_engine/' . strtolower($workflowCode) . '.json';
 
         return is_file($fixturePath) ? $fixturePath : null;
     }
