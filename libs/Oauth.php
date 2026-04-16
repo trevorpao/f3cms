@@ -6,6 +6,7 @@ use F3CMS\Contracts\OauthHandlerInterface;
 use F3CMS\OauthHandler\FBOauthHandler;
 use F3CMS\OauthHandler\GoogleOauthHandler;
 use F3CMS\OauthHandler\LineOauthHandler;
+use F3CMS\OauthHandler\MOEOIDCHelper;
 use InvalidArgumentException;
 
 /**
@@ -270,8 +271,8 @@ class Oauth extends Helper
             $handlers['line'] = new LineOauthHandler();
         }
 
-        if (class_exists(OIDCHelper::class)) {
-            $handlers['oidc'] = new OIDCHelper();
+        if (class_exists(MOEOIDCHelper::class)) {
+            $handlers['oidc'] = new MOEOIDCHelper();
         }
 
         return $handlers;
