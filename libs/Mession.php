@@ -60,6 +60,161 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
+     * Validates the session ID format accepted by this handler.
+     *
+     * @param string $id Session ID.
+     * @return bool True when the ID format is acceptable.
+     */
+    protected function isValidSessionId(string $id): bool
+    {
+        return (bool) preg_match('/^[a-zA-Z0-9,-]{22,40}$/', $id);
+    }
+
+    /**
+     * Normalizes the user agent string for fingerprint comparison.
+     *
+     * @param string $agent User agent string.
+     * @return string Normalized user agent.
+     */
+    protected function normalizeAgent(string $agent): string
+    {
+        return strtolower(trim((string) preg_replace('/\s+/', ' ', $agent)));
+    }
+
+    /**
+     * Reduces the IP address to a coarse fingerprint to avoid over-binding.
+     *
+     * @param string $ip IP address.
+     * @return string Fingerprint string.
+     */
+    protected function ipFingerprint(string $ip): string
+    {
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV4)) {
+            $parts = explode('.', $ip);
+            return implode('.', array_slice($parts, 0, 3));
+        }
+
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_IPV6)) {
+            $parts = explode(':', strtolower($ip));
+            return implode(':', array_slice($parts, 0, 4));
+        }
+
+        return '';
+    }
+
+    /**
+     * Detects staff/backend sessions from serialized session data.
+     *
+     * @param array $session Session record.
+     * @return bool True when the session represents a logged-in staff user.
+     */
+    protected function isStrictFingerprintSession(array $session): bool
+    {
+        $data = (string) ($session['data'] ?? '');
+
+        return strpos($data, 'cu_staff') !== false && strpos($data, 'has_login') !== false;
+    }
+
+    /**
+     * Compares the current request fingerprint against the stored session fingerprint.
+     *
+     * @param array $session Session record.
+     * @return bool True when the request matches the stored fingerprint.
+     */
+    protected function matchesFingerprint(array $session): bool
+    {
+        $storedAgent = $this->normalizeAgent((string) ($session['agent'] ?? ''));
+        $currentAgent = $this->normalizeAgent($this->_agent);
+
+        if ($storedAgent === '' || $currentAgent === '') {
+            return false;
+        }
+
+        if (!hash_equals($storedAgent, $currentAgent)) {
+            return false;
+        }
+
+        if (!$this->isStrictFingerprintSession($session)) {
+            return true;
+        }
+
+        $storedIp = $this->ipFingerprint((string) ($session['ip'] ?? ''));
+        $currentIp = $this->ipFingerprint($this->_ip);
+
+        if ($storedIp === '' || $currentIp === '') {
+            return false;
+        }
+
+        return hash_equals($storedIp, $currentIp);
+    }
+
+    /**
+     * Clears the current session cookie from the request and response.
+     */
+    protected function clearSessionCookie(): void
+    {
+        $cookieName = session_name();
+
+        unset($_COOKIE[$cookieName]);
+        unset(f3()->{'COOKIE.' . $cookieName});
+
+        if (!headers_sent()) {
+            setcookie($cookieName, '', time() - 3600, '/', '', true, true);
+        }
+    }
+
+    /**
+     * Rejects suspicious sessions and terminates the current request.
+     *
+     * @param string $id Session ID.
+     * @param string $reason Reject reason.
+     */
+    protected function rejectSuspiciousSession(string $id, string $reason): void
+    {
+        $this->writeLog('suspect------::' . $reason . '::' . $id);
+
+        if ($this->onsuspect) {
+            f3()->call($this->onsuspect, [$this, $id, $reason]);
+        }
+
+        $this->destroy($id);
+        $this->rtn = null;
+        $this->close();
+        $this->clearSessionCookie();
+        f3()->error(403);
+    }
+
+    /**
+     * Rejects incoming cookie session IDs that do not already exist.
+     */
+    protected function rejectUnknownIncomingSessionId(): void
+    {
+        $cookieName = session_name();
+        $incomingId = $_COOKIE[$cookieName] ?? '';
+
+        if ($incomingId === '') {
+            return;
+        }
+
+        if (!$this->isValidSessionId($incomingId)) {
+            $this->writeLog('reject-invalid-session-id::' . $incomingId);
+            $this->clearSessionCookie();
+            session_id('');
+            return;
+        }
+
+        $currentResult = $this->rtn;
+        $existingSession = $this->get($this->tbl, '*', ['session_id' => $incomingId]);
+        $this->rtn = $currentResult;
+
+        if (empty($existingSession)) {
+            $this->writeLog('reject-unknown-session-id::' . $incomingId);
+            $this->clearSessionCookie();
+            session_id('');
+        }
+    }
+
+    /**
      * Reads session data from the database.
      *
      * @param string $id Session ID.
@@ -68,7 +223,7 @@ class Mession extends MHelper implements \SessionHandlerInterface
     public function read(string $id): string
     {
         // check session id format
-        if (!preg_match('/^[a-zA-Z0-9,-]{22,40}$/', $id)) {
+        if (!$this->isValidSessionId($id)) {
             return '';
         }
         $this->sid = $id;
@@ -77,6 +232,11 @@ class Mession extends MHelper implements \SessionHandlerInterface
         $this->writeLog('data:' . json_encode($this->rtn));
 
         if ($this->dry()) {
+            return '';
+        }
+
+        if (!$this->matchesFingerprint($this->rtn)) {
+            $this->rejectSuspiciousSession($id, 'fingerprint-mismatch');
             return '';
         }
 
@@ -92,7 +252,13 @@ class Mession extends MHelper implements \SessionHandlerInterface
      */
     public function write(string $id, string $data): bool
     {
-        $logger = new \Log('session.log');
+
+        // check session id format
+        if (!$this->isValidSessionId($id)) {
+            $this->writeLog('reject-write-invalid-session-id::' . $id);
+            return false;
+        }
+
         if ($this->dry()) {
             $this->writeLog('insert------start');
             $this->insert($this->tbl, [
@@ -257,6 +423,7 @@ class Mession extends MHelper implements \SessionHandlerInterface
             'lifetime' => (86400 * f3()->get('token_expired')),
             'samesite' => 'Strict',          // [重點] 限制跨站請求 (防範 CSRF)，可視需求改為 Lax || Strict
             'secure' => true,
+            'httponly' => true,
         ];
 
         $this->_agent = $headers['User-Agent'] ?? '';
@@ -266,7 +433,19 @@ class Mession extends MHelper implements \SessionHandlerInterface
             $this->onsuspect = $onsuspect;
             $this->tbl       = 'sessions';
 
+            ini_set('session.use_cookies', '1');
+            ini_set('session.use_only_cookies', '1');
+            ini_set('session.use_strict_mode', '1');
+            ini_set('session.use_trans_sid', '0');
+            ini_set('session.cookie_httponly', '1');
+            ini_set('session.cookie_secure', '1');
+
+            if (PHP_VERSION_ID >= 70300) {
+                ini_set('session.cookie_samesite', 'Strict');
+            }
+
             session_set_save_handler($this, true);
+            $this->rejectUnknownIncomingSessionId();
 
             register_shutdown_function('session_commit');
             $this->_csrf = f3()->SEED . '.' . f3()->hash(mt_rand());

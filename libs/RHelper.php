@@ -8,7 +8,7 @@ class RHelper extends Client
 {
     // TODO: reconnect
     // https://blog.jjonline.cn/phptech/241.html
-    private static $_instance = false;
+    private static ?self $_instance = null;
 
     public static function getInstance()
     {
@@ -23,12 +23,18 @@ class RHelper extends Client
         return self::$_instance;
     }
 
-    public static function s($key, $value)
+    public static function s($key, $value, $ttl = null)
     {
         $instance = self::getInstance();
         if (is_array($value)) {
             $value = json_encode($value);
         }
+
+        if (null !== $ttl && (int) $ttl > 0) {
+            $instance->setex($key, (int) $ttl, $value);
+            return;
+        }
+
         $instance->set($key, $value);
     }
 
