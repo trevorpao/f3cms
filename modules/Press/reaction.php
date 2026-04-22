@@ -6,6 +6,24 @@ class rPress extends Reaction
 {
     const WORKFLOW_OPERATOR_ROLE = 'ROLE_PUBLISHER';
 
+    public function do_seen($f3, $args)
+    {
+        $memberId = (int) fMember::_current('id');
+        if ($memberId <= 0) {
+            return parent::_return(8106, ['msg' => 'Member login required.']);
+        }
+
+        $req = parent::_getReq();
+
+        try {
+            $result = self::completeSeenForMember($memberId, $req);
+
+            return parent::_return(1, $result);
+        } catch (\Throwable $e) {
+            return parent::_return(8004, ['msg' => $e->getMessage()]);
+        }
+    }
+
     /**
      * @param $f3
      * @param $args
@@ -66,6 +84,28 @@ class rPress extends Reaction
         }
 
         return self::_return(1, ['id' => $req['id']]);
+    }
+
+    public static function completeSeenForMember($memberId, $req = [])
+    {
+        $memberId = (int) $memberId;
+        $req = is_array($req) ? $req : [];
+
+        if ($memberId <= 0) {
+            throw new \RuntimeException('Member login required.');
+        }
+
+        $press = self::resolveSeenPress($req);
+        if (empty($press)) {
+            throw new \RuntimeException('Published press not found for seen completion.');
+        }
+
+        $source = isset($req['source']) ? trim((string) $req['source']) : 'rPress';
+        if ('' === $source) {
+            $source = 'rPress';
+        }
+
+        return kDuty::completeTasksForSeenTarget($memberId, 'Press', (int) $press['id'], $source, $memberId);
     }
 
     public static function applyWorkflowPublishedTransition($currentPress, $req, $operatorId)
@@ -135,6 +175,26 @@ class rPress extends Reaction
             }
 
             return $transition;
+        }
+
+        return null;
+    }
+
+    private static function resolveSeenPress($req)
+    {
+        $req = is_array($req) ? $req : [];
+        $filter = [
+            'status' => [fPress::ST_PUBLISHED, fPress::ST_CHANGED],
+        ];
+
+        $pressId = (int) ($req['press_id'] ?? $req['id'] ?? 0);
+        if ($pressId > 0) {
+            return fPress::one($pressId, 'id', $filter, 0);
+        }
+
+        $slug = trim((string) ($req['slug'] ?? ''));
+        if ('' !== $slug) {
+            return fPress::one(parent::_slugify($slug), 'slug', $filter, 0);
         }
 
         return null;

@@ -152,6 +152,7 @@ class kMember extends Kit
     {
         $profile = self::normalizeOauthProfile($oauthProfile);
         $member = null;
+        $createdTasks = [];
 
         mh()->begin();
 
@@ -162,6 +163,7 @@ class kMember extends Kit
             }
 
             self::bindOauthToMember((int) $member['id'], $profile, (int) $member['id']);
+            $createdTasks = kDuty::createTasksForTrigger('Member::Register', (int) $member['id'], (int) $member['id']);
 
             mh()->commit();
         } catch (\Throwable $e) {
@@ -181,6 +183,7 @@ class kMember extends Kit
             'member' => $member,
             'is_new' => true,
             'is_bound' => true,
+            'created_tasks' => $createdTasks,
         ];
     }
 

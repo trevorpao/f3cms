@@ -14,7 +14,7 @@ class fPress extends Feed
     const ST_PUBLISHED = 'Published';
     const ST_SCHEDULED = 'Scheduled';
     const ST_CHANGED   = 'Changed';
-    const ST_OFFLINED  = 'Offlined';
+    const ST_OFFLINED  = 'Offlined'; 
 
     const BE_COLS = 'm.id,l.title,l.info,m.last_ts,m.cover,m.status,m.slug,m.online_date,s.account,cl.title(category),c.slug(category_slug)';
 
@@ -481,6 +481,56 @@ class fPress extends Feed
 
         return mh()->select(self::fmTbl() . '(m)',
             ['[><]' . self::fmTbl('lang') . '(l)' => ['m.id' => 'parent_id', 'l.lang' => '[SV]' . Module::_lang()]], ['m.id', $column . '(title)'], $filter);
+    }
+
+    /**
+     * Scan press_lang content for googleusercontent assets and rewrite them via kPress::handleCDNImages().
+     *
+     * @param int $limit Maximum rows to process in one run to avoid long transactions.
+     *
+     * @return int Number of rows updated.
+     */
+    public static function normalizeCdnImages(int $limit = 100)
+    {
+        $rows = mh()->select(self::fmTbl('lang'), ['id', 'content'], [
+            'content[~]' => 'googleusercontent',
+            'LIMIT'      => $limit,
+        ]);
+
+        if (empty($rows)) {
+            return 0;
+        }
+
+        $updated = 0;
+        $logger  = new \Log('dl_img.log');
+
+        foreach ($rows as $row) {
+            $result = kPress::handleCDNImages($row['content']);
+            $newContent = $result['content'];
+
+            if (!empty($result['errors'])) {
+                $logger->write(json_encode([
+                    'lang_id' => $row['id'],
+                    'urls'    => $result['errors'],
+                ], JSON_UNESCAPED_SLASHES));
+            }
+
+            if ($newContent === $row['content']) {
+                continue;
+            }
+
+            $result = mh()->update(self::fmTbl('lang'), [
+                'content' => $newContent,
+            ], [
+                'id' => $row['id'],
+            ]);
+
+            if ($result && method_exists($result, 'rowCount')) {
+                $updated += $result->rowCount();
+            }
+        }
+
+        return $updated;
     }
 
     public static function filtered_column()
