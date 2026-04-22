@@ -10,7 +10,7 @@ class Referer extends Module
     public static function set($uri = '')
     {
         if (empty($uri)) {
-            $referer = $_SERVER['HTTP_REFERER'];
+            $referer = (!empty($_SERVER['HTTP_REFERER'])) ? $_SERVER['HTTP_REFERER'] : '';
 
             if (!empty($referer)) {
                 $uri = $referer;
