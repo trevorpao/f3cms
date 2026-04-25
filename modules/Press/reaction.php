@@ -40,28 +40,12 @@ class rPress extends Reaction
             return parent::_return(8106);
         }
 
-        $transactionStarted = false;
-
         try {
             $workflowTransition = self::applyWorkflowPublishedTransition($cu, $req, fStaff::_current('id'));
             $req = $workflowTransition['req'];
 
-            mh()->begin();
-            $transactionStarted = true;
-
-            self::writeWorkflowPublishedTrace($workflowTransition['trace']);
-
-            $published = fPress::published($req);
-            if (empty($published)) {
-                throw new \RuntimeException('Press status update failed.');
-            }
-
-            mh()->commit();
+            fPress::publishWithWorkflowTrace($req, $workflowTransition['trace']);
         } catch (\Throwable $e) {
-            if ($transactionStarted) {
-                mh()->rollback();
-            }
-
             return parent::_return(8004, ['msg' => $e->getMessage()]);
         }
 
@@ -95,7 +79,14 @@ class rPress extends Reaction
             throw new \RuntimeException('Member login required.');
         }
 
-        $press = self::resolveSeenPress($req);
+        $pressId = (int) ($req['press_id'] ?? $req['id'] ?? 0);
+        if ($pressId > 0) {
+            $press = fPress::onePublished($pressId, 'id', 0);
+        } else {
+            $slug = trim((string) ($req['slug'] ?? ''));
+            $press = ('' !== $slug) ? fPress::onePublished(parent::_slugify($slug), 'slug', 0) : null;
+        }
+
         if (empty($press)) {
             throw new \RuntimeException('Published press not found for seen completion.');
         }
@@ -128,7 +119,21 @@ class rPress extends Reaction
             ];
         }
 
-        $workflowDefinition = self::loadWorkflowDefinition();
+        $filePath = __DIR__ . '/flow.json';
+        if (!is_file($filePath)) {
+            throw new \RuntimeException('Press workflow flow.json not found.');
+        }
+
+        $fileContent = file_get_contents($filePath);
+        if (false === $fileContent || '' === trim($fileContent)) {
+            throw new \RuntimeException('Press workflow flow.json is empty.');
+        }
+
+        $workflowDefinition = json_decode($fileContent, true);
+        if (JSON_ERROR_NONE !== json_last_error() || !is_array($workflowDefinition)) {
+            throw new \RuntimeException('Press workflow flow.json is invalid JSON.');
+        }
+
         $workflowEngine = new WorkflowEngine($workflowDefinition);
         $workflowEngine->validateDefinition();
 
@@ -144,7 +149,18 @@ class rPress extends Reaction
         $projection = $workflowEngine->project([
             'current_state_code' => $currentStatus,
         ]);
-        $transition = self::resolveProjectedWorkflowTransition($projection, $actionCode);
+        $transition = null;
+        if (!empty($projection['available_transitions']) && is_array($projection['available_transitions'])) {
+            foreach ($projection['available_transitions'] as $projectedTransition) {
+                if (!isset($projectedTransition['action_code']) || $projectedTransition['action_code'] !== $actionCode) {
+                    continue;
+                }
+
+                $transition = $projectedTransition;
+                break;
+            }
+        }
+
         if (empty($transition)) {
             throw new \RuntimeException('Workflow transition projection not found for requested Press status.');
         }
@@ -163,79 +179,7 @@ class rPress extends Reaction
         ];
     }
 
-    private static function resolveProjectedWorkflowTransition($projection, $actionCode)
-    {
-        if (empty($projection['available_transitions']) || !is_array($projection['available_transitions'])) {
-            return null;
-        }
-
-        foreach ($projection['available_transitions'] as $transition) {
-            if (!isset($transition['action_code']) || $transition['action_code'] !== $actionCode) {
-                continue;
-            }
-
-            return $transition;
-        }
-
-        return null;
-    }
-
-    private static function resolveSeenPress($req)
-    {
-        $req = is_array($req) ? $req : [];
-        $filter = [
-            'status' => [fPress::ST_PUBLISHED, fPress::ST_CHANGED],
-        ];
-
-        $pressId = (int) ($req['press_id'] ?? $req['id'] ?? 0);
-        if ($pressId > 0) {
-            return fPress::one($pressId, 'id', $filter, 0);
-        }
-
-        $slug = trim((string) ($req['slug'] ?? ''));
-        if ('' !== $slug) {
-            return fPress::one(parent::_slugify($slug), 'slug', $filter, 0);
-        }
-
-        return null;
-    }
-
-    private static function writeWorkflowPublishedTrace($trace)
-    {
-        if (empty($trace)) {
-            return;
-        }
-
-        mh()->insert(fPress::fmTbl('log'), [
-            'parent_id' => $trace['parent_id'],
-            'action_code' => $trace['action_code'],
-            'old_state_code' => $trace['old_state_code'],
-            'new_state_code' => $trace['new_state_code'],
-            'insert_user' => $trace['insert_user'],
-        ]);
-    }
-
-    private static function loadWorkflowDefinition()
-    {
-        $filePath = __DIR__ . '/flow.json';
-        if (!is_file($filePath)) {
-            throw new \RuntimeException('Press workflow flow.json not found.');
-        }
-
-        $fileContent = file_get_contents($filePath);
-        if (false === $fileContent || '' === trim($fileContent)) {
-            throw new \RuntimeException('Press workflow flow.json is empty.');
-        }
-
-        $workflowDefinition = json_decode($fileContent, true);
-        if (JSON_ERROR_NONE !== json_last_error() || !is_array($workflowDefinition)) {
-            throw new \RuntimeException('Press workflow flow.json is invalid JSON.');
-        }
-
-        return $workflowDefinition;
-    }
-
-    public static function resolveWorkflowActionCode($targetStatus)
+    private static function resolveWorkflowActionCode($targetStatus)
     {
         switch ((string) $targetStatus) {
             case fPress::ST_PUBLISHED:
@@ -259,9 +203,8 @@ class rPress extends Reaction
 
         $req = parent::_getReq();
 
-        $req['page'] = ($req['page']) ? ($req['page'] - 1) : 1;
-
-        $req['limit'] = max(min($req['limit'] * 1, 24), 3);
+        $req['page']  = (isset($req['page'])) ? intval($req['page']) - 1 : 0;
+        $req['limit'] = (!empty($req['limit'])) ? max(min($req['limit'] * 1, fPress::PAGELIMIT), 12) : fPress::PAGELIMIT;
 
         if (!empty($req['pid'])) {
             if (is_numeric($req['pid'])) {
@@ -277,13 +220,6 @@ class rPress extends Reaction
             if (is_string($req['query'])) {
                 $query['l.title[~]'] = urldecode(str_replace('q=', '', $req['query']));
             } else {
-                if (!empty($req['query']['sub_tag'])) {
-                    if (!is_array($req['query']['sub_tag'])) {
-                        $req['query']['sub_tag'] = explode(',', $req['query']['sub_tag']);
-                    }
-                    $tags = array_merge($tags, fTag::bySlug($req['query']['sub_tag']));
-                }
-
                 if (!empty($req['query']['q'])) {
                     $query['l.title[~]'] = $req['query']['q'];
                 }
@@ -310,15 +246,11 @@ class rPress extends Reaction
      */
     public static function handleRow($row = [])
     {
-        $row['tags']      = fPress::lotsTag($row['id']);
-        $row['authors']   = fPress::lotsAuthor($row['id']);
-        $row['relateds']  = fPress::lotsRelated($row['id']);
-        $row['meta']      = fPress::lotsMeta($row['id']);
-        $row['terms']     = fPress::lotsTerm($row['id']);
-
-        // read history file
-        // $fc = new FCHelper('press');
-        $row['history']        = []; // $fc->getLog('press_' . $row['id']);
+        $row = self::handleIteratee($row);
+        $row['relateds'] = fPress::lotsRelated($row['id']);
+        $row['meta'] = fPress::lotsMeta($row['id']);
+        $row['terms'] = fPress::lotsTerm($row['id']);
+        $row['history'] = [];
         $row['status_publish'] = $row['status'];
 
         return $row;
@@ -331,10 +263,8 @@ class rPress extends Reaction
      */
     public static function handleIteratee($row = [])
     {
-        $row['tags']    = fPress::lotsTag($row['id']);
+        $row['tags'] = fPress::lotsTag($row['id']);
         $row['authors'] = fPress::lotsAuthor($row['id']);
-
-        // $row['metas']   = fPress::lotsMeta($row['id']);
 
         return $row;
     }

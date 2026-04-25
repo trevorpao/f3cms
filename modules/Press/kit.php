@@ -10,15 +10,38 @@ use Intervention\Image\ImageManager as Image;
  */
 class kPress extends Kit
 {
-    /**
-     * @param $email
-     * @param $verify_code
-     */
-    public static function fartherData($id)
+    public static function isAvailable($row = [])
     {
-        \PCMS\kPress::fartherData($id);
+        $row = is_array($row) ? $row : ['id' => (int) $row];
+        $pressId = (int) ($row['id'] ?? 0);
+
+        if ($pressId <= 0) {
+            return false;
+        }
+
+        return !empty(fPress::onePublished($pressId, 'id', 0));
     }
 
+    public static function presentListRow($row = [])
+    {
+        return rPress::handleIteratee($row);
+    }
+
+    public static function presentDetailRow($row = [])
+    {
+        return rPress::handleRow($row);
+    }
+
+    public static function decorateListRow($row = [])
+    {
+        return self::presentListRow($row);
+    }
+
+    public static function decorateDetailRow($row = [])
+    {
+        return self::presentDetailRow($row);
+    }
+    
     public static function handleCDNImages($article)
     {
         $basePath = $_SERVER['DOCUMENT_ROOT'] ?? getcwd();

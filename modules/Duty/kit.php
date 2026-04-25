@@ -36,6 +36,16 @@ class kDuty extends Kit
             throw new \RuntimeException('Enabled member not found for seen target completion: ' . $memberId);
         }
 
+        $tasks = fTask::byMemberId($memberId, [fTask::ST_NEW, fTask::ST_CLAIMED, fTask::ST_DONE]);
+        if (!self::isSeenTargetAvailable($target, $rowId)) {
+            return [
+                'seen' => null,
+                'completed_tasks' => [],
+                'short_circuited_tasks' => [],
+                'skipped_tasks' => self::buildTargetUnavailableSkips($tasks, $target, $rowId),
+            ];
+        }
+
         $transactionStarted = false;
 
         try {
@@ -52,8 +62,10 @@ class kDuty extends Kit
             ];
 
             $completedTasks = [];
+            $shortCircuitedTasks = [];
+            $skippedTasks = [];
 
-            foreach (fTask::pendingByMemberId($memberId) as $task) {
+            foreach ($tasks as $task) {
                 $dutyId = (int) ($task['duty_id'] ?? 0);
                 if ($dutyId <= 0) {
                     continue;
@@ -64,8 +76,38 @@ class kDuty extends Kit
                     continue;
                 }
 
+                if (fTask::ST_DONE !== ($task['status'] ?? null) && fDuty::isTaskTemplateExpired($claim['task_template'])) {
+                    $skippedTasks[] = [
+                        'task_id' => (int) ($task['id'] ?? 0),
+                        'duty_id' => $dutyId,
+                        'reason' => 'task_expired',
+                    ];
+
+                    continue;
+                }
+
                 $evaluation = self::evaluateTaskTemplateForMember($dutyId, $memberId, $contextOverrides)->toArray();
                 if (true !== ($evaluation['matched'] ?? false)) {
+                    if (fTask::ST_DONE !== ($task['status'] ?? null)) {
+                        $skippedTasks[] = [
+                            'task_id' => (int) ($task['id'] ?? 0),
+                            'duty_id' => $dutyId,
+                            'reason' => 'factor_not_matched',
+                            'evaluation' => $evaluation,
+                        ];
+                    }
+
+                    continue;
+                }
+
+                if (fTask::ST_DONE === ($task['status'] ?? null)) {
+                    $shortCircuitedTasks[] = [
+                        'task_id' => (int) ($task['id'] ?? 0),
+                        'duty_id' => $dutyId,
+                        'reason' => 'already_completed',
+                        'evaluation' => $evaluation,
+                    ];
+
                     continue;
                 }
 
@@ -101,6 +143,8 @@ class kDuty extends Kit
             return [
                 'seen' => $seen,
                 'completed_tasks' => $completedTasks,
+                'short_circuited_tasks' => $shortCircuitedTasks,
+                'skipped_tasks' => $skippedTasks,
             ];
         } catch (\Throwable $e) {
             if ($transactionStarted) {
@@ -211,5 +255,70 @@ class kDuty extends Kit
             'amount' => isset($reward['amount']) ? (int) $reward['amount'] : 0,
             'action_code' => isset($reward['action_code']) ? trim((string) $reward['action_code']) : '',
         ];
+    }
+
+    private static function isSeenTargetAvailable($target, $rowId)
+    {
+        return fDuty::isSeenTargetAvailable($target, $rowId);
+    }
+
+    private static function buildTargetUnavailableSkips($tasks, $target, $rowId)
+    {
+        $skippedTasks = [];
+
+        foreach ($tasks as $task) {
+            if (fTask::ST_DONE === ($task['status'] ?? null)) {
+                continue;
+            }
+
+            $dutyId = (int) ($task['duty_id'] ?? 0);
+            if ($dutyId <= 0) {
+                continue;
+            }
+
+            $claim = self::loadRulePayload($dutyId, 'claim');
+            $taskFactor = isset($claim['task_template']['factor']) && is_array($claim['task_template']['factor']) ? $claim['task_template']['factor'] : [];
+
+            if (!self::taskReferencesSeenTarget($taskFactor, $target, $rowId)) {
+                continue;
+            }
+
+            $skippedTasks[] = [
+                'task_id' => (int) ($task['id'] ?? 0),
+                'duty_id' => $dutyId,
+                'reason' => 'target_unavailable',
+                'target' => trim((string) $target),
+                'row_id' => (int) $rowId,
+            ];
+        }
+
+        return $skippedTasks;
+    }
+
+    private static function taskReferencesSeenTarget($node, $target, $rowId)
+    {
+        if (!is_array($node) || empty($node)) {
+            return false;
+        }
+
+        $type = strtoupper(trim((string) ($node['type'] ?? '')));
+        if ('MEMBER_SEEN_TARGET' === $type) {
+            return trim((string) ($node['target'] ?? '')) === trim((string) $target)
+                && (int) ($node['row_id'] ?? 0) === (int) $rowId;
+        }
+
+        foreach (['rules', 'children'] as $childrenKey) {
+            if (!isset($node[$childrenKey]) || !is_array($node[$childrenKey])) {
+                continue;
+            }
+
+            foreach ($node[$childrenKey] as $child) {
+                if (self::taskReferencesSeenTarget($child, $target, $rowId)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

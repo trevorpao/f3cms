@@ -50,7 +50,7 @@ class rAuthor extends Reaction
         $rtn = fPress::lotsByAuthor($author['id'], $req['page'], $req['limit']);
 
         $rtn['subset'] = \__::map($rtn['subset'], function ($row) {
-            return rPress::handleIteratee($row);
+            return kPress::presentListRow($row);
         });
 
         return self::_return(1, $rtn);

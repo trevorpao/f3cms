@@ -54,6 +54,25 @@ class fPress extends Feed
         return self::paginate(self::fmTbl() . '(m)', $filter, $page, $limit, explode(',', self::BE_COLS . $cols), self::genJoin());
     }
 
+    public static function onePublished($val, $col = 'id', $multilang = 0)
+    {
+        return self::one($val, $col, [
+            'status' => [self::ST_PUBLISHED, self::ST_CHANGED],
+        ], $multilang);
+    }
+
+    private static function pluckPressIds($relationTable, $relationColumn, $id)
+    {
+        $presses = mh()->select($relationTable . '(r)', ['r.press_id'], ['r.' . $relationColumn => $id]);
+
+        return \__::pluck($presses, 'press_id');
+    }
+
+    private static function lotsByRelation($relationTable, $relationColumn, $id, $page = 0, $limit = 6, $cols = '')
+    {
+        return self::lotsByID(self::pluckPressIds(self::fmTbl($relationTable), $relationColumn, $id), $page, $limit, $cols);
+    }
+
     /**
      * @param $id
      * @param $page
@@ -61,9 +80,7 @@ class fPress extends Feed
      */
     public static function lotsBySearch($id, $page = 0, $limit = 6)
     {
-        $presses = mh()->select(fSearch::fmTbl('press') . '(r)', ['r.press_id'], ['r.search_id' => $id]);
-
-        return self::lotsByID(\__::pluck($presses, 'press_id'), $page, $limit);
+        return self::lotsByID(self::pluckPressIds(fSearch::fmTbl('press'), 'search_id', $id), $page, $limit);
     }
 
     /**
@@ -73,9 +90,41 @@ class fPress extends Feed
      */
     public static function lotsByAuthor($id, $page = 0, $limit = 6)
     {
-        $presses = mh()->select(self::fmTbl('author') . '(r)', ['r.press_id'], ['r.author_id' => $id]);
+        return self::lotsByRelation('author', 'author_id', $id, $page, $limit);
+    }
 
-        return self::lotsByID(\__::pluck($presses, 'press_id'), $page, $limit);
+    public static function lotsByTag($id, $page = 0, $limit = 6, $cols = '')
+    {
+        return self::lotsByRelation('tag', 'tag_id', $id, $page, $limit, $cols);
+    }
+
+    public static function publishWithWorkflowTrace($req, $trace = null)
+    {
+        mh()->begin();
+
+        try {
+            if (!empty($trace)) {
+                mh()->insert(self::fmTbl('log'), [
+                    'parent_id' => $trace['parent_id'],
+                    'action_code' => $trace['action_code'],
+                    'old_state_code' => $trace['old_state_code'],
+                    'new_state_code' => $trace['new_state_code'],
+                    'insert_user' => $trace['insert_user'],
+                ]);
+            }
+
+            $published = self::published($req);
+            if (empty($published)) {
+                throw new \RuntimeException('Press status update failed.');
+            }
+
+            mh()->commit();
+
+            return $published;
+        } catch (\Throwable $e) {
+            mh()->rollback();
+            throw $e;
+        }
     }
 
     /**

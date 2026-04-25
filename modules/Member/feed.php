@@ -294,18 +294,31 @@ class fMember extends Feed
 	public static function oneSeenTarget($memberId, $target, $rowId)
 	{
 		$memberId = (int) $memberId;
-		$rowId = (int) $rowId;
 		$target = trim((string) $target);
+		$rowId = (int) $rowId;
 
 		if ($memberId <= 0 || $rowId <= 0 || '' === $target) {
 			return null;
 		}
 
-		return mh()->get(self::fmTbl('seen'), '*', [
+		$storage = self::resolveSeenStorage($target);
+		$where = [
 			'member_id' => $memberId,
-			'target' => $target,
 			'row_id' => $rowId,
-		]);
+		];
+
+		if (!empty($storage['uses_target_column'])) {
+			$where['target'] = $target;
+		}
+
+		$seen = mh()->get($storage['table'], '*', $where);
+		if (empty($seen) || !is_array($seen)) {
+			return null;
+		}
+
+		$seen['target'] = $target;
+
+		return $seen;
 	}
 
 	public static function seenTargetMapByMemberId($memberId)
@@ -315,32 +328,37 @@ class fMember extends Feed
 			return [];
 		}
 
-		$rows = mh()->select(self::fmTbl('seen'), [
-			'target',
-			'row_id',
-		], [
-			'member_id' => $memberId,
-		]);
-
-		if (!is_array($rows) || empty($rows)) {
-			return [];
-		}
-
 		$map = [];
+		foreach (self::listSeenStorages() as $storage) {
+			$columns = ['row_id'];
+			if (!empty($storage['uses_target_column'])) {
+				$columns[] = 'target';
+			}
 
-		foreach ($rows as $row) {
-			$target = isset($row['target']) ? trim((string) $row['target']) : '';
-			$rowId = isset($row['row_id']) ? (int) $row['row_id'] : 0;
+			$rows = mh()->select($storage['table'], $columns, [
+				'member_id' => $memberId,
+			]);
 
-			if ('' === $target || $rowId <= 0) {
+			if (!is_array($rows) || empty($rows)) {
 				continue;
 			}
 
-			if (!isset($map[$target])) {
-				$map[$target] = [];
-			}
+			foreach ($rows as $row) {
+				$target = !empty($storage['uses_target_column'])
+					? (isset($row['target']) ? trim((string) $row['target']) : '')
+					: (string) $storage['target'];
+				$rowId = isset($row['row_id']) ? (int) $row['row_id'] : 0;
 
-			$map[$target][] = $rowId;
+				if ('' === $target || $rowId <= 0) {
+					continue;
+				}
+
+				if (!isset($map[$target])) {
+					$map[$target] = [];
+				}
+
+				$map[$target][] = $rowId;
+			}
 		}
 
 		foreach ($map as $target => $rowIds) {
@@ -362,6 +380,7 @@ class fMember extends Feed
 			return null;
 		}
 
+		$storage = self::resolveSeenStorage($target);
 		$existing = self::oneSeenTarget($memberId, $target, $rowId);
 		if (!empty($existing)) {
 			$existing['_created'] = false;
@@ -369,21 +388,26 @@ class fMember extends Feed
 			return $existing;
 		}
 
-		mh()->insert(self::fmTbl('seen'), [
+		$payload = [
 			'member_id' => $memberId,
-			'target' => $target,
 			'row_id' => $rowId,
 			'source' => $source,
 			'insert_ts' => date('Y-m-d H:i:s'),
 			'insert_user' => $insertUser,
-		]);
+		];
+
+		if (!empty($storage['uses_target_column'])) {
+			$payload['target'] = $target;
+		}
+
+		mh()->insert($storage['table'], $payload);
 
 		$seenId = (int) self::chkErr(mh()->id());
 		if ($seenId <= 0) {
 			return null;
 		}
 
-		$created = mh()->get(self::fmTbl('seen'), '*', [
+		$created = mh()->get($storage['table'], '*', [
 			'id' => $seenId,
 		]);
 
@@ -391,9 +415,89 @@ class fMember extends Feed
 			return null;
 		}
 
+		$created['target'] = $target;
 		$created['_created'] = true;
 
 		return $created;
+	}
+
+	private static function listSeenStorages()
+	{
+		$storages = [[
+			'table' => self::fmTbl('seen'),
+			'target' => '',
+			'uses_target_column' => true,
+		]];
+
+		$tables = mh()->query("SHOW TABLES LIKE 'tbl\\_%\\_seen'")->fetchAll(\PDO::FETCH_COLUMN);
+		if (!is_array($tables) || empty($tables)) {
+			return $storages;
+		}
+
+		foreach ($tables as $tableName) {
+			$tableName = trim((string) $tableName);
+			if ('' === $tableName || self::fmTbl('seen') === $tableName) {
+				continue;
+			}
+
+			$target = self::targetFromSeenTable($tableName);
+			if ('' === $target) {
+				continue;
+			}
+
+			$storages[] = [
+				'table' => $tableName,
+				'target' => $target,
+				'uses_target_column' => self::hasColumn($tableName, 'target'),
+			];
+		}
+
+		return $storages;
+	}
+
+	private static function resolveSeenStorage($target)
+	{
+		$target = trim((string) $target);
+		$tableName = 'tbl_' . strtolower($target) . '_seen';
+
+		if ('' !== $target && self::hasTable($tableName)) {
+			return [
+				'table' => $tableName,
+				'target' => $target,
+				'uses_target_column' => self::hasColumn($tableName, 'target'),
+			];
+		}
+
+		return [
+			'table' => self::fmTbl('seen'),
+			'target' => $target,
+			'uses_target_column' => true,
+		];
+	}
+
+	private static function targetFromSeenTable($tableName)
+	{
+		$tableName = trim((string) $tableName);
+		if (!preg_match('/^tbl_(.+)_seen$/', $tableName, $matches)) {
+			return '';
+		}
+
+		return ucfirst((string) $matches[1]);
+	}
+
+	private static function hasTable($tableName)
+	{
+		$tableName = trim((string) $tableName);
+
+		if ('' === $tableName) {
+			return false;
+		}
+
+		$rows = mh()->query('SHOW TABLES LIKE :table_name', [
+			':table_name' => $tableName,
+		])->fetchAll();
+
+		return is_array($rows) && !empty($rows);
 	}
 
 	private static function hasColumn($tableName, $columnName)

@@ -81,15 +81,39 @@ class fTask extends Feed
 
     public static function pendingByMemberId($memberId)
     {
+        $tasks = self::byMemberId($memberId, [self::ST_NEW, self::ST_CLAIMED]);
+
+        return array_values(array_filter($tasks, static function ($task) {
+            $dutyId = (int) ($task['duty_id'] ?? 0);
+            if ($dutyId <= 0) {
+                return true;
+            }
+
+            $taskTemplate = fDuty::loadTaskTemplate($dutyId);
+
+            return !fDuty::isTaskTemplateExpired($taskTemplate)
+                && !fDuty::hasUnavailableSeenTarget($taskTemplate);
+        }));
+    }
+
+    public static function byMemberId($memberId, $statuses = [])
+    {
         $memberId = (int) $memberId;
+        $statuses = is_array($statuses) ? array_values(array_filter(array_map('strval', $statuses))) : [];
+
         if ($memberId <= 0) {
             return [];
         }
 
-        $rows = mh()->select(self::fmTbl(), '*', [
+        $where = [
             'member_id' => $memberId,
-            'status' => [self::ST_NEW, self::ST_CLAIMED],
-        ]);
+        ];
+
+        if (!empty($statuses)) {
+            $where['status'] = $statuses;
+        }
+
+        $rows = mh()->select(self::fmTbl(), '*', $where);
 
         return is_array($rows) ? $rows : [];
     }

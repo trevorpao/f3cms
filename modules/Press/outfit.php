@@ -110,15 +110,10 @@ class oPress extends Outfit
      */
     private static function _render($id = 0, $published = true, $history = false)
     {
-        $filter = [];
-        if ($published) {
-            $filter['status'] = [fPress::ST_PUBLISHED, fPress::ST_CHANGED];
-        }
-
         if (is_numeric($id)) {
-            $cu = fPress::one($id, 'id', $filter, 0);
+            $cu = $published ? fPress::onePublished($id, 'id', 0) : fPress::one($id, 'id', [], 0);
         } else {
-            $cu = fPress::one(parent::_slugify($id), 'slug', $filter, 0);
+            $cu = $published ? fPress::onePublished(parent::_slugify($id), 'slug', 0) : fPress::one(parent::_slugify($id), 'slug', [], 0);
         }
 
         if (empty($cu)) {
