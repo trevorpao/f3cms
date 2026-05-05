@@ -132,9 +132,12 @@ class rStaff extends Reaction
             if (null == $cu) {
                 $rtn = self::RTN_WRONGDATA;
             } else {
-                // if (fStaff::ST_FREEZE == $cu['status']) {
-                //     $rtn = self::RTN_UNVERIFIED;
-                // }
+                if (!empty($req['pwd']) && kDoorman::isBlacklistedPassword($req['pwd'], [
+                    'account' => $cu['name'] ?? '',
+                    'email'   => $req['email'] ?? ($cu['email'] ?? ''),
+                ])) {
+                    $rtn = self::RTN_NOTSTRONG;
+                }
             }
         }
 

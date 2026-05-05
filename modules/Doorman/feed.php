@@ -173,4 +173,36 @@ class fDoorman extends Feed
 
         return $query;
     }
+
+    public static function hasBlacklistedPassword(string $normalizedPassword): bool
+    {
+        if ('' === $normalizedPassword) {
+            return false;
+        }
+
+        $exact = mh()->get(self::fmTbl('blacklist'), ['id'], [
+            'status'     => 'Enabled',
+            'match_type' => 'exact',
+            'keyword'    => $normalizedPassword,
+        ]);
+
+        if (!empty($exact)) {
+            return true;
+        }
+
+        $contains = mh()->get(
+            self::fmTbl('blacklist'),
+            ['id'],
+            MHelper::raw(
+                'WHERE `status` = :status AND `match_type` = :match_type AND `keyword` <> "" AND :password LIKE CONCAT("%", `keyword`, "%") ORDER BY `id` ASC LIMIT 1',
+                [
+                    ':status'     => 'Enabled',
+                    ':match_type' => 'contains',
+                    ':password'   => $normalizedPassword,
+                ]
+            )
+        );
+
+        return !empty($contains);
+    }
 }
