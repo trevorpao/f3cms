@@ -9,6 +9,10 @@ class fDuty extends Feed
 
     public const ST_ENABLED = 'Enabled';
     public const ST_DISABLED = 'Disabled';
+    public const SK_PREREQUISITE_UNMET = 'prerequisite_unmet';
+    public const SK_PREREQUISITE_UNRESOLVABLE = 'prerequisite_unresolvable';
+
+    protected static array $taskTemplateDutyCache = [];
 
     public static function oneBySlug($slug)
     {
@@ -23,13 +27,62 @@ class fDuty extends Feed
 
     public static function enabledClaimRows()
     {
+        $rows = self::claimRows([
+            'status' => self::ST_ENABLED,
+        ]);
+
+        return is_array($rows) ? $rows : [];
+    }
+
+    public static function oneByTaskTemplateSlug($taskTemplateSlug)
+    {
+        $taskTemplateSlug = trim((string) $taskTemplateSlug);
+        if ('' === $taskTemplateSlug) {
+            return null;
+        }
+
+        if (array_key_exists($taskTemplateSlug, self::$taskTemplateDutyCache)) {
+            return self::$taskTemplateDutyCache[$taskTemplateSlug];
+        }
+
+        foreach (self::claimRows() as $row) {
+            $dutyId = (int) ($row['id'] ?? 0);
+            if ($dutyId <= 0) {
+                continue;
+            }
+
+            $payload = self::normalizeRulePayload($row['claim'] ?? '', $dutyId, 'claim');
+            $taskTemplate = $payload['task_template'] ?? null;
+            if (!is_array($taskTemplate)) {
+                continue;
+            }
+
+            $candidateSlug = trim((string) ($taskTemplate['slug'] ?? ''));
+            if ('' === $candidateSlug) {
+                continue;
+            }
+
+            if (!array_key_exists($candidateSlug, self::$taskTemplateDutyCache)) {
+                self::$taskTemplateDutyCache[$candidateSlug] = $row;
+            }
+
+            if ($candidateSlug === $taskTemplateSlug) {
+                return $row;
+            }
+        }
+
+        self::$taskTemplateDutyCache[$taskTemplateSlug] = null;
+
+        return null;
+    }
+
+    private static function claimRows($where = [])
+    {
         $rows = mh()->select(self::fmTbl(), [
             'id',
             'slug',
             'claim',
-        ], [
-            'status' => self::ST_ENABLED,
-        ]);
+        ], is_array($where) ? $where : []);
 
         return is_array($rows) ? $rows : [];
     }
@@ -97,6 +150,132 @@ class fDuty extends Feed
         }
 
         return false;
+    }
+
+    public static function hasUnmetTaskPrerequisite($taskTemplate, $memberId)
+    {
+        return null !== self::taskPrerequisiteFailureReason($taskTemplate, $memberId);
+    }
+
+    public static function taskPrerequisiteFailureReason($taskTemplate, $memberId)
+    {
+        $memberId = (int) $memberId;
+        if ($memberId <= 0) {
+            return null;
+        }
+
+        $prerequisite = self::loadTaskPrerequisite($taskTemplate);
+        if (empty($prerequisite)) {
+            return null;
+        }
+
+        $operator = strtoupper(trim((string) ($prerequisite['operator'] ?? 'AND')));
+        if (!in_array($operator, ['AND', 'OR'], true)) {
+            return null;
+        }
+
+        $tasks = $prerequisite['tasks'] ?? null;
+        if (!is_array($tasks) || empty($tasks)) {
+            return null;
+        }
+
+        $matchedCount = 0;
+        $checkedCount = 0;
+        $hasUnresolvableDependency = false;
+        $hasUnmetDependency = false;
+
+        foreach ($tasks as $dependency) {
+            $dependencyState = self::taskPrerequisiteDependencyState($dependency, $memberId);
+            if (null === $dependencyState) {
+                return null;
+            }
+
+            ++$checkedCount;
+
+            if ('met' === $dependencyState) {
+                ++$matchedCount;
+                continue;
+            }
+
+            if ('unresolvable' === $dependencyState) {
+                $hasUnresolvableDependency = true;
+                continue;
+            }
+
+            if ('unmet' === $dependencyState) {
+                $hasUnmetDependency = true;
+            }
+        }
+
+        if ($checkedCount <= 0) {
+            return null;
+        }
+
+        if ('OR' === $operator) {
+            if ($matchedCount > 0) {
+                return null;
+            }
+
+            return $hasUnresolvableDependency ? self::SK_PREREQUISITE_UNRESOLVABLE : self::SK_PREREQUISITE_UNMET;
+        }
+
+        if ($matchedCount === $checkedCount) {
+            return null;
+        }
+
+        return $hasUnresolvableDependency ? self::SK_PREREQUISITE_UNRESOLVABLE : self::SK_PREREQUISITE_UNMET;
+    }
+
+    private static function taskPrerequisiteDependencyState($dependency, $memberId)
+    {
+        if (!is_array($dependency)) {
+            return null;
+        }
+
+        $expectedStatus = trim((string) ($dependency['expected_status'] ?? fTask::ST_DONE));
+        if ('' === $expectedStatus) {
+            return null;
+        }
+
+        $duty = self::resolveTaskPrerequisiteDuty($dependency);
+        if (null === $duty) {
+            return null;
+        }
+
+        if (empty($duty) || !is_array($duty)) {
+            return 'unresolvable';
+        }
+
+        $dependencyTask = fTask::oneByDutyAndMember((int) ($duty['id'] ?? 0), (int) $memberId);
+        if (empty($dependencyTask) || !is_array($dependencyTask)) {
+            return 'unresolvable';
+        }
+
+        return $expectedStatus === (string) ($dependencyTask['status'] ?? '') ? 'met' : 'unmet';
+    }
+
+    private static function resolveTaskPrerequisiteDuty($dependency)
+    {
+        $dutySlug = trim((string) ($dependency['duty_slug'] ?? ''));
+        if ('' !== $dutySlug) {
+            return self::oneBySlug($dutySlug) ?? [];
+        }
+
+        $taskTemplateSlug = trim((string) ($dependency['task_template_slug'] ?? ''));
+        if ('' !== $taskTemplateSlug) {
+            return self::oneByTaskTemplateSlug($taskTemplateSlug) ?? [];
+        }
+
+        return null;
+    }
+
+    public static function loadTaskPrerequisite($taskTemplate)
+    {
+        if (!is_array($taskTemplate) || !isset($taskTemplate['prerequisite']) || !is_array($taskTemplate['prerequisite'])) {
+            return null;
+        }
+
+        return $taskTemplate['prerequisite'];
     }
 
     public static function isSeenTargetAvailable($target, $rowId)

@@ -86,6 +86,17 @@ class kDuty extends Kit
                     continue;
                 }
 
+                $prerequisiteFailureReason = fDuty::taskPrerequisiteFailureReason($claim['task_template'], $memberId);
+                if (fTask::ST_DONE !== ($task['status'] ?? null) && null !== $prerequisiteFailureReason) {
+                    $skippedTasks[] = [
+                        'task_id' => (int) ($task['id'] ?? 0),
+                        'duty_id' => $dutyId,
+                        'reason' => $prerequisiteFailureReason,
+                    ];
+
+                    continue;
+                }
+
                 $evaluation = self::evaluateTaskTemplateForMember($dutyId, $memberId, $contextOverrides)->toArray();
                 if (true !== ($evaluation['matched'] ?? false)) {
                     if (fTask::ST_DONE !== ($task['status'] ?? null)) {

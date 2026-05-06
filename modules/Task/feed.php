@@ -92,7 +92,8 @@ class fTask extends Feed
             $taskTemplate = fDuty::loadTaskTemplate($dutyId);
 
             return !fDuty::isTaskTemplateExpired($taskTemplate)
-                && !fDuty::hasUnavailableSeenTarget($taskTemplate);
+                && !fDuty::hasUnavailableSeenTarget($taskTemplate)
+                && !fDuty::hasUnmetTaskPrerequisite($taskTemplate, (int) ($task['member_id'] ?? 0));
         }));
     }
 
