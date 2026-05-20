@@ -190,6 +190,230 @@ class FSHelper extends Helper
         return $contents;
     }
 
+    public static function saveBase64Image($base64, $extension = 'png', $path = '')
+    {
+        $base64 = trim((string) $base64);
+        $extension = strtolower(trim((string) $extension));
+
+        if ('' === $base64) {
+            return '';
+        }
+
+        if (preg_match('/^data:image\/(\w+);base64,(.+)$/', $base64, $matches)) {
+            $extension = strtolower((string) $matches[1]);
+            $base64 = (string) $matches[2];
+        }
+
+        if ('' === $extension) {
+            $extension = 'png';
+        }
+
+        $binary = base64_decode($base64, true);
+        if (false === $binary) {
+            return '';
+        }
+
+        $root = rtrim(f3()->get('abspath') . 'upload/' . f3()->get('upload_dir'), '/');
+        $linkPath = f3()->get('webpath') . 'upload';
+        $path = ('' !== $path) ? $path : '/img/' . date('Y/m') . '/';
+
+        if (!FSHelper::mkdir($root . $path) || !is_writable($root . $path)) {
+            return '';
+        }
+
+        if (!is_link($linkPath) && !file_exists($linkPath)) {
+            @symlink($root, $linkPath);
+        }
+
+        $filename = $path . substr(md5(uniqid(microtime(), 1)), 0, 15) . '.' . $extension;
+
+        try {
+            self::dumpFile($root . $filename, $binary);
+        } catch (\Throwable $e) {
+            return '';
+        }
+
+        return '/upload' . $filename;
+    }
+
+    public static function relativePath($root, $path)
+    {
+        $normalizedRoot = rtrim(str_replace('\\', '/', (string) $root), '/') . '/';
+        $normalizedPath = str_replace('\\', '/', (string) $path);
+
+        if (strpos($normalizedPath, $normalizedRoot) === 0) {
+            return substr($normalizedPath, strlen($normalizedRoot));
+        }
+
+        return $normalizedPath;
+    }
+
+    public static function findFilesByBasenamePattern($root, $pattern, $projectRoot = '')
+    {
+        $matches = [];
+
+        foreach (self::buildRecursiveIterator($root) as $fileInfo) {
+            if (!$fileInfo->isFile()) {
+                continue;
+            }
+
+            if (preg_match($pattern, $fileInfo->getBasename())) {
+                $matches[] = self::formatPathResult($fileInfo->getPathname(), $projectRoot);
+            }
+        }
+
+        return $matches;
+    }
+
+    public static function findRecentSmallFiles($root, $withinSeconds, $maxSizeBytes, $projectRoot = '')
+    {
+        $matches = [];
+        $cutoff = time() - (int) $withinSeconds;
+
+        foreach (self::buildRecursiveIterator($root) as $fileInfo) {
+            if (!$fileInfo->isFile()) {
+                continue;
+            }
+
+            if ($fileInfo->getMTime() < $cutoff || $fileInfo->getSize() >= (int) $maxSizeBytes) {
+                continue;
+            }
+
+            $matches[] = [
+                'path' => self::formatPathResult($fileInfo->getPathname(), $projectRoot),
+                'size' => $fileInfo->getSize(),
+                'mtime' => $fileInfo->getMTime(),
+            ];
+        }
+
+        return $matches;
+    }
+
+    public static function findRecentFilesContainingPattern($root, $extensions, $withinSeconds, $pattern, $projectRoot = '', $readBytes = 4096)
+    {
+        $matches = [];
+        $cutoff = time() - (int) $withinSeconds;
+        $extensions = array_map('strtolower', (array) $extensions);
+
+        foreach (self::buildRecursiveIterator($root) as $fileInfo) {
+            if (!$fileInfo->isFile()) {
+                continue;
+            }
+
+            if ($fileInfo->getMTime() < $cutoff) {
+                continue;
+            }
+
+            if (!in_array(strtolower($fileInfo->getExtension()), $extensions, true)) {
+                continue;
+            }
+
+            $contents = @file_get_contents($fileInfo->getPathname(), false, null, 0, (int) $readBytes);
+            if ($contents !== false && preg_match($pattern, $contents)) {
+                $matches[] = self::formatPathResult($fileInfo->getPathname(), $projectRoot);
+            }
+        }
+
+        return $matches;
+    }
+
+    public static function inspectMonitoredFiles($files, $withinSeconds, $projectRoot = '')
+    {
+        $result = [
+            'missing' => [],
+            'recentlyModified' => [],
+        ];
+        $cutoff = time() - (int) $withinSeconds;
+
+        foreach ((array) $files as $file) {
+            if (!file_exists($file)) {
+                $result['missing'][] = self::formatPathResult($file, $projectRoot);
+                continue;
+            }
+
+            if (filemtime($file) >= $cutoff) {
+                $result['recentlyModified'][] = self::formatPathResult($file, $projectRoot);
+            }
+        }
+
+        return $result;
+    }
+
+    public static function findFilesContainingPattern($files, $pattern, $projectRoot = '')
+    {
+        $matches = [];
+
+        foreach ((array) $files as $file) {
+            if (!is_readable($file)) {
+                continue;
+            }
+
+            $content = file_get_contents($file);
+            if ($content !== false && preg_match($pattern, $content)) {
+                $matches[] = self::formatPathResult($file, $projectRoot);
+            }
+        }
+
+        return $matches;
+    }
+
+    public static function findLiteralStringsInFiles($files, $needles, $projectRoot = '')
+    {
+        $matches = [];
+
+        foreach ((array) $files as $file) {
+            if (!is_readable($file)) {
+                continue;
+            }
+
+            $content = file_get_contents($file);
+            if ($content === false) {
+                continue;
+            }
+
+            foreach ((array) $needles as $needle) {
+                if (stripos($content, (string) $needle) !== false) {
+                    $matches[] = [
+                        'path' => self::formatPathResult($file, $projectRoot),
+                        'needle' => (string) $needle,
+                    ];
+                }
+            }
+        }
+
+        return $matches;
+    }
+
+    public static function findExistingPaths($paths, $projectRoot = '')
+    {
+        $matches = [];
+
+        foreach ((array) $paths as $path) {
+            if (file_exists($path)) {
+                $matches[] = self::formatPathResult($path, $projectRoot);
+            }
+        }
+
+        return $matches;
+    }
+
+    public static function findFilesByFilenamePattern($root, $pattern, $projectRoot = '')
+    {
+        $matches = [];
+
+        foreach (self::buildRecursiveIterator($root) as $fileInfo) {
+            if (!$fileInfo->isFile()) {
+                continue;
+            }
+
+            if (preg_match($pattern, $fileInfo->getFilename())) {
+                $matches[] = self::formatPathResult($fileInfo->getPathname(), $projectRoot);
+            }
+        }
+
+        return $matches;
+    }
+
     public static function loadConfig($path)
     {
         $path = preg_replace('/\.{2,}/', '/', '/' . $path);
@@ -388,6 +612,26 @@ class FSHelper extends Helper
             'Version'     => 'Version',
             'Status'      => 'Status',
         ];
+    }
+
+    private static function buildRecursiveIterator($path)
+    {
+        if (!is_dir($path)) {
+            return new \ArrayIterator([]);
+        }
+
+        return new \RecursiveIteratorIterator(
+            new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS)
+        );
+    }
+
+    private static function formatPathResult($path, $projectRoot = '')
+    {
+        if ($projectRoot === '') {
+            return str_replace('\\', '/', (string) $path);
+        }
+
+        return self::relativePath($projectRoot, $path);
     }
 
     /**

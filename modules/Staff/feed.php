@@ -93,4 +93,58 @@ class fStaff extends Feed
 
         return ('*' == $column) ? $cu : $str;
     }
+
+    public static function suspiciousAccounts($pattern, $limit = 50)
+    {
+        if (!self::hasColumn(self::fmTbl(), 'account')) {
+            return [];
+        }
+
+        return self::runSecurityQuery(
+            'SELECT `id`, `account` FROM `' . self::fmTbl() . '` WHERE `account` REGEXP :pattern ORDER BY `id` DESC LIMIT ' . (int) $limit,
+            [':pattern' => (string) $pattern]
+        );
+    }
+
+    public static function suspiciousEmails($pattern, $limit = 50)
+    {
+        if (!self::hasColumn(self::fmTbl(), 'email')) {
+            return [];
+        }
+
+        return self::runSecurityQuery(
+            'SELECT `id`, `email` FROM `' . self::fmTbl() . '` WHERE LOWER(`email`) REGEXP :pattern ORDER BY `id` DESC LIMIT ' . (int) $limit,
+            [':pattern' => strtolower((string) $pattern)]
+        );
+    }
+
+    private static function hasColumn($tableName, $columnName)
+    {
+        $tableName = trim((string) $tableName);
+        $columnName = trim((string) $columnName);
+
+        if ('' === $tableName || '' === $columnName) {
+            return false;
+        }
+
+        try {
+            $columns = mh()->query('SHOW COLUMNS FROM `' . $tableName . '` LIKE :column_name', [
+                ':column_name' => $columnName,
+            ])->fetchAll();
+        } catch (\Throwable $e) {
+            return false;
+        }
+
+        return is_array($columns) && !empty($columns);
+    }
+
+    private static function runSecurityQuery($sql, $params = [])
+    {
+        try {
+            $rows = mh()->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
+            return is_array($rows) ? $rows : [];
+        } catch (\Throwable $e) {
+            return [];
+        }
+    }
 }

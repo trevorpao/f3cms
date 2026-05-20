@@ -30,6 +30,42 @@ class rCrontab extends Reaction
         }
     }
 
+    public static function do_runDailySecurityCheck()
+    {
+        if (PHP_SAPI != 'cli') {
+            exit('Only in cli mode');
+        }
+
+        f3()->get('cliLogger')->write('Info - Crontab::runDailySecurityCheck');
+        exit(kCrontab::runDailySecurityCheckCli(kCrontab::dailySecurityCheckOptionsFromEnv()));
+    }
+
+    public static function do_sendLatestDailyCheck()
+    {
+        if (PHP_SAPI != 'cli') {
+            exit('Only in cli mode');
+        }
+
+        f3()->get('cliLogger')->write('Info - Crontab::sendLatestDailyCheck');
+
+        try {
+            $result = fCrontab::sendLatestDailyCheckLog();
+            $message = sprintf(
+                'Mail sent successfully to %s using log %s',
+                $result['recipient'],
+                $result['log_path']
+            );
+
+            f3()->get('cliLogger')->write('Info - ' . $message);
+            echo $message . PHP_EOL;
+        } catch (\RuntimeException $exception) {
+            $message = $exception->getMessage();
+            f3()->get('cliLogger')->write('Error - ' . $message);
+            fwrite(STDERR, $message . PHP_EOL);
+            exit(1);
+        }
+    }
+
     public static function do_exec($f3, $args)
     {
         if (empty($args['tally'])) {

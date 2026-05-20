@@ -18,9 +18,35 @@ class fPress extends Feed
 
     const BE_COLS = 'm.id,l.title,l.info,m.last_ts,m.cover,m.status,m.slug,m.online_date,s.account,cl.title(category),c.slug(category_slug)';
 
+    public static function suspiciousContentMarkers($pattern, $limit = 50)
+    {
+        return self::findLangContentMatches((string) $pattern, (int) $limit, false);
+    }
+
+    public static function suspiciousXssIndicators($pattern, $limit = 50)
+    {
+        return self::findLangContentMatches(strtolower((string) $pattern), (int) $limit, true);
+    }
+
     public static function genOrder()
     {
         return ['m.sorter' => 'ASC', 'm.online_date' => 'DESC', 'm.insert_ts' => 'DESC'];
+    }
+
+    private static function findLangContentMatches($pattern, $limit, $lowercase = false)
+    {
+        $contentExpr = $lowercase ? 'LOWER(`content`)' : '`content`';
+
+        try {
+            $rows = mh()->query(
+                'SELECT `id`, `parent_id`, LEFT(`content`, 120) AS `snippet` FROM `' . self::fmTbl('lang') . '` WHERE ' . $contentExpr . ' REGEXP :pattern ORDER BY `id` DESC LIMIT ' . (int) $limit,
+                [':pattern' => $pattern]
+            )->fetchAll(\PDO::FETCH_ASSOC);
+
+            return is_array($rows) ? $rows : [];
+        } catch (\Throwable $e) {
+            return [];
+        }
     }
 
     public static function genJoin()

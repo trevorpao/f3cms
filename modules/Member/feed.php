@@ -53,6 +53,30 @@ class fMember extends Feed
 		]);
 	}
 
+	public static function suspiciousAccounts($pattern, $limit = 50)
+	{
+		if (!self::hasColumn(self::fmTbl(), 'account')) {
+			return [];
+		}
+
+		return self::runSecurityQuery(
+			'SELECT `id`, `account` FROM `' . self::fmTbl() . '` WHERE `account` REGEXP :pattern ORDER BY `id` DESC LIMIT ' . (int) $limit,
+			[':pattern' => (string) $pattern]
+		);
+	}
+
+	public static function suspiciousEmails($pattern, $limit = 50)
+	{
+		if (!self::hasColumn(self::fmTbl(), 'email')) {
+			return [];
+		}
+
+		return self::runSecurityQuery(
+			'SELECT `id`, `email` FROM `' . self::fmTbl() . '` WHERE LOWER(`email`) REGEXP :pattern ORDER BY `id` DESC LIMIT ' . (int) $limit,
+			[':pattern' => strtolower((string) $pattern)]
+		);
+	}
+
 	public static function createMember($payload, $insertUser = 0)
 	{
 		$payload = is_array($payload) ? $payload : [];
@@ -514,5 +538,15 @@ class fMember extends Feed
 		])->fetchAll();
 
 		return is_array($columns) && !empty($columns);
+	}
+
+	private static function runSecurityQuery($sql, $params = [])
+	{
+		try {
+			$rows = mh()->query($sql, $params)->fetchAll(\PDO::FETCH_ASSOC);
+			return is_array($rows) ? $rows : [];
+		} catch (\Throwable $e) {
+			return [];
+		}
 	}
 }
