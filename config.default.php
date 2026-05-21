@@ -58,6 +58,10 @@ $f3->set('theme', 'default');
 
 $f3->set('defaultLang', 'tw');
 
+$f3->set('APP_ENV', getenv('APP_ENV') ?: 'develop');
+$f3->set('DEV_TOKEN', getenv('DEV_TOKEN') ?: 'f3cms-dev-mobile-token');
+$f3->set('DEV_MEMBER_ID', (int) (getenv('DEV_MEMBER_ID') ?: 999001));
+
 $f3->set('acceptLang', ['tw', 'en', 'ja', 'ko']);
 
 $f3->set('readyLang', [

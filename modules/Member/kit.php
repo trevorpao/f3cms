@@ -14,6 +14,38 @@ class kMember extends Kit
         'account_status',
     ];
 
+    /**
+     * @return int
+     */
+    public static function _isLogin()
+    {
+        return (1 === (int) fMember::_current('has_login')) ? 1 : 0;
+    }
+
+    public static function _chkLogin()
+    {
+        if (self::_isLogin()) {
+            return 1;
+        }
+
+        $token = isset($_SERVER['HTTP_MOBILE_TOKEN']) ? trim((string) $_SERVER['HTTP_MOBILE_TOKEN']) : '';
+        if ('' !== $token && 'develop' === (string) f3()->get('APP_ENV')) {
+            $devToken = trim((string) f3()->get('DEV_TOKEN'));
+            $devMemberId = (int) f3()->get('DEV_MEMBER_ID');
+
+            if ('' !== $devToken && hash_equals($devToken, $token) && $devMemberId > 0) {
+                $member = fMember::oneEnabledById($devMemberId);
+                if (!empty($member)) {
+                    self::createMemberSession($member);
+
+                    return 1;
+                }
+            }
+        }
+
+        return Reaction::_return(8201, ['msg' => 'Member login required.']);
+    }
+
     public static function preloadEventRuleContext($memberId, $overrides = [])
     {
         $memberId = (int) $memberId;
