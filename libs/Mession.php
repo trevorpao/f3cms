@@ -3,9 +3,19 @@
 namespace F3CMS;
 
 /**
- * Mession class handles session management, including opening, closing, reading, writing,
- * destroying sessions, and garbage collection. It also provides utility methods for session-related
- * data like CSRF tokens, IP addresses, and user agents.
+ * Architecture Purpose
+ * - Database-backed shared session and request-fingerprint handler for F3CMS runtime security.
+ *
+ * Design Intent
+ * - Keep session storage, fingerprint checks, suspicious-session rejection, and CSRF/session metadata handling in one shared adapter when sessions are persisted in SQL.
+ *
+ * Strict Constraints
+ * - This class owns session runtime integrity only; it must not absorb owner-side auth policy, login workflow coordination, or business recovery logic.
+ * - SQL-backed storage here is an adapter concern, not a reason to merge session runtime with module-specific business behavior.
+ *
+ * Porting Guidelines
+ * - Port as a DB-backed session/security adapter with the same fingerprint and suspect-session boundaries.
+ * - Preserve the split between shared session runtime here and module-owned auth/business flows elsewhere.
  */
 class Mession extends MHelper implements \SessionHandlerInterface
 {
@@ -37,11 +47,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     protected $rtn;
 
     /**
-     * Opens a session. This method is required by the session handler interface.
-     *
-     * @param string $path Path to the session storage (not used here).
-     * @param string $name Name of the session (not used here).
-     * @return bool Always returns true.
+        * Architecture Purpose
+        * - Satisfy the session handler open hook for the DB-backed adapter.
+        *
+        * Design Intent
+        * - Keep open as a minimal lifecycle hook because storage bootstrap occurs at constructor/runtime level, not per-open call.
+        *
+        * Strict Constraints
+        * - Do not add owner-side bootstrap or auth logic here.
+        *
+        * Porting Guidelines
+        * - Port as a no-op or lightweight adapter hook if required by the target session API.
      */
     public function open(string $path, string $name): bool
     {
@@ -49,9 +65,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Closes a session. This method is required by the session handler interface.
-     *
-     * @return bool Always returns true.
+        * Architecture Purpose
+        * - Close the current handler cursor for the active DB-backed session.
+        *
+        * Design Intent
+        * - Reset in-memory session adapter state without implying broader auth/business logout semantics.
+        *
+        * Strict Constraints
+        * - Closing the handler must remain adapter-local cleanup only.
+        *
+        * Porting Guidelines
+        * - Port as handler-state cleanup.
      */
     public function close(): bool
     {
@@ -60,10 +84,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Validates the session ID format accepted by this handler.
-     *
-     * @param string $id Session ID.
-     * @return bool True when the ID format is acceptable.
+        * Architecture Purpose
+        * - Guard the accepted session-id shape before DB lookup or cookie reuse.
+        *
+        * Design Intent
+        * - Reject malformed identifiers early so the SQL session adapter does not trust arbitrary inbound IDs.
+        *
+        * Strict Constraints
+        * - This helper validates format only; trust and auth policy remain outside it.
+        *
+        * Porting Guidelines
+        * - Preserve strict session-id validation in the target runtime's DB-backed session adapter.
      */
     protected function isValidSessionId(string $id): bool
     {
@@ -71,10 +102,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Normalizes the user agent string for fingerprint comparison.
-     *
-     * @param string $agent User agent string.
-     * @return string Normalized user agent.
+        * Architecture Purpose
+        * - Normalize agent strings before fingerprint comparison.
+        *
+        * Design Intent
+        * - Keep request-fingerprint comparisons stable across superficial user-agent formatting differences.
+        *
+        * Strict Constraints
+        * - This helper normalizes strings only; it does not decide client trust.
+        *
+        * Porting Guidelines
+        * - Port as a deterministic normalization helper shared by fingerprint checks.
      */
     protected function normalizeAgent(string $agent): string
     {
@@ -82,10 +120,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Reduces the IP address to a coarse fingerprint to avoid over-binding.
-     *
-     * @param string $ip IP address.
-     * @return string Fingerprint string.
+        * Architecture Purpose
+        * - Reduce an IP address to the coarse fingerprint used by strict session checks.
+        *
+        * Design Intent
+        * - Balance hijack resistance against normal network churn by using subnet-like fingerprints instead of full address identity.
+        *
+        * Strict Constraints
+        * - This helper derives transport fingerprint only; it is not a general auth or geo-policy mechanism.
+        *
+        * Porting Guidelines
+        * - Preserve the same coarse IPv4/IPv6 bucketing semantics when porting.
      */
     protected function ipFingerprint(string $ip): string
     {
@@ -103,10 +148,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Detects staff/backend sessions from serialized session data.
-     *
-     * @param array $session Session record.
-     * @return bool True when the session represents a logged-in staff user.
+        * Architecture Purpose
+        * - Detect sessions that require strict fingerprint enforcement.
+        *
+        * Design Intent
+        * - Apply tighter runtime checks to privileged backend sessions without making every anonymous session equally brittle.
+        *
+        * Strict Constraints
+        * - This method classifies strictness from stored session content only; role ownership remains outside the handler.
+        *
+        * Porting Guidelines
+        * - Port as a privileged-session classifier tied to the target session payload shape.
      */
     protected function isStrictFingerprintSession(array $session): bool
     {
@@ -116,10 +168,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Compares the current request fingerprint against the stored session fingerprint.
-     *
-     * @param array $session Session record.
-     * @return bool True when the request matches the stored fingerprint.
+        * Architecture Purpose
+        * - Compare the current request fingerprint with the stored session fingerprint.
+        *
+        * Design Intent
+        * - Centralize anti-hijack checks in the shared session adapter instead of spreading them across login or controller flows.
+        *
+        * Strict Constraints
+        * - This method decides runtime fingerprint match only; auth recovery and user-facing handling remain elsewhere.
+        *
+        * Porting Guidelines
+        * - Port as a deterministic fingerprint gate used before trusting stored session data.
      */
     protected function matchesFingerprint(array $session): bool
     {
@@ -149,7 +208,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Clears the current session cookie from the request and response.
+        * Architecture Purpose
+        * - Remove the current session cookie from request and response state.
+        *
+        * Design Intent
+        * - Ensure stale or rejected DB-backed session IDs do not remain active in client transport state.
+        *
+        * Strict Constraints
+        * - Cookie clearing here is transport hygiene only, not a broader logout workflow.
+        *
+        * Porting Guidelines
+        * - Port as explicit cookie invalidation synchronized with session rejection.
      */
     protected function clearSessionCookie(): void
     {
@@ -164,10 +233,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Rejects suspicious sessions and terminates the current request.
-     *
-     * @param string $id Session ID.
-     * @param string $reason Reject reason.
+        * Architecture Purpose
+        * - Quarantine a suspicious DB-backed session and terminate the current request path.
+        *
+        * Design Intent
+        * - Keep the shared anti-hijack fail-closed response path centralized for all DB-backed sessions.
+        *
+        * Strict Constraints
+        * - This method may clear session runtime state and raise a transport-level error, but owner-side auth/business recovery stays outside the handler.
+        *
+        * Porting Guidelines
+        * - Port as a shared suspect-session response that destroys stored state, clears cookies, and stops request continuation.
      */
     protected function rejectSuspiciousSession(string $id, string $reason): void
     {
@@ -185,7 +261,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Rejects incoming cookie session IDs that do not already exist.
+        * Architecture Purpose
+        * - Reject inbound cookie session IDs that are malformed or absent from DB storage.
+        *
+        * Design Intent
+        * - Block fixation or stale-cookie reuse before the runtime trusts an incoming session identifier.
+        *
+        * Strict Constraints
+        * - This check governs adapter trust only; broader login-state decisions stay elsewhere.
+        *
+        * Porting Guidelines
+        * - Port as a pre-session-start gate against invalid or unknown incoming cookie IDs.
      */
     protected function rejectUnknownIncomingSessionId(): void
     {
@@ -215,10 +301,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Reads session data from the database.
-     *
-     * @param string $id Session ID.
-     * @return string Serialized session data or an empty string if no data is found.
+        * Architecture Purpose
+        * - Load and validate the serialized session payload for the requested DB-backed identifier.
+        *
+        * Design Intent
+        * - Combine storage lookup with fingerprint validation so callers never consume unchecked session state.
+        *
+        * Strict Constraints
+        * - Read returns runtime session data only; it must not absorb owner-side auth reconstruction logic.
+        *
+        * Porting Guidelines
+        * - Port as the primary read gate that validates ID format and fingerprint before returning session bytes.
      */
     public function read(string $id): string
     {
@@ -244,11 +337,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Writes session data to the database.
-     *
-     * @param string $id Session ID.
-     * @param string $data Serialized session data.
-     * @return bool Always returns true.
+        * Architecture Purpose
+        * - Persist serialized session state to the SQL session table.
+        *
+        * Design Intent
+        * - Keep insert/update switching and stored fingerprint metadata inside the DB-backed adapter.
+        *
+        * Strict Constraints
+        * - This method stores runtime session state only; it must not decide what business data enters the session.
+        *
+        * Porting Guidelines
+        * - Port as a storage-adapter write that preserves the same fingerprint metadata fields.
      */
     public function write(string $id, string $data): bool
     {
@@ -287,10 +386,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Destroys a session by removing its data from the database.
-     *
-     * @param string $id Session ID.
-     * @return bool Always returns true.
+        * Architecture Purpose
+        * - Remove a session record from SQL storage.
+        *
+        * Design Intent
+        * - Keep storage deletion as a narrow adapter primitive used by logout or suspect-session flows.
+        *
+        * Strict Constraints
+        * - Destroy removes session state only; broader owner-side logout consequences stay outside this helper.
+        *
+        * Porting Guidelines
+        * - Port as a backing-store delete primitive.
      */
     public function destroy(string $id): bool
     {
@@ -302,10 +408,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Cleans up old session data from the database.
-     *
-     * @param int $max Maximum lifetime of sessions in seconds (not used here).
-     * @return bool Always returns true.
+        * Architecture Purpose
+        * - Maintain compatibility with older cleanup call sites by delegating to gc().
+        *
+        * Design Intent
+        * - Keep legacy lifecycle entry points thin while the actual cleanup contract stays in gc().
+        *
+        * Strict Constraints
+        * - This wrapper must remain a compatibility bridge only.
+        *
+        * Porting Guidelines
+        * - Port only if older callers still depend on a cleanup alias.
      */
     public function cleanup(int $max)
     {
@@ -313,10 +426,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Garbage collector required by \SessionHandlerInterface.
-     *
-     * @param int $max Maximum lifetime of sessions in seconds.
-     * @return bool Always returns true.
+        * Architecture Purpose
+        * - Fulfill the session GC contract for SQL-backed session storage.
+        *
+        * Design Intent
+        * - Keep expiry cleanup inside the storage adapter when the backing store does not provide native TTL eviction.
+        *
+        * Strict Constraints
+        * - Do not bolt owner-side retention or audit policy onto this adapter hook.
+        *
+        * Porting Guidelines
+        * - Port as the storage-specific cleanup hook that prunes expired session rows.
      */
     public function gc(int $max): int|false
     {
@@ -328,9 +448,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Returns the current session ID.
-     *
-     * @return string|null Session ID or null if no session is active.
+        * Architecture Purpose
+        * - Expose the current runtime session identifier.
+        *
+        * Design Intent
+        * - Provide a narrow accessor for the active DB-backed session state.
+        *
+        * Strict Constraints
+        * - This accessor must not infer or create auth state.
+        *
+        * Porting Guidelines
+        * - Port as a lightweight session-id getter.
      */
     public function sid()
     {
@@ -338,9 +466,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Returns the anti-CSRF token.
-     *
-     * @return string CSRF token.
+        * Architecture Purpose
+        * - Expose the session-scoped CSRF token managed by this adapter.
+        *
+        * Design Intent
+        * - Keep token retrieval coupled to the session runtime surface that created it.
+        *
+        * Strict Constraints
+        * - This accessor returns existing token state only; broader CSRF policy ownership stays outside.
+        *
+        * Porting Guidelines
+        * - Port as a simple token getter.
      */
     public function csrf()
     {
@@ -348,9 +484,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Returns the client's IP address.
-     *
-     * @return string IP address.
+        * Architecture Purpose
+        * - Expose the client IP captured by the session adapter.
+        *
+        * Design Intent
+        * - Make stored transport metadata available without re-reading mutable globals.
+        *
+        * Strict Constraints
+        * - This accessor does not decide trust or policy.
+        *
+        * Porting Guidelines
+        * - Port as a stored-metadata getter.
      */
     public function ip()
     {
@@ -358,9 +502,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Returns the timestamp of the session.
-     *
-     * @return string|false Timestamp or false if no session data is available.
+        * Architecture Purpose
+        * - Expose the stored session timestamp from the current DB row.
+        *
+        * Design Intent
+        * - Provide a stable freshness accessor without reopening storage semantics elsewhere.
+        *
+        * Strict Constraints
+        * - This accessor must not backdoor session revalidation policy.
+        *
+        * Porting Guidelines
+        * - Port as a lazy metadata getter if the target runtime still exposes session timestamps.
      */
     public function stamp()
     {
@@ -372,9 +524,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Returns the HTTP user agent string of the client.
-     *
-     * @return string User agent string.
+        * Architecture Purpose
+        * - Expose the user-agent string captured for fingerprint checks.
+        *
+        * Design Intent
+        * - Keep fingerprint metadata accessible from the same adapter that normalizes and compares it.
+        *
+        * Strict Constraints
+        * - This accessor returns captured transport metadata only.
+        *
+        * Porting Guidelines
+        * - Port as a stored-metadata getter.
      */
     public function agent()
     {
@@ -382,9 +542,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Checks if the current cursor position is not mapped to any record.
-     *
-     * @return bool True if no record is found, false otherwise.
+        * Architecture Purpose
+        * - Report whether the handler currently has a loaded session record.
+        *
+        * Design Intent
+        * - Centralize empty-session detection for the DB-backed adapter lifecycle.
+        *
+        * Strict Constraints
+        * - This method speaks only about adapter record presence, not login or business state.
+        *
+        * Porting Guidelines
+        * - Port as a narrow record-existence helper if still useful in the target runtime.
      */
     public function dry()
     {
@@ -392,9 +560,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Logs a message if debugging is enabled.
-     *
-     * @param string $str Message to log.
+        * Architecture Purpose
+        * - Emit session runtime diagnostics when debug logging is enabled.
+        *
+        * Design Intent
+        * - Keep adapter-level tracing close to the session handler so debugging does not leak into owner modules.
+        *
+        * Strict Constraints
+        * - Logging here must remain observational and must not influence session policy.
+        *
+        * Porting Guidelines
+        * - Port as optional adapter-local debug tracing.
      */
     public function writeLog($str)
     {
@@ -402,12 +578,17 @@ class Mession extends MHelper implements \SessionHandlerInterface
     }
 
     /**
-     * Constructor for the Mession class. Initializes session handling and sets up
-     * anti-CSRF tokens, logging, and other configurations.
-     *
-     * @param bool $force Whether to force session initialization.
-     * @param callable|null $onsuspect Callback for handling suspicious activity.
-     * @param string|null $key Key for storing the CSRF token.
+        * Architecture Purpose
+        * - Bootstrap the DB-backed session/security adapter for the current request.
+        *
+        * Design Intent
+        * - Centralize cookie flags, table binding, handler registration, suspect-session precheck, and CSRF seed setup in one shared runtime constructor.
+        *
+        * Strict Constraints
+        * - Constructor bootstrap must stay at shared session-runtime level; login workflow, role policy, and business recovery remain outside this class.
+        *
+        * Porting Guidelines
+        * - Port as request-start session adapter initialization that registers the handler and applies secure-cookie defaults.
      */
     public function __construct($force = true, $onsuspect = null, $key = null)
     {

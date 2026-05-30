@@ -2,6 +2,38 @@
 
 namespace F3CMS;
 
+/**
+ * Architecture Purpose
+ * - WorkflowEngine is a shared runtime evaluator inside the FORKS libs layer. It
+ *   validates workflow definition payloads, projects current state, and resolves
+ *   transition legality without becoming the owner of module persistence or business
+ *   coordination.
+ *
+ * Design Intent
+ * - OntoCMS prioritizes FORKS first: workflow rules can be reused across modules,
+ *   but owner-side context loading, audit writeback, and business transaction control
+ *   must remain with the calling module. WorkflowEngine exists to keep transition
+ *   logic stable and portable without collapsing that boundary.
+ *
+ * Strict Constraints
+ * - WorkflowEngine is not a workflow persistence owner. Do not turn it into the
+ *   place that owns module runtime tables, entity writeback, or cross-entity duty
+ *   judgment just because that looks convenient.
+ * - If reuse convenience conflicts with FORKS owner boundary, keep the boundary:
+ *   module-side loading, module-owned log tables, and owner transaction control stay
+ *   outside shared libs.
+ * - Treat definition loading as compatibility input, not as permission to recentralize
+ *   workflow runtime ownership back into a shared engine table model.
+ *
+ * Porting Guidelines
+ * - In .NET or Go, map WorkflowEngine to a stateless workflow runtime service or
+ *   evaluator. Let modules provide definition payloads and runtime context, and let
+ *   modules persist audit trails or business state changes in their own owner-side
+ *   boundaries.
+ * - Preserve the rule stabilized in this repo's ArchitecturalIntent spec: FORKS
+ *   owner boundary comes before local abstraction convenience.
+ */
+
 class WorkflowEngine extends Helper
 {
     const TB_DEFINITION = 'tbl_workflow_definition';
@@ -11,21 +43,73 @@ class WorkflowEngine extends Helper
 
     private $definition = [];
 
+    /**
+     * Architecture Role
+     * - Initializes the shared workflow runtime evaluator with a normalized definition
+     *   payload supplied by an owner-side caller.
+     *
+     * Strict Constraints
+     * - Construction only prepares runtime evaluation state; it does not make
+     *   WorkflowEngine the owner of module persistence or context loading.
+     *
+     * Porting Note
+     * - Preserve this as the thin constructor that accepts definition input and delegates
+     *   normalization to internal helpers.
+     */
     public function __construct($workflowJson, $options = [])
     {
         $this->definition = self::normalizeDefinitionPayload($workflowJson, $options);
     }
 
+    /**
+     * Architecture Role
+     * - Validates the in-memory workflow definition currently held by this evaluator
+     *   instance.
+     *
+     * Strict Constraints
+     * - Definition validation stays inside the shared runtime layer; callers should not
+     *   fork competing validation rules around the engine.
+     *
+     * Porting Note
+     * - Keep this as the instance-level validation entry point over the canonical
+     *   payload-validation helper.
+     */
     public function validateDefinition()
     {
         return self::validateDefinitionPayload($this->definition);
     }
 
+    /**
+     * Architecture Role
+     * - Exposes the normalized workflow definition payload that this evaluator instance
+     *   will project and transit against.
+     *
+     * Strict Constraints
+     * - This is a read-only runtime payload surface, not a signal that WorkflowEngine now
+     *   owns durable definition storage.
+     *
+     * Porting Note
+     * - Preserve this as the accessor for normalized definition data when host runtimes
+     *   need to inspect the current evaluator payload.
+     */
     public function getDefinitionPayload()
     {
         return $this->definition;
     }
 
+    /**
+     * Architecture Role
+     * - Projects the current workflow state from owner-supplied runtime context into a
+     *   shared runtime view of stages, state, and available actions.
+     *
+     * Strict Constraints
+     * - Projection uses caller-provided runtime context; it must not pull owner-side
+     *   entity state or persistence directly into WorkflowEngine.
+     *
+     * Porting Note
+     * - Keep this as the stateless projection entry point for workflow UI or decision
+     *   surfaces in target runtimes.
+     */
     public function project($runtimeContext = [])
     {
         $currentStageCodes = self::resolveRuntimeStageCodes($this->definition, $runtimeContext);
@@ -34,6 +118,19 @@ class WorkflowEngine extends Helper
         return self::buildProjection($this->definition, $currentStageCodes, $currentStateCode);
     }
 
+    /**
+     * Architecture Role
+     * - Checks whether a requested action can transition under the supplied runtime
+     *   context without performing owner-side state persistence.
+     *
+     * Strict Constraints
+     * - Transition gating belongs in the shared runtime evaluator, but module-owned role
+     *   sourcing and state persistence still remain outside WorkflowEngine.
+     *
+     * Porting Note
+     * - Preserve this as the non-mutating transition eligibility check for callers that
+     *   need to test actions before invoking a write path.
+     */
     public function canTransit($actionCode, $runtimeContext = [])
     {
         $currentStageCodes = self::resolveRuntimeStageCodes($this->definition, $runtimeContext);
@@ -62,6 +159,20 @@ class WorkflowEngine extends Helper
         return true;
     }
 
+    /**
+     * Architecture Role
+     * - Executes a workflow transition against the current definition and runtime
+     *   context, returning the runtime transition outcome without taking over module
+     *   persistence ownership.
+     *
+     * Strict Constraints
+     * - WorkflowEngine may resolve the transition outcome, but modules still own the
+     *   durable runtime state, audit writeback, and business transaction boundary.
+     *
+     * Porting Note
+     * - Keep this as the mutating runtime-evaluation entry point, with owner-side callers
+     *   responsible for persisting the resulting business effects.
+     */
     public function transit($actionCode, $runtimeContext = [])
     {
         $operatorId = isset($runtimeContext['operator_id']) ? (int) $runtimeContext['operator_id'] : 0;
@@ -92,6 +203,19 @@ class WorkflowEngine extends Helper
         return self::transitRuntimeWithDefinition($this->definition, $actionCode, $operatorId, $runtimeContext);
     }
 
+    /**
+     * Architecture Role
+     * - Loads a workflow definition payload from compatibility sources so the shared
+     *   evaluator can run against file-backed or legacy table-backed definitions.
+     *
+     * Strict Constraints
+     * - Definition loading is a compatibility adapter only; it must not be treated as a
+     *   green light to move runtime ownership back into a shared engine store.
+     *
+     * Porting Note
+     * - Preserve file-first loading semantics if legacy compatibility still matters, but
+     *   keep owner modules responsible for choosing when and why a definition is loaded.
+     */
     public static function loadDefinition($workflowCode, $version = null)
     {
         $workflowCode = trim((string) $workflowCode);
@@ -137,6 +261,19 @@ class WorkflowEngine extends Helper
         return $definition;
     }
 
+    /**
+     * Architecture Role
+     * - Enforces the canonical structural contract for workflow definition payloads
+     *   before the runtime evaluator accepts them.
+     *
+     * Strict Constraints
+     * - Definition-shape validation belongs in WorkflowEngine so callers cannot drift
+     *   into incompatible workflow schemas.
+     *
+     * Porting Note
+     * - Keep this as the central schema guard for workflow definitions, even if target
+     *   runtimes later map the checks into stricter typed models.
+     */
     public static function validateDefinitionPayload($definition)
     {
         if (empty($definition) || !is_array($definition)) {
@@ -220,21 +357,73 @@ class WorkflowEngine extends Helper
         return true;
     }
 
+    /**
+     * Architecture Role
+     * - Marks the old shared-instance persistence entry point as retired so callers do
+     *   not route owner-side runtime storage back through WorkflowEngine.
+     *
+     * Strict Constraints
+     * - Workflow instance creation now belongs to owner modules; this method must stay a
+     *   boundary guard, not quietly reintroduce shared persistence ownership.
+     *
+     * Porting Note
+     * - Preserve this retirement signal when migrating legacy integrations away from the
+     *   old shared instance API.
+     */
     public static function getOrCreateInstance($workflowCode, $version, $bizModule, $bizEntityType, $bizEntityId, $operatorId)
     {
         throw new \RuntimeException('Workflow instance persistence API has been retired. Modules must own runtime state and call WorkflowEngine with workflow JSON plus runtime context.');
     }
 
+    /**
+     * Architecture Role
+     * - Blocks the older definition-to-instance shared persistence path for the same
+     *   owner-boundary reason as `getOrCreateInstance()`.
+     *
+     * Strict Constraints
+     * - Do not revive instance creation inside WorkflowEngine just because definition data
+     *   is already available here; owner modules still own runtime storage.
+     *
+     * Porting Note
+     * - Keep this explicit retirement guard so future ports do not accidentally regress to
+     *   a shared engine-owned instance model.
+     */
     public static function getOrCreateInstanceFromDefinition($definition, $bizModule, $bizEntityType, $bizEntityId, $operatorId)
     {
         throw new \RuntimeException('Workflow instance persistence API has been retired. Modules must own runtime state and call WorkflowEngine with workflow JSON plus runtime context.');
     }
 
+    /**
+     * Architecture Role
+     * - Rejects the legacy transition-by-instance-id entry point that assumed shared
+     *   engine-owned runtime persistence.
+     *
+     * Strict Constraints
+     * - Transition execution must now use owner-supplied runtime context, not a shared
+     *   instance lookup hidden inside WorkflowEngine.
+     *
+     * Porting Note
+     * - Preserve this guardrail during migration so integrations move to context-based
+     *   transition APIs instead of rebuilding shared lookup flows.
+     */
     public static function transitByInstanceId($instanceId, $actionCode, $operatorId, $context = [])
     {
         throw new \RuntimeException('Workflow instance persistence API has been retired. Use WorkflowEngine::transit() with runtime context.');
     }
 
+    /**
+     * Architecture Role
+     * - Resolves a workflow transition outcome purely from definition payload plus
+     *   caller-supplied runtime context, returning the projected next runtime snapshot.
+     *
+     * Strict Constraints
+     * - This method may compute the next runtime state, trace row, and available actions,
+     *   but it still does not persist owner-side workflow state or business effects.
+     *
+     * Porting Note
+     * - Keep this as the core runtime transition evaluator, with owner modules persisting
+     *   the returned instance/trace payloads in their own boundaries.
+     */
     private static function transitRuntimeWithDefinition($definition, $actionCode, $operatorId, $runtimeContext = [])
     {
         self::validateDefinitionPayload($definition);
@@ -301,16 +490,53 @@ class WorkflowEngine extends Helper
         ];
     }
 
+    /**
+     * Architecture Role
+     * - Explicitly retires the old shared instance-state synchronization API.
+     *
+     * Strict Constraints
+     * - WorkflowEngine must not retake ownership of persisted runtime state updates via a
+     *   convenience sync method.
+     *
+     * Porting Note
+     * - Preserve this retirement boundary so callers continue passing current runtime
+     *   state through context instead of reviving shared instance writes.
+     */
     public static function syncInstanceState($instanceId, $stateCode, $operatorId = null)
     {
         throw new \RuntimeException('Workflow instance persistence API has been retired. Use runtime context with current_state_code/current_stage_codes instead.');
     }
 
+    /**
+     * Architecture Role
+     * - Explicitly retires the old projection-by-instance-id API that depended on shared
+     *   engine-owned runtime storage.
+     *
+     * Strict Constraints
+     * - Runtime projection must come from definition payload plus caller context, not
+     *   hidden shared instance lookup inside libs.
+     *
+     * Porting Note
+     * - Keep this guard in place during migration away from legacy shared-instance APIs.
+     */
     public static function projectInstance($instanceId)
     {
         throw new \RuntimeException('Workflow instance persistence API has been retired. Use WorkflowEngine::project() with workflow JSON plus runtime context.');
     }
 
+    /**
+     * Architecture Role
+     * - Loads and decodes workflow stage rows for legacy definition-backed compatibility
+     *   input.
+     *
+     * Strict Constraints
+     * - Stage loading is a definition compatibility helper only; it must not be expanded
+     *   into owner-side runtime coordination or business loading.
+     *
+     * Porting Note
+     * - Preserve this only as long as legacy table-backed definition sources remain part
+     *   of the compatibility surface.
+     */
     private static function loadStages($definitionId)
     {
         $rows = mh()->select(self::TB_DEFINITION_STAGE, '*', [
@@ -332,6 +558,19 @@ class WorkflowEngine extends Helper
         return $rows;
     }
 
+    /**
+     * Architecture Role
+     * - Loads and decodes workflow transition rows for compatibility-oriented definition
+     *   assembly.
+     *
+     * Strict Constraints
+     * - Transition row loading remains a narrow definition-source helper, not a reason to
+     *   move transition persistence ownership into WorkflowEngine.
+     *
+     * Porting Note
+     * - Keep this as a compatibility adapter for legacy transition storage if still
+     *   required by the target runtime.
+     */
     private static function loadTransitions($definitionId)
     {
         $rows = mh()->select(self::TB_DEFINITION_TRANSITION, '*', [
@@ -352,6 +591,19 @@ class WorkflowEngine extends Helper
         return $rows;
     }
 
+    /**
+     * Architecture Role
+     * - Loads legacy role-map rows that augment a definition payload for runtime role
+     *   checks.
+     *
+     * Strict Constraints
+     * - Role-map retrieval here is definition support only; actual operator-role sourcing
+     *   still comes from owner modules through runtime context.
+     *
+     * Porting Note
+     * - Preserve this as a compatibility loader, not as a substitute for owner-side role
+     *   resolution.
+     */
     private static function loadRoleMap($definitionId)
     {
         $rows = mh()->select(self::TB_DEFINITION_ROLE_MAP, '*', [
@@ -362,6 +614,18 @@ class WorkflowEngine extends Helper
         return empty($rows) ? [] : $rows;
     }
 
+    /**
+     * Architecture Role
+     * - Normalizes a runtime instance snapshot into the decoded shape expected by the
+     *   shared evaluator and its callers.
+     *
+     * Strict Constraints
+     * - Hydration only reshapes runtime payload data; it does not imply WorkflowEngine now
+     *   owns durable instance records.
+     *
+     * Porting Note
+     * - Keep this as a runtime-payload hydration helper for context-based workflow state.
+     */
     private static function hydrateInstance($instance)
     {
         if (empty($instance)) {
@@ -374,6 +638,19 @@ class WorkflowEngine extends Helper
         return $instance;
     }
 
+    /**
+     * Architecture Role
+     * - Resolves the concrete transition definition that matches the requested action
+     *   from the runtime instance's current stage set.
+     *
+     * Strict Constraints
+     * - Transition selection is shared workflow runtime logic; callers should not fork
+     *   their own stage/action matching outside WorkflowEngine.
+     *
+     * Porting Note
+     * - Preserve this as the canonical transition lookup helper for action gating and
+     *   transition execution paths.
+     */
     private static function resolveTransition($definition, $instance, $actionCode)
     {
         foreach ($definition['transitions'] as $transition) {
@@ -389,6 +666,19 @@ class WorkflowEngine extends Helper
         return null;
     }
 
+    /**
+     * Architecture Role
+     * - Collects the action codes that are available from a single workflow stage in the
+     *   current definition.
+     *
+     * Strict Constraints
+     * - Available-action computation belongs in the runtime evaluator so projections and
+     *   transitions stay aligned to one shared rule source.
+     *
+     * Porting Note
+     * - Keep this as the stage-scoped action collector used by projection and transition
+     *   helpers.
+     */
     private static function collectAvailableActionCodes($definition, $stageCode)
     {
         if (empty($stageCode)) {
@@ -407,6 +697,18 @@ class WorkflowEngine extends Helper
         return array_values(array_unique($actionCodes));
     }
 
+    /**
+     * Architecture Role
+     * - Aggregates deduplicated action codes across the current set of active stages.
+     *
+     * Strict Constraints
+     * - Multi-stage available-action aggregation remains a shared runtime concern, not a
+     *   per-caller convenience rule.
+     *
+     * Porting Note
+     * - Preserve this as the canonical multi-stage action collector for runtime context
+     *   projection and transition checks.
+     */
     private static function collectAvailableActionCodesForStages($definition, $stageCodes)
     {
         if (empty($stageCodes) || !is_array($stageCodes)) {
@@ -421,6 +723,19 @@ class WorkflowEngine extends Helper
         return array_values(array_unique($actionCodes));
     }
 
+    /**
+     * Architecture Role
+     * - Computes the next runtime snapshot for a resolved transition, including
+     *   parallel-join pending semantics and next available actions.
+     *
+     * Strict Constraints
+     * - Outcome calculation stays inside WorkflowEngine as pure runtime evaluation; it
+     *   must not be conflated with owner-side persistence or business side effects.
+     *
+     * Porting Note
+     * - Keep this as the central transition-outcome evaluator for context-based workflow
+     *   runtimes.
+     */
     private static function resolveTransitionOutcome($definition, $instance, $transition, $operatorId)
     {
         $targetStateCode = !empty($transition['to_state_code']) ? $transition['to_state_code'] : $transition['to_stage_code'];
@@ -463,6 +778,18 @@ class WorkflowEngine extends Helper
         ];
     }
 
+    /**
+     * Architecture Role
+     * - Determines whether the current transition should follow the parallel-join runtime
+     *   evaluation path.
+     *
+     * Strict Constraints
+     * - Parallel-join gating rules belong in the shared evaluator so callers do not drift
+     *   on when join semantics should apply.
+     *
+     * Porting Note
+     * - Preserve this as the predicate that activates parallel-join runtime behavior.
+     */
     private static function shouldUseParallelJoinRuntime($stage, $transition)
     {
         if (empty($stage)) {
@@ -480,6 +807,17 @@ class WorkflowEngine extends Helper
         return in_array($stage['join_policy_type'], ['all_of', 'quorum'], true);
     }
 
+    /**
+     * Architecture Role
+     * - Resolves how many participants are required before a parallel stage may complete.
+     *
+     * Strict Constraints
+     * - Required-count resolution is part of shared workflow runtime semantics; do not
+     *   duplicate this fallback chain in owner modules.
+     *
+     * Porting Note
+     * - Keep this as the canonical required-count resolver for parallel join stages.
+     */
     private static function resolveParallelJoinRequiredCount($stage)
     {
         if (!empty($stage['join_policy_required_count'])) {
@@ -497,6 +835,18 @@ class WorkflowEngine extends Helper
         return 1;
     }
 
+    /**
+     * Architecture Role
+     * - Counts distinct operator participation for the current parallel-join action using
+     *   the runtime trace rows supplied by the caller.
+     *
+     * Strict Constraints
+     * - Join participation counting remains a runtime evaluation helper; it should not
+     *   imply shared ownership of the trace store itself.
+     *
+     * Porting Note
+     * - Preserve this as the participation counter over caller-owned trace payloads.
+     */
     private static function countParallelJoinParticipants($instance, $transition)
     {
         $rows = self::loadParallelJoinTraceRows($instance, $transition);
@@ -507,6 +857,18 @@ class WorkflowEngine extends Helper
         }));
     }
 
+    /**
+     * Architecture Role
+     * - Checks whether the current operator already participated in the active
+     *   parallel-join action window.
+     *
+     * Strict Constraints
+     * - Duplicate-participation prevention belongs to shared runtime semantics, while the
+     *   underlying trace data still remains caller-owned context.
+     *
+     * Porting Note
+     * - Keep this as the duplicate-operator guard for parallel join evaluation.
+     */
     private static function hasParallelJoinParticipant($instance, $transition, $operatorId)
     {
         $operatorId = (int) $operatorId;
@@ -523,6 +885,18 @@ class WorkflowEngine extends Helper
         return false;
     }
 
+    /**
+     * Architecture Role
+     * - Extracts the relevant trace rows for the current parallel-join stage/action from
+     *   the caller-supplied runtime trace payload.
+     *
+     * Strict Constraints
+     * - Trace row filtering is a runtime helper only; it does not move trace persistence
+     *   or historical ownership into WorkflowEngine.
+     *
+     * Porting Note
+     * - Preserve this as the scoped trace-row extractor for parallel join evaluation.
+     */
     private static function loadParallelJoinTraceRows($instance, $transition)
     {
         if (empty($instance['trace_rows']) || !is_array($instance['trace_rows'])) {
@@ -555,6 +929,19 @@ class WorkflowEngine extends Helper
         return $rows;
     }
 
+    /**
+     * Architecture Role
+     * - Finds the trace row that marks entry into the current stage set so parallel-join
+     *   participation can be evaluated only within the active stage window.
+     *
+     * Strict Constraints
+     * - Stage-entry boundary detection is part of shared runtime trace semantics, not a
+     *   caller-specific convention.
+     *
+     * Porting Note
+     * - Keep this as the helper that anchors parallel join evaluation to the current
+     *   stage-entry point.
+     */
     private static function findCurrentStageEntryTraceIdFromRows($rows, $currentStageCodesJson)
     {
         if (empty($rows)) {
@@ -577,6 +964,19 @@ class WorkflowEngine extends Helper
         return $stageEntryTraceId;
     }
 
+    /**
+     * Architecture Role
+     * - Normalizes caller-supplied runtime trace rows into the canonical shape consumed
+     *   by transition and parallel-join helpers.
+     *
+     * Strict Constraints
+     * - Trace normalization stays in WorkflowEngine so downstream runtime helpers all
+     *   read one stable trace schema.
+     *
+     * Porting Note
+     * - Preserve this as the canonical trace-payload normalizer for context-based runtime
+     *   evaluation.
+     */
     private static function normalizeRuntimeTraceRows($rows)
     {
         if (empty($rows) || !is_array($rows)) {
@@ -614,6 +1014,18 @@ class WorkflowEngine extends Helper
         return $normalizedRows;
     }
 
+    /**
+     * Architecture Role
+     * - Enforces stage-level role access for the current runtime transition or projection
+     *   path.
+     *
+     * Strict Constraints
+     * - Role allowance checks belong in the shared runtime evaluator, while actual
+     *   operator role sourcing still remains owner-side context input.
+     *
+     * Porting Note
+     * - Preserve this as the canonical stage-role guard used by runtime transition flows.
+     */
     private static function assertRoleAllowed($definition, $stageCode, $operatorRoleConstant)
     {
         $stage = self::findStageByCode($definition, $stageCode);
@@ -636,6 +1048,18 @@ class WorkflowEngine extends Helper
         }
     }
 
+    /**
+     * Architecture Role
+     * - Resolves a normalized stage definition by stage code from the current workflow
+     *   definition payload.
+     *
+     * Strict Constraints
+     * - Stage lookup is shared workflow metadata logic; callers should not rebuild their
+     *   own lookup tables outside WorkflowEngine.
+     *
+     * Porting Note
+     * - Keep this as the canonical stage resolver for projection and transition helpers.
+     */
     private static function findStageByCode($definition, $stageCode)
     {
         foreach ($definition['stages'] as $stage) {
@@ -647,6 +1071,18 @@ class WorkflowEngine extends Helper
         return null;
     }
 
+    /**
+     * Architecture Role
+     * - Determines whether a given stage code maps to a terminal workflow stage in the
+     *   normalized definition.
+     *
+     * Strict Constraints
+     * - Terminal-stage judgment stays in the shared evaluator so transition projections
+     *   do not drift across callers.
+     *
+     * Porting Note
+     * - Preserve this as the helper for terminal-stage checks in runtime projection.
+     */
     private static function isTerminalStage($definition, $stageCode)
     {
         if (empty($stageCode)) {
@@ -661,6 +1097,19 @@ class WorkflowEngine extends Helper
         return 'terminal' === $stage['stage_type'];
     }
 
+    /**
+     * Architecture Role
+     * - Converts raw workflow JSON or pre-shaped arrays into the normalized definition
+     *   payload consumed by the shared runtime evaluator.
+     *
+     * Strict Constraints
+     * - Definition normalization belongs in WorkflowEngine so all callers share one
+     *   canonical workflow schema before runtime evaluation begins.
+     *
+     * Porting Note
+     * - Keep this as the single normalization gateway from transport/config payloads into
+     *   the runtime definition model.
+     */
     private static function normalizeDefinitionPayload($workflowJson, $options = [])
     {
         if (
@@ -712,6 +1161,19 @@ class WorkflowEngine extends Helper
         return $definition;
     }
 
+    /**
+     * Architecture Role
+     * - Loads a workflow definition from file-backed compatibility sources and normalizes
+     *   it for runtime use.
+     *
+     * Strict Constraints
+     * - File loading here is a compatibility helper only; it does not make WorkflowEngine
+     *   the owner of workflow configuration lifecycle.
+     *
+     * Porting Note
+     * - Preserve this while file-backed definitions remain part of the compatibility
+     *   surface, but keep selection of source under owner-side control.
+     */
     private static function loadDefinitionFromFile($workflowCode, $version = null)
     {
         $definitionPath = self::resolveDefinitionFilePath($workflowCode);
@@ -732,6 +1194,17 @@ class WorkflowEngine extends Helper
         return $definition;
     }
 
+    /**
+     * Architecture Role
+     * - Resolves the compatibility file path for a workflow definition code.
+     *
+     * Strict Constraints
+     * - File-path resolution is a narrow compatibility concern; it must not expand into a
+     *   broader workflow ownership or discovery system inside shared libs.
+     *
+     * Porting Note
+     * - Keep this as the lookup helper for legacy fixture/file-backed definitions only.
+     */
     private static function resolveDefinitionFilePath($workflowCode)
     {
         $definitionMap = [
@@ -747,6 +1220,18 @@ class WorkflowEngine extends Helper
         return is_file($fixturePath) ? $fixturePath : null;
     }
 
+    /**
+     * Architecture Role
+     * - Normalizes raw stage definitions into the canonical stage rows consumed by the
+     *   runtime evaluator.
+     *
+     * Strict Constraints
+     * - Stage-shape normalization belongs in WorkflowEngine so join policy, allowed roles,
+     *   and stage metadata do not drift across callers.
+     *
+     * Porting Note
+     * - Preserve this as the stage normalization helper for the runtime definition model.
+     */
     private static function normalizeWorkflowStages($stages)
     {
         if (!is_array($stages)) {
@@ -785,6 +1270,18 @@ class WorkflowEngine extends Helper
         return $normalizedStages;
     }
 
+    /**
+     * Architecture Role
+     * - Normalizes raw transition definitions into the canonical transition rows used by
+     *   action gating and runtime projection.
+     *
+     * Strict Constraints
+     * - Transition-shape normalization stays in the shared evaluator to keep transition
+     *   semantics consistent across all callers.
+     *
+     * Porting Note
+     * - Keep this as the transition normalization helper for the runtime definition model.
+     */
     private static function normalizeWorkflowTransitions($transitions)
     {
         if (!is_array($transitions)) {
@@ -815,6 +1312,19 @@ class WorkflowEngine extends Helper
         return $normalizedTransitions;
     }
 
+    /**
+     * Architecture Role
+     * - Normalizes workflow role constants into the canonical role-map rows expected by
+     *   role-guard helpers.
+     *
+     * Strict Constraints
+     * - Role-map normalization remains a definition-shaping concern; operator role truth
+     *   itself still comes from owner-side runtime context.
+     *
+     * Porting Note
+     * - Preserve this as the canonical role-map normalization helper for workflow
+     *   definitions.
+     */
     private static function normalizeWorkflowRoleMap($roleConstants)
     {
         if (!is_array($roleConstants)) {
@@ -832,6 +1342,19 @@ class WorkflowEngine extends Helper
         return $normalizedRoleMap;
     }
 
+    /**
+     * Architecture Role
+     * - Resolves the active runtime stage codes from caller-supplied context or falls
+     *   back to entry-stage semantics in the normalized definition.
+     *
+     * Strict Constraints
+     * - Runtime stage resolution belongs in the shared evaluator so callers do not drift
+     *   on how current stage context is inferred.
+     *
+     * Porting Note
+     * - Preserve this as the canonical stage-code resolver for context-based workflow
+     *   projection and transition checks.
+     */
     private static function resolveRuntimeStageCodes($definition, $runtimeContext)
     {
         if (!empty($runtimeContext['current_stage_codes']) && is_array($runtimeContext['current_stage_codes'])) {
@@ -848,6 +1371,18 @@ class WorkflowEngine extends Helper
         return !empty($definition['entry_stage_code']) ? [$definition['entry_stage_code']] : [];
     }
 
+    /**
+     * Architecture Role
+     * - Resolves the current runtime state code from caller context or derived stage
+     *   mapping when the context omits an explicit state.
+     *
+     * Strict Constraints
+     * - State resolution remains part of shared runtime semantics; callers should not
+     *   invent alternative fallback rules outside WorkflowEngine.
+     *
+     * Porting Note
+     * - Keep this as the state-code resolver paired with runtime stage resolution.
+     */
     private static function resolveRuntimeStateCode($definition, $currentStageCodes, $runtimeContext)
     {
         if (isset($runtimeContext['current_state_code']) && '' !== trim((string) $runtimeContext['current_state_code'])) {
@@ -861,6 +1396,19 @@ class WorkflowEngine extends Helper
         return self::resolveStateCodeForStage($definition, $currentStageCodes[0]);
     }
 
+    /**
+     * Architecture Role
+     * - Builds the normalized workflow projection payload returned to callers for the
+     *   current runtime stage/state context.
+     *
+     * Strict Constraints
+     * - Projection assembly belongs in the shared evaluator so stage metadata, available
+     *   actions, and next-step judgment stay aligned to one runtime rule source.
+     *
+     * Porting Note
+     * - Preserve this as the canonical projection builder for workflow UI and decision
+     *   surfaces in target runtimes.
+     */
     private static function buildProjection($definition, $currentStageCodes, $currentStateCode)
     {
         $currentStages = [];
@@ -910,6 +1458,19 @@ class WorkflowEngine extends Helper
         ];
     }
 
+    /**
+     * Architecture Role
+     * - Maps a normalized stage code to its effective state code using stage metadata and
+     *   fallback stage identity.
+     *
+     * Strict Constraints
+     * - Stage-to-state mapping is shared workflow model logic; callers should not fork
+     *   alternate metadata precedence outside WorkflowEngine.
+     *
+     * Porting Note
+     * - Keep this as the canonical stage-to-state resolver for projection and fallback
+     *   runtime state inference.
+     */
     private static function resolveStateCodeForStage($definition, $stageCode)
     {
         if (empty($stageCode)) {
@@ -935,6 +1496,19 @@ class WorkflowEngine extends Helper
         return (string) $stageCode;
     }
 
+    /**
+     * Architecture Role
+     * - Maps a runtime state code back to the corresponding stage code using normalized
+     *   stage metadata and transition fallbacks.
+     *
+     * Strict Constraints
+     * - State-to-stage mapping remains part of the shared workflow evaluator so runtime
+     *   context inference is consistent across callers.
+     *
+     * Porting Note
+     * - Preserve this as the inverse state lookup helper for context-driven workflow
+     *   evaluation.
+     */
     private static function resolveStageCodeForState($definition, $stateCode)
     {
         if ('' === (string) $stateCode) {
@@ -960,6 +1534,19 @@ class WorkflowEngine extends Helper
         return '';
     }
 
+    /**
+     * Architecture Role
+     * - Decodes stored JSON field payloads into arrays for the normalized workflow model
+     *   and compatibility loaders.
+     *
+     * Strict Constraints
+     * - JSON decode fallback behavior belongs in one shared helper so legacy data parsing
+     *   stays consistent across definition and runtime loaders.
+     *
+     * Porting Note
+     * - Keep this as the canonical JSON-field decoder for compatibility-backed workflow
+     *   payloads.
+     */
     private static function decodeJsonField($row, $field)
     {
         if (!isset($row[$field]) || '' === $row[$field] || null === $row[$field]) {

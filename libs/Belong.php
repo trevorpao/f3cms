@@ -2,17 +2,35 @@
 
 namespace F3CMS;
 
-// The Belong trait provides methods for managing relationships between tables.
-// It includes functionalities like binding, counting, and saving related data.
-
+/**
+ * Architecture Purpose
+ * - Shared relation-binding trait for common subordinate relation writes, reads, and counter updates used by Feed-style owners.
+ *
+ * Design Intent
+ * - Keep repeated relation-table mechanics in one shared trait while leaving entity-specific relation policy and duty judgment in the owning module.
+ *
+ * Strict Constraints
+ * - This trait must not decide business ownership, relation semantics, or module-specific side effects beyond the shared bind/count patterns it already encapsulates.
+ * - If relation behavior depends on one entity's policy, keep that policy in the owner instead of widening this shared trait.
+ *
+ * Porting Guidelines
+ * - Port as shared relation persistence support attached to the owning Feed or repository layer.
+ * - Preserve the split between generic relation-table mechanics here and entity-owned relation policy in the caller.
+ */
 trait Belong
 {
     /**
-     * Binds a sub-table to a target ID and optionally a member ID.
+     * Architecture Purpose
+     * - Apply the shared bind/toggle pattern for a subordinate relation table row.
      *
-     * @param string $subTbl   The name of the sub-table.
-     * @param int    $target_id The ID of the target to bind.
-     * @param int    $member_id The ID of the member (optional).
+     * Design Intent
+     * - Centralize the common relation-row enable/disable or counter-increment flow so owner Feeds reuse one persistence-side pattern.
+     *
+     * Strict Constraints
+     * - This method executes shared relation mechanics only; it must not infer higher-level entity business meaning beyond the passed relation name.
+     *
+     * Porting Guidelines
+     * - Port as a relation-table update helper inside the owning persistence layer, not as a controller/service endpoint.
      */
     public static function bind($subTbl, $target_id, $member_id = 0)
     {
@@ -80,10 +98,17 @@ trait Belong
     }
 
     /**
-     * Updates the clap count for a specific target ID.
-     *
-     * @param int $pid The ID of the target to update.
-     * @return bool True if the update was successful, false otherwise.
+        * Architecture Purpose
+        * - Recalculate and persist the clap aggregate for an owner row.
+        *
+        * Design Intent
+        * - Keep shared aggregate-counter refresh close to relation persistence so repeated counter math is not duplicated across modules.
+        *
+        * Strict Constraints
+        * - The aggregate write stays persistence-side only; business decisions about when clap semantics apply remain module-owned.
+        *
+        * Porting Guidelines
+        * - Port as a persistence aggregate refresh helper tied to relation writes.
      */
     public static function setClapCnt($pid)
     {
@@ -106,13 +131,17 @@ trait Belong
     }
 
     /**
-     * Sets a count for a specific sub-table and target ID.
-     *
-     * @param int    $pid     The ID of the target to update.
-     * @param string $subTbl  The name of the sub-table.
-     * @param array  $filter  Additional filters for the count.
-     * @param int    $type    The type of count operation.
-     * @return bool True if the update was successful, false otherwise.
+        * Architecture Purpose
+        * - Refresh a shared subordinate-count field on the owner row.
+        *
+        * Design Intent
+        * - Keep count synchronization near relation persistence so owner rows expose stable cached counts without duplicating query logic in callers.
+        *
+        * Strict Constraints
+        * - This helper updates stored counts only; it must not become a policy engine for relation visibility or feature-specific counting semantics.
+        *
+        * Porting Guidelines
+        * - Port as a persistence-side aggregate update helper, keeping caller-specific filters and business triggers outside the shared trait.
      */
     public static function setCnt($pid, $subTbl = 'video', $filter = [], $type = 0)
     {
@@ -145,12 +174,17 @@ trait Belong
     }
 
     /**
-     * Retrieves a list of sub-table entries related to a target ID.
-     *
-     * @param string $subTbl  The name of the sub-table.
-     * @param int    $pid     The ID of the target.
-     * @param array  $columns The columns to retrieve.
-     * @return array The list of related entries.
+        * Architecture Purpose
+        * - Read subordinate relation rows joined to their target records.
+        *
+        * Design Intent
+        * - Keep the shared join topology for relation-table reads in one trait instead of scattering relation read SQL across callers.
+        *
+        * Strict Constraints
+        * - This is a persistence helper, not a page/query orchestration surface.
+        *
+        * Porting Guidelines
+        * - Port as a repository-side relation read helper that returns raw relation-linked rows for owner-level consumption.
      */
     public static function lotsSub($subTbl, $pid, $columns = ['t.id', 'title'])
     {
@@ -178,12 +212,17 @@ trait Belong
     }
 
     /**
-     * @param $id
-     * @param $page
-     * @param $limit
-     * @param $cols
-     *
-     * @return mixed
+        * Architecture Purpose
+        * - Read owner rows that match one or more tag relations.
+        *
+        * Design Intent
+        * - Compose tag-based ID lookup with the owner's canonical collection reader instead of duplicating pagination/read flow.
+        *
+        * Strict Constraints
+        * - Tag matching here stays a persistence composition helper; broader search or page semantics remain outside the trait.
+        *
+        * Porting Guidelines
+        * - Port as a convenience wrapper that pipes relation-derived IDs into the owner repository's standard list reader.
      */
     public static function lotsByTag($id, $page = 0, $limit = 6, $cols = '')
     {
@@ -193,10 +232,17 @@ trait Belong
     }
 
     /**
-     * Retrieves a list of target IDs associated with a specific tag.
-     *
-     * @param int|array $id The ID or list of IDs of the tag(s).
-     * @return array The list of associated target IDs.
+        * Architecture Purpose
+        * - Resolve owner-row IDs linked to one or more tags.
+        *
+        * Design Intent
+        * - Keep the shared relation-table lookup and multi-tag intersection pattern centralized at the persistence boundary.
+        *
+        * Strict Constraints
+        * - This helper should return relation-derived IDs only; entity-specific ranking or presentation logic belongs elsewhere.
+        *
+        * Porting Guidelines
+        * - Port as a relation-ID selector that can back higher-level repository reads without collapsing tag policy into generic helpers.
      */
     public static function byTag($id)
     {
@@ -219,14 +265,17 @@ trait Belong
     }
 
     /**
-     * Saves multiple relationships for a sub-table and target ID.
-     *
-     * @param string $subTbl  The name of the sub-table.
-     * @param int    $pid     The ID of the target.
-     * @param array  $rels    The relationships to save.
-     * @param bool   $reverse Whether to reverse the relationships.
-     * @param bool   $sortable Whether the relationships are sortable.
-     * @return int The number of rows affected.
+        * Architecture Purpose
+        * - Replace the owner's many-to-many relation rows with a new shared relation set.
+        *
+        * Design Intent
+        * - Keep bulk relation replacement and optional sorter persistence in one shared primitive for Feed owners.
+        *
+        * Strict Constraints
+        * - This helper performs relation-table replacement only; authorization, semantic validation, and cross-entity coordination stay outside the trait.
+        *
+        * Porting Guidelines
+        * - Port as a persistence batch-upsert or replace helper that remains called from the owner boundary.
      */
     public static function saveMany($subTbl, $pid, $rels = [], $reverse = false, $sortable = false)
     {
@@ -267,11 +316,17 @@ trait Belong
     }
 
     /**
-     * Initializes the current class and sub-table details.
-     *
-     * @param string $that    The name of the current class.
-     * @param string $subTbl  The name of the sub-table.
-     * @return array An array containing the class, sub-table, primary key, and foreign key.
+        * Architecture Purpose
+        * - Normalize shared relation metadata needed by this trait's persistence helpers.
+        *
+        * Design Intent
+        * - Keep class, relation Feed, and foreign-key naming derivation in one internal helper so relation helpers stay convention-driven.
+        *
+        * Strict Constraints
+        * - This helper resolves naming only; it must not load owner-side state or make business decisions.
+        *
+        * Porting Guidelines
+        * - Port as an internal naming resolver that preserves F3CMS relation key conventions.
      */
     private static function _init($that, $subTbl)
     {

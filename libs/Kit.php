@@ -2,16 +2,35 @@
 
 namespace F3CMS;
 
-// The Kit class provides utility methods and validation rules for the application.
-// It includes methods for handling rules and calculating string widths.
-
+/**
+ * Architecture Purpose
+ * - Shared module-owned rule base for validation groups and lightweight rule helpers that are reused by module Kit classes.
+ *
+ * Design Intent
+ * - Keep reusable rule-shaping and validation defaults close to the Kit boundary without promoting owner-side business judgment into generic libs.
+ *
+ * Strict Constraints
+ * - This class must not become a generic service layer for entity truth, persistence coordination, or module-specific duty judgment.
+ * - If a rule depends on one module's business ownership, keep that specialization in the owning module Kit instead of widening this shared base.
+ *
+ * Porting Guidelines
+ * - Port as a shared validation-contract base or rule helper layer.
+ * - Preserve the split between reusable rule composition here and owner-specific validation semantics in module Kits.
+ */
 class Kit extends Module
 {
     /**
-     * Retrieves validation rules for a specific group.
+     * Architecture Purpose
+     * - Resolve the effective validation rule group for the current Kit class.
      *
-     * @param string $group The name of the group (default: 'default').
-     * @return array The validation rules for the specified group.
+     * Design Intent
+     * - Allow module Kits to override or extend shared rule groups while keeping rule lookup centralized at the Kit boundary.
+     *
+     * Strict Constraints
+     * - This helper chooses rule ownership; it must not fetch runtime context, infer business state, or coordinate persistence.
+     *
+     * Porting Guidelines
+     * - Port as a rule-merge helper where child Kits can overlay shared defaults without changing owner boundaries.
      */
     public static function rule($group = 'default')
     {
@@ -39,10 +58,17 @@ class Kit extends Module
     }
 
     /**
-     * Calculates the display width of a string, considering multibyte characters.
-     *
-     * @param string $str The input string.
-     * @return int The calculated display width of the string.
+        * Architecture Purpose
+        * - Provide a shared display-width helper for validation or UI-adjacent rule checks.
+        *
+        * Design Intent
+        * - Keep multibyte-aware width calculation in one shared helper so module Kits do not duplicate low-level string-width logic.
+        *
+        * Strict Constraints
+        * - This helper is formatting-oriented only; it must not absorb locale policy or module-specific field rules.
+        *
+        * Porting Guidelines
+        * - Port to the platform's multibyte-safe width calculation primitive, but keep higher-level validation policy in owner Kits.
      */
     public static function strWidth($str = '')
     {
@@ -57,9 +83,17 @@ class Kit extends Module
     }
 
     /**
-     * Defines validation rules for various operations.
-     *
-     * @return array The validation rules.
+        * Architecture Purpose
+        * - Define the baseline shared rule groups that module Kits may inherit.
+        *
+        * Design Intent
+        * - Keep only cross-module validation defaults here so module Kits start from a stable contract but remain free to own their specific rule semantics.
+        *
+        * Strict Constraints
+        * - Do not turn this shared rule map into a dumping ground for entity-specific policy or caller-specific workflow assumptions.
+        *
+        * Porting Guidelines
+        * - Port as static baseline validation metadata or DTO rules, then layer owner-specific rules in derived module Kits.
      */
     public static function rules()
     {

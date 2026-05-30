@@ -2,17 +2,45 @@
 
 namespace F3CMS;
 
-// The Module class serves as a base class for other modules in the application.
-// It provides utility methods for escaping data, handling requests, and managing languages.
+/**
+ * Architecture Purpose
+ * - Module is the shared entry-layer utility base in the FORKS libs layer. It provides
+ *   low-level request normalization, escaping, language/device lookup, slug shaping,
+ *   and class-path shifting without becoming the owner of entity truth or business
+ *   coordination.
+ *
+ * Design Intent
+ * - This class exists to hold thin cross-module helpers that are genuinely runtime or
+ *   transport oriented. It should not absorb Feed persistence ownership, Reaction
+ *   orchestration, or module-owned validation/business judgment just because many
+ *   modules call through it.
+ *
+ * Strict Constraints
+ * - Module is not a generic dumping ground. Do not move entity-specific payload rules,
+ *   writeback decisions, or owner-side duty judgment into this class.
+ * - If convenience conflicts with owner boundary, keep the boundary and leave the
+ *   module-specific logic with the owning module, Kit, Feed, or Outfit layer.
+ *
+ * Porting Guidelines
+ * - In .NET or Go, map this class to a narrow shared utility/runtime surface only.
+ *   Preserve request/input normalization and environment lookups here, but keep owner
+ *   modules responsible for business coordination and persistence truth.
+ */
 
 class Module
 {
     /**
-     * Escapes special characters in an array or string to prevent SQL injection.
+     * Architecture Role
+     * - Recursively normalizes request or payload values through Module's shared escaping
+     *   and sanitization rules before lower layers consume them.
      *
-     * @param mixed $array The data to escape (can be an array or string).
-     * @param bool  $quote Whether to add quotes around the escaped value (default: true).
-     * @return mixed The escaped data.
+     * Strict Constraints
+     * - This helper provides transport/input sanitization only; it must not become the
+     *   place where entity-specific payload policy is decided.
+     *
+     * Porting Note
+     * - Preserve this as the shared recursive input escaping helper for transport-facing
+     *   values.
      */
     protected static function _escape($array, $quote = true)
     {
@@ -40,12 +68,17 @@ class Module
     }
 
     /**
-     * Escapes special characters for MSSQL or other databases.
+     * Architecture Role
+     * - Applies the low-level string escaping variant used by Module when transport data
+     *   needs DB-oriented escaping semantics.
      *
-     * @param mixed $param          The data to escape.
-     * @param bool  $quote          Whether to add quotes around the escaped value (default: true).
-     * @param bool  $only_for_mssql Whether to apply escaping only for MSSQL (default: false).
-     * @return mixed The escaped data.
+     * Strict Constraints
+     * - This remains a thin escaping primitive; it should not expand into a substitute
+     *   for owner-side persistence logic or query ownership.
+     *
+     * Porting Note
+     * - Keep this only as a compatibility escape helper if target runtimes still need the
+     *   same legacy string handling semantics.
      */
     static protected function _mres($param, $quote = true, $only_for_mssql = false)
     {
@@ -64,10 +97,16 @@ class Module
     }
 
     /**
-     * Protects a string from XSS attacks by encoding special characters.
+     * Architecture Role
+     * - Provides the stricter HTML-encoding variant of Module's shared XSS protection.
      *
-     * @param string $str The input string.
-     * @return string The XSS-protected string.
+     * Strict Constraints
+     * - This is a generic output/input sanitation helper only; caller-specific rendering
+     *   or content policy must stay outside Module.
+     *
+     * Porting Note
+     * - Preserve this as a simple shared encoding helper when equivalent escaping is
+     *   still needed in target runtimes.
      */
     final static function protectedXss($str)
     {
@@ -75,10 +114,16 @@ class Module
     }
 
     /**
-     * Protects a string from XSS attacks using raw URL decoding and sanitization.
+     * Architecture Role
+     * - Provides Module's transport-oriented XSS sanitation path for incoming raw request
+     *   strings.
      *
-     * @param string $str The input string.
-     * @return string The XSS-protected string.
+     * Strict Constraints
+     * - Keep this as a shared sanitation primitive only; do not push feature-specific
+     *   content filtering policy into Module.
+     *
+     * Porting Note
+     * - Preserve this as the default raw-request sanitation helper paired with `_escape()`.
      */
     final static function protectedXss2($str)
     {
@@ -88,11 +133,16 @@ class Module
     }
 
     /**
-     * Shifts a class name to a different namespace or module.
+     * Architecture Role
+     * - Resolves the shifted FORKS class name for a target layer/module prefix.
      *
-     * @param string $name   The original class name.
-     * @param string $target The target module or namespace.
-     * @return string The shifted class name.
+     * Strict Constraints
+     * - Class-path shifting belongs to shared runtime/autoload support; it must not grow
+     *   into an owner-side coordination registry.
+     *
+     * Porting Note
+     * - Preserve this as a narrow naming/path translation helper if future ports keep the
+     *   same layer-shift convention.
      */
     public static function _shift($name, $target)
     {
@@ -104,9 +154,16 @@ class Module
     }
 
     /**
-     * Handles AngularJS POST data and returns it as an array.
+     * Architecture Role
+     * - Normalizes inbound request payloads from CORS/body/post/get/request sources into
+     *   one escaped transport payload.
      *
-     * @return array The processed POST data.
+     * Strict Constraints
+     * - Request normalization is shared entry-layer logic only; owner modules still own
+     *   request interpretation, validation, and business branching.
+     *
+     * Porting Note
+     * - Keep this as the canonical request payload collector for legacy entry flows.
      */
     public static function _getReq()
     {
@@ -140,10 +197,16 @@ class Module
     }
 
     /**
-     * Retrieves the current language based on the request or default settings.
+     * Architecture Role
+     * - Resolves the active language from runtime environment, request headers, cookies,
+     *   and explicit overrides.
      *
-     * @param array $args Additional arguments for language selection (optional).
-     * @return string The selected language.
+     * Strict Constraints
+     * - Language resolution is a shared environment/context concern; it should not absorb
+     *   module-specific locale policy beyond selecting among accepted languages.
+     *
+     * Porting Note
+     * - Preserve this as the shared runtime language resolver for entry-layer code.
      */
     public static function _lang($args = [])
     {
@@ -189,9 +252,17 @@ class Module
     }
 
     /**
-     * Detects the user agent of a mobile device.
+     * Architecture Role
+     * - Detects and caches a coarse mobile-device classification from the current user
+     *   agent string.
      *
-     * @return string The detected device type.
+     * Strict Constraints
+     * - Device detection is shared request-context logic only; it must not become a
+     *   proxy for module-owned presentation or business policy.
+     *
+     * Porting Note
+     * - Preserve this as a thin request-context device helper if equivalent behavior is
+     *   still required in target runtimes.
      */
     public static function _mobile_user_agent()
     {
@@ -217,10 +288,16 @@ class Module
     }
 
     /**
-     * Converts a string into a URL-friendly slug.
+     * Architecture Role
+     * - Converts free-form text into Module's canonical slug shape for shared URL/path
+     *   usage.
      *
-     * @param string $text The input string.
-     * @return string The slugified string.
+     * Strict Constraints
+     * - Slug shaping here is a generic formatting helper; owner modules still decide when
+     *   a slug is valid or unique for entity persistence.
+     *
+     * Porting Note
+     * - Preserve this as the shared slug-formatting helper for paths and identifiers.
      */
     public static function _slugify($text)
     {
@@ -242,10 +319,17 @@ class Module
     }
 
     /**
-     * Checks if a class file exists based on its name.
+     * Architecture Role
+     * - Resolves whether a FORKS class/module path exists on disk using the project's
+     *   autoload naming convention.
      *
-     * @param string $pClassName The name of the class to check.
-     * @return bool True if the class file exists, false otherwise.
+     * Strict Constraints
+     * - Existence checks here stay at the runtime/autoload layer; they must not become a
+     *   generalized module discovery or ownership-routing system.
+     *
+     * Porting Note
+     * - Preserve this as a compatibility helper only if future ports still depend on the
+     *   same class-to-file naming convention.
      */
     public static function _exists($pClassName)
     {

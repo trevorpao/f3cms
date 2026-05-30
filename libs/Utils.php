@@ -1,12 +1,33 @@
 <?php
 
-// This file contains utility functions for the application.
-// It includes methods for database access, language detection, and security handling.
+/**
+ * Architecture Purpose
+ * - Shared global runtime surface for low-level F3CMS entry helpers, transport/environment helpers, and cross-cutting encoding/security utilities.
+ *
+ * Design Intent
+ * - Keep legacy global runtime entry points such as `f3()`, `mh()`, and `rc()` explicit so ports can preserve their boundary while gradually narrowing dependence on global helpers.
+ *
+ * Strict Constraints
+ * - This file must not become a generic dumping ground for owner-side business logic, entity truth, or module coordination.
+ * - Global helper convenience does not override FORKS boundaries; persistence ownership, auth policy, and module-specific workflows stay in their owning classes.
+ *
+ * Porting Guidelines
+ * - Port as a file-level runtime helper surface or compatibility layer.
+ * - Preserve the meaning of each helper, but prefer replacing global access with explicit injected/runtime-owned services where the target platform supports it.
+ */
 
 /**
- * Returns the Base instance of the Fat-Free Framework.
+ * Architecture Purpose
+ * - Expose the shared Fat-Free base runtime instance through one compatibility helper.
  *
- * @return object The Base instance.
+ * Design Intent
+ * - Keep legacy global runtime access stable while making the entry point explicit for future ports.
+ *
+ * Strict Constraints
+ * - This helper returns the framework runtime only; it must not absorb feature-specific bootstrap.
+ *
+ * Porting Guidelines
+ * - Port as the compatibility accessor for the main application/runtime container.
  */
 function f3()
 {
@@ -14,10 +35,17 @@ function f3()
 }
 
 /**
- * Retrieves the database instance.
+ * Architecture Purpose
+ * - Expose the shared database helper runtime instance.
  *
- * @param bool $force Whether to force a new instance (default: false).
- * @return object The database instance.
+ * Design Intent
+ * - Centralize lazy MHelper initialization behind one legacy compatibility entry.
+ *
+ * Strict Constraints
+ * - This helper exposes shared persistence infrastructure only; it must not absorb entity-specific query or writeback policy.
+ *
+ * Porting Guidelines
+ * - Port as a runtime-owned DB helper accessor or compatibility shim, not as a business repository.
  */
 function mh($force = false)
 {
@@ -30,8 +58,17 @@ function mh($force = false)
 }
 
 /**
- * get redis instance
- * @return redis obj
+ * Architecture Purpose
+ * - Expose the shared Redis helper runtime instance.
+ *
+ * Design Intent
+ * - Keep lazy Redis adapter access behind one explicit runtime entry.
+ *
+ * Strict Constraints
+ * - This helper provides infrastructure access only; module-specific cache/session policy stays elsewhere.
+ *
+ * Porting Guidelines
+ * - Port as a runtime-owned cache/Redis accessor or compatibility shim.
  */
 function rc()
 {
@@ -44,9 +81,17 @@ function rc()
 }
 
 /**
- * Retrieves the Fat-Free Web instance for client-side operations.
+ * Architecture Purpose
+ * - Expose the shared web/HTTP utility instance.
  *
- * @return object The Web instance.
+ * Design Intent
+ * - Keep legacy access to framework web helpers explicit and centralized.
+ *
+ * Strict Constraints
+ * - This helper remains transport-oriented only.
+ *
+ * Porting Guidelines
+ * - Port as a compatibility accessor for the platform's HTTP/web helper surface.
  */
 function cs()
 {
@@ -54,9 +99,17 @@ function cs()
 }
 
 /**
- * Retrieves the template prefix.
+ * Architecture Purpose
+ * - Expose the current template-prefix runtime setting.
  *
- * @return string The template prefix.
+ * Design Intent
+ * - Keep lightweight template context access centralized in the shared runtime surface.
+ *
+ * Strict Constraints
+ * - This helper returns runtime configuration only.
+ *
+ * Porting Guidelines
+ * - Port as a small config/runtime accessor.
  */
 function tpf()
 {
@@ -64,10 +117,17 @@ function tpf()
 }
 
 /**
- * Stores a variable in the Fat-Free Framework's hive.
+ * Architecture Purpose
+ * - Store a debugging or shared runtime value into the framework hive under the `_dzv` namespace.
  *
- * @param string $key    The key to store the variable under.
- * @param mixed  $object The variable to store.
+ * Design Intent
+ * - Keep this legacy global side-channel explicit instead of scattering ad hoc hive writes.
+ *
+ * Strict Constraints
+ * - This helper is a runtime stash only; it must not become an owner-side state container.
+ *
+ * Porting Guidelines
+ * - Port only if a similar shared runtime stash is still needed; otherwise replace with explicit logging/debug facilities.
  */
 function _dzv($key, $object)
 {
@@ -75,11 +135,17 @@ function _dzv($key, $object)
 }
 
 /**
- * Switches between two strings based on the current language.
+ * Architecture Purpose
+ * - Select between default and alternate text based on the current runtime language.
  *
- * @param string $default The default string.
- * @param string $other   The alternative string.
- * @return string The selected string based on the current language.
+ * Design Intent
+ * - Keep a small legacy language-toggle helper near the global runtime surface.
+ *
+ * Strict Constraints
+ * - This helper performs transport/presentation selection only; localization ownership remains elsewhere.
+ *
+ * Porting Guidelines
+ * - Port as a thin language-branch helper if still needed, or replace with the target platform's i18n layer.
  */
 function langTPS($default, $other)
 {
@@ -87,9 +153,17 @@ function langTPS($default, $other)
 }
 
 /**
- * Checks if the current connection is HTTPS.
+ * Architecture Purpose
+ * - Determine whether the current request should be treated as HTTPS.
  *
- * @return bool True if the connection is HTTPS, false otherwise.
+ * Design Intent
+ * - Centralize proxy/header-aware HTTPS detection for shared runtime callers.
+ *
+ * Strict Constraints
+ * - This helper only inspects transport headers/server vars; security policy remains elsewhere.
+ *
+ * Porting Guidelines
+ * - Port as an environment helper aware of proxy-forwarded HTTPS indicators.
  */
 function is_https()
 {
@@ -105,20 +179,17 @@ function is_https()
 }
 
 /**
- * Returns if the given ip is on the given whitelist.
- * https://stackoverflow.com/a/51524420
+ * Architecture Purpose
+ * - Check whether one IP matches a whitelist with optional wildcard entries.
  *
- * $whitelist = [
- *     '111.111.111.111',
- *     '112.112.112.112',
- *     '68.71.44.*',
- *     // '*' would allow any ip btw
- * ];
+ * Design Intent
+ * - Keep low-level whitelist matching in a shared runtime helper instead of scattering string-pattern checks.
  *
- * @param string $ip        the ip to check
- * @param array  $whitelist The ip whitelist. An array of strings.
+ * Strict Constraints
+ * - This helper performs raw IP-pattern matching only; access-control ownership stays elsewhere.
  *
- * @return bool True if the IP is allowed, false otherwise.
+ * Porting Guidelines
+ * - Port as a simple whitelist matcher with equivalent wildcard behavior.
  */
 function isAllowedIP($ip, array $whitelist)
 {
@@ -155,10 +226,17 @@ function isAllowedIP($ip, array $whitelist)
 }
 
 /**
- * Detects the browser's preferred language.
+ * Architecture Purpose
+ * - Infer a default runtime language from the browser's Accept-Language header.
  *
- * @param string $default The default language (default: 'en').
- * @return string The detected language.
+ * Design Intent
+ * - Keep fallback browser-language detection in one shared helper for bootstrap flows.
+ *
+ * Strict Constraints
+ * - This helper infers a coarse locale only; full localization policy remains elsewhere.
+ *
+ * Porting Guidelines
+ * - Port as a small Accept-Language parser with the same coarse language mapping.
  */
 function detectBrowserLang($default = 'en')
 {
@@ -177,9 +255,17 @@ function detectBrowserLang($default = 'en')
 }
 
 /**
- * Sets Cross-Origin Resource Sharing (CORS) headers.
+ * Architecture Purpose
+ * - Populate shared runtime CORS state for cross-origin requests.
  *
- * @param array $allowedOrigins The list of allowed origins.
+ * Design Intent
+ * - Keep legacy CORS header/config shaping centralized instead of reproducing request-origin checks in multiple callers.
+ *
+ * Strict Constraints
+ * - This helper only prepares transport-level CORS state; endpoint authorization stays elsewhere.
+ *
+ * Porting Guidelines
+ * - Port as a request pipeline helper that applies the same allowed-origin semantics.
  */
 function setCORS($allowedOrigins = [])
 {
@@ -203,16 +289,36 @@ function setCORS($allowedOrigins = [])
     }
 }
 
+/**
+ * Architecture Purpose
+ * - Exit immediately with the last SQL trace from the shared DB helper.
+ *
+ * Design Intent
+ * - Preserve a small legacy debug escape hatch for inspecting the last query.
+ *
+ * Strict Constraints
+ * - This helper is debug-only and must not be repurposed for business responses.
+ *
+ * Porting Guidelines
+ * - Port only as a diagnostics helper if similar emergency SQL inspection is still needed.
+ */
 function fQuery()
 {
     exit(mh()->last());
 }
 
 /**
- * Logs runtime trace information for debugging purposes.
+ * Architecture Purpose
+ * - Emit SQL/runtime trace diagnostics when the configured debug level permits it.
  *
- * @param string $flag  A flag to identify the trace.
- * @param int    $debug The debug level (default: 0).
+ * Design Intent
+ * - Keep low-level runtime tracing close to the global helper surface so modules do not invent parallel debug paths.
+ *
+ * Strict Constraints
+ * - Tracing here is observational only; it must not change behavior.
+ *
+ * Porting Guidelines
+ * - Port as optional runtime debug tracing tied to the platform's logging facilities.
  */
 function rtTrace($flag = '', $debug = 0)
 {
@@ -226,10 +332,17 @@ function rtTrace($flag = '', $debug = 0)
 }
 
 /**
- * Decodes a Unicode string.
+ * Architecture Purpose
+ * - Decode escaped Unicode sequences into UTF-8 text.
  *
- * @param string $str The Unicode string to decode.
- * @return string The decoded string.
+ * Design Intent
+ * - Keep one shared text-decoding helper for legacy payloads that still carry `\uXXXX` sequences.
+ *
+ * Strict Constraints
+ * - This helper performs text transformation only.
+ *
+ * Porting Guidelines
+ * - Port as a Unicode-escape decoder using the target platform's encoding utilities.
  */
 function decodeUnicode($str)
 {
@@ -239,12 +352,18 @@ function decodeUnicode($str)
     }, $str);
 }
 
-// REMOVE ascii in XML
 /**
- * Removes ASCII characters from a string.
+ * Architecture Purpose
+ * - Strip ASCII control-range characters from a string for XML-safe output shaping.
  *
- * @param string $string The input string.
- * @return string The string without ASCII characters.
+ * Design Intent
+ * - Keep low-level cleanup of problematic control bytes in one shared text helper.
+ *
+ * Strict Constraints
+ * - This helper performs text sanitation only; content policy remains elsewhere.
+ *
+ * Porting Guidelines
+ * - Port as a regex-based control-character filter.
  */
 function removeASCII($string)
 {
@@ -254,12 +373,18 @@ function removeASCII($string)
     return preg_replace($ascii, '', $string);
 }
 
-// REMOVE chinese char
 /**
- * Removes Chinese characters from a string.
+ * Architecture Purpose
+ * - Strip non-ASCII multibyte bytes from legacy text using the project's historical regex semantics.
  *
- * @param string $string The input string.
- * @return string The string without Chinese characters.
+ * Design Intent
+ * - Preserve this narrow cleanup helper for legacy integrations that need to remove CJK/high-byte content.
+ *
+ * Strict Constraints
+ * - This helper performs raw text filtering only; language/business interpretation stays elsewhere.
+ *
+ * Porting Guidelines
+ * - Port with care, preserving the current byte-oriented regex behavior rather than rewriting semantics silently.
  */
 function removeZH($string)
 {
@@ -268,6 +393,19 @@ function removeZH($string)
     return preg_replace($ascii, '', $string);
 }
 
+/**
+ * Architecture Purpose
+ * - Detect whether a string contains CJK characters.
+ *
+ * Design Intent
+ * - Keep one shared Unicode-range detector for integrations that branch on CJK content.
+ *
+ * Strict Constraints
+ * - This helper reports character presence only.
+ *
+ * Porting Guidelines
+ * - Port as a Unicode-range regex check.
+ */
 function containsCJK($string)
 {
     // 定義包含中、日、韓文字符的Unicode範圍的正則表達式
@@ -278,11 +416,17 @@ function containsCJK($string)
 }
 
 /**
- * Validates a registration ID.
+ * Architecture Purpose
+ * - Validate a registration-id string against the legacy accepted formats.
  *
- * @param string $str  The registration ID to validate.
- * @param string $mode The validation mode (default: 'strict').
- * @return bool True if the ID is valid, false otherwise.
+ * Design Intent
+ * - Keep this project-specific pattern check in one shared helper rather than duplicating regexes.
+ *
+ * Strict Constraints
+ * - This helper validates syntax only; registration ownership and business policy stay elsewhere.
+ *
+ * Porting Guidelines
+ * - Port as a regex-based validator with the same strict/loose modes.
  */
 function chkRegisterID($str, $mode = 'strict')
 {
@@ -294,7 +438,17 @@ function chkRegisterID($str, $mode = 'strict')
 }
 
 /**
- * @param $authority
+ * Architecture Purpose
+ * - Ask the shared role layer whether the current staff context has one authority.
+ *
+ * Design Intent
+ * - Keep this small legacy auth predicate centralized for callers that still rely on the global helper surface.
+ *
+ * Strict Constraints
+ * - This helper delegates to the role layer only; privilege ownership stays in the auth modules.
+ *
+ * Porting Guidelines
+ * - Port as a thin auth predicate that delegates to the owning role service.
  */
 function canDo($authority = '')
 {
@@ -302,10 +456,17 @@ function canDo($authority = '')
 }
 
 /**
- * Checks if the current user has the required authority.
+ * Architecture Purpose
+ * - Enforce login and authority presence through the shared auth/runtime layers.
  *
- * @param string $authority The required authority.
- * @return bool True if the user has the authority, false otherwise.
+ * Design Intent
+ * - Keep this legacy guard helper thin by delegating login enforcement and failure response to the owning auth/reaction classes.
+ *
+ * Strict Constraints
+ * - This helper must not turn into a standalone auth policy engine.
+ *
+ * Porting Guidelines
+ * - Port as a thin guard wrapper around the target platform's auth and response layers.
  */
 function chkAuth($authority = '')
 {
@@ -317,13 +478,36 @@ function chkAuth($authority = '')
 }
 
 /**
- * for human json encode
+ * Architecture Purpose
+ * - Produce HTML-safe JSON text for presentation contexts.
+ *
+ * Design Intent
+ * - Keep the common `jsonEncode + htmlentities` combination in one helper.
+ *
+ * Strict Constraints
+ * - This helper is output-encoding only.
+ *
+ * Porting Guidelines
+ * - Port as a presentation-safe JSON encoder using the target platform's escaping utilities.
  */
 function hJsonEncode($obj)
 {
     return htmlentities(jsonEncode($obj));
 }
 
+/**
+ * Architecture Purpose
+ * - Expose the current request's CSRF token from the configured session backend.
+ *
+ * Design Intent
+ * - Hide backend differences between database, Redis, and default framework CSRF storage behind one helper.
+ *
+ * Strict Constraints
+ * - This helper returns token state only; broader CSRF lifecycle policy stays in the session/auth layers.
+ *
+ * Porting Guidelines
+ * - Port as a compatibility accessor that delegates to the active session/CSRF provider.
+ */
 function getCSRF()
 {
     if ('database' == f3()->get('sessionBase')) {
@@ -335,17 +519,36 @@ function getCSRF()
     }
 }
 
+/**
+ * Architecture Purpose
+ * - Detect whether the current request should be treated as an AJAX/JSON request.
+ *
+ * Design Intent
+ * - Keep legacy transport heuristics centralized for callers that branch on request style.
+ *
+ * Strict Constraints
+ * - This helper checks headers only; response/auth policy remains elsewhere.
+ *
+ * Porting Guidelines
+ * - Port as a request-header heuristic helper.
+ */
 function isAjax()
 {
     return (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && 'xmlhttprequest' == strtolower($_SERVER['HTTP_X_REQUESTED_WITH'])) || (!empty($_SERVER['HTTP_ACCEPT']) && false !== strpos(strtolower($_SERVER['HTTP_ACCEPT']), 'json'));
 }
 
 /**
- * Encodes an object to JSON format.
+ * Architecture Purpose
+ * - Encode a value to JSON with the project's default Unicode/slash handling.
  *
- * @param mixed $obj    The object to encode.
- * @param bool  $pretty Whether to format the JSON output (default: false).
- * @return string The JSON-encoded string.
+ * Design Intent
+ * - Keep one shared JSON encoding policy for legacy callers.
+ *
+ * Strict Constraints
+ * - This helper shapes encoding flags only; schema/business semantics stay outside.
+ *
+ * Porting Guidelines
+ * - Port as a shared JSON encoder preserving Unicode and slash behavior.
  */
 function jsonEncode($obj, $pretty = false)
 {
@@ -359,10 +562,17 @@ function jsonEncode($obj, $pretty = false)
 }
 
 /**
- * Decodes a JSON string.
+ * Architecture Purpose
+ * - Decode JSON into an array with legacy error-string fallback behavior.
  *
- * @param string $str The JSON string to decode.
- * @return mixed The decoded object or array.
+ * Design Intent
+ * - Preserve the project's historical decode-and-report contract for callers that expect string error messages instead of exceptions.
+ *
+ * Strict Constraints
+ * - This helper performs decoding only; callers still own response/error handling policy.
+ *
+ * Porting Guidelines
+ * - Port carefully, preserving the current return contract if dependent callers still expect non-exception error strings.
  */
 function jsonDecode($str)
 {
@@ -395,11 +605,17 @@ function jsonDecode($str)
 }
 
 /**
- * Generates a secure random string.
+ * Architecture Purpose
+ * - Generate a cryptographically secure random string from an allowed character set.
  *
- * @param int    $length     The length of the string.
- * @param string $characters The characters to use (default: alphanumeric).
- * @return string The generated random string.
+ * Design Intent
+ * - Keep shared secure token/string generation in one low-level helper.
+ *
+ * Strict Constraints
+ * - This helper provides randomness only; token ownership and lifecycle stay elsewhere.
+ *
+ * Porting Guidelines
+ * - Port using the target platform's cryptographically secure RNG.
  */
 function secure_random_string($length, $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ')
 {
@@ -414,9 +630,17 @@ function secure_random_string($length, $characters = '0123456789abcdefghijklmnop
 }
 
 /**
- * Generates a UUID.
+ * Architecture Purpose
+ * - Generate the project's legacy UUID-like identifier format from a secure random source.
  *
- * @return string The generated UUID.
+ * Design Intent
+ * - Keep this compatibility identifier shape in one helper for callers that still depend on it.
+ *
+ * Strict Constraints
+ * - This helper generates identifiers only; it does not assign business meaning.
+ *
+ * Porting Guidelines
+ * - Port as a compatibility ID generator, preserving the current dashed formatting if external contracts depend on it.
  */
 function uuid()
 {

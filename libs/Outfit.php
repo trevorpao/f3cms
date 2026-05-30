@@ -2,17 +2,46 @@
 
 namespace F3CMS;
 
-// The Outfit class extends the Module class and provides additional utility methods.
-// It includes methods for handling breadcrumbs, pagination, and formatting data.
+/**
+ * Architecture Purpose:
+ * Hold the shared FORKS frontend route/render boundary that sits above
+ * module-owned page logic. Outfit centralizes request lifecycle hooks, static
+ * page delivery, view rendering adapters, and shared presentation filters.
+ *
+ * Design Intent:
+ * Keep cross-module frontend delivery mechanics in one shared layer while
+ * leaving owner-side data loading, page decisions, and persistence truth in
+ * modules, Feed, Reaction, or other owner-boundary classes.
+ *
+ * Strict Constraints:
+ * - Do not move entity persistence or workflow writeback into Outfit.
+ * - Do not turn shared rendering helpers into a generic business-logic sink.
+ * - Do not let convenience rendering shortcuts override owner-boundary rules.
+ *
+ * Porting Guidelines:
+ * Preserve Outfit as the shared frontend delivery shell. Cross-language ports
+ * may split router, template, and response adapters, but should keep owner-side
+ * page orchestration outside this shared layer.
+ */
 
 class Outfit extends Module
 {
     const JUST_RETURN_STR = true; // Constant to indicate whether to return a string directly.
 
     /**
-     * Displays content based on the provided arguments.
+     * Architecture Purpose:
+     * Expose the shared entry point for static-file-first outfit delivery.
      *
-     * @param array $args The arguments for displaying content.
+     * Design Intent:
+     * Route the outward-facing entry directly into the shared static/render
+     * pipeline so module outfits inherit one consistent frontend bootstrap path.
+     *
+     * Strict Constraints:
+     * - Keep this as a thin entry wrapper.
+     * - Do not add owner-side page logic here.
+     *
+     * Porting Guidelines:
+     * Preserve this public entry as the adapter into the shared render path.
      */
     public static function show($args)
     {
@@ -21,10 +50,21 @@ class Outfit extends Module
     }
 
     /**
-     * Magic method to handle dynamic method calls.
+     * Architecture Purpose:
+     * Wrap dynamic outfit actions with the shared request lifecycle envelope.
      *
-     * @param string $method The name of the method being called.
-     * @param array  $args   The arguments passed to the method.
+     * Design Intent:
+     * Ensure every owner-side outfit action flows through the same before/
+     * middleware/after chain and timing instrumentation instead of reimplementing
+     * request plumbing per module.
+     *
+     * Strict Constraints:
+     * - Preserve the lifecycle ordering around the owner action.
+     * - Do not inline owner-specific behavior into this wrapper.
+     *
+     * Porting Guidelines:
+     * Keep one shared dynamic-dispatch envelope even if the target runtime uses
+     * explicit controllers instead of PHP magic dispatch.
      */
     public function __call($method, $args)
     {
@@ -47,9 +87,20 @@ class Outfit extends Module
     }
 
     /**
-     * Executes logic before routing.
-     *
-     * @param array $args The arguments for the pre-route logic.
+        * Architecture Purpose:
+        * Normalize shared frontend request state before owner routing begins.
+        *
+        * Design Intent:
+        * Handle globally shared concerns such as coming-soon gating, device/lang
+        * setup, and CSRF seed creation once, before module outfits execute.
+        *
+        * Strict Constraints:
+        * - Keep only shared pre-route concerns here.
+        * - Do not add page-specific data loading or persistence logic.
+        *
+        * Porting Guidelines:
+        * Preserve this as the shared pre-handler normalization hook for frontend
+        * delivery, regardless of the router framework used by the target runtime.
      */
     public static function _beforeRoute($args)
     {
@@ -70,19 +121,39 @@ class Outfit extends Module
     }
 
     /**
-     * Executes logic after routing.
-     *
-     * @param array $args The arguments for the post-route logic.
+        * Architecture Purpose:
+        * Reserve the shared post-route extension point for outfit delivery.
+        *
+        * Design Intent:
+        * Keep lifecycle symmetry with the pre-route hook even when the current
+        * implementation does not need shared post-processing.
+        *
+        * Strict Constraints:
+        * - Do not silently accumulate unrelated cleanup logic here.
+        * - If future logic is added, it must remain shared lifecycle work only.
+        *
+        * Porting Guidelines:
+        * Keep an explicit post-handler hook even if it remains a no-op.
      */
     public static function _afterRoute($args)
     {
     }
 
     /**
-     * Middleware logic to process requests and responses.
-     *
-     * @param array  $args The arguments for the middleware.
-     * @param string $next The next middleware or handler to execute.
+        * Architecture Purpose:
+        * Resolve the target outfit handler and dispatch it through shared guards.
+        *
+        * Design Intent:
+        * Apply class resolution and request escaping once in the shared layer so
+        * module outfits receive normalized input instead of duplicating adapter code.
+        *
+        * Strict Constraints:
+        * - Fail loudly when the target handler cannot be resolved.
+        * - Keep escaping and dispatch generic; do not fold in owner-side rules.
+        *
+        * Porting Guidelines:
+        * Preserve explicit class/method resolution plus normalized-input dispatch,
+        * even if the target runtime uses different reflection or routing APIs.
      */
     public static function _middleware($args, string $next)
     {
@@ -104,10 +175,21 @@ class Outfit extends Module
     }
 
     /**
-     * Handles static file requests.
-     *
-     * @param array $args  The arguments for the static file request.
-     * @param bool  $force Whether to force the handling of the static file.
+        * Architecture Purpose:
+        * Serve a frontend response through the shared static-cache-or-render path.
+        *
+        * Design Intent:
+        * Prefer the shared static snapshot when available, fall back to rendering
+        * when needed, and expose debug variables after the response is emitted.
+        *
+        * Strict Constraints:
+        * - Keep cache lookup/save behavior inside the shared delivery path.
+        * - Do not move owner-side page composition into this method.
+        * - Do not change cache miss behavior into silent fallback outside policy.
+        *
+        * Porting Guidelines:
+        * Preserve the high-level contract: resolve cache path, reuse static output
+        * when valid, otherwise render and optionally persist the snapshot.
      */
     public static function _staticFile($args, $force = false)
     {
@@ -148,9 +230,20 @@ class Outfit extends Module
     }
 
     /**
-     * set excel header
-     *
-     * @param string $filename - file name to user
+        * Architecture Purpose:
+        * Prepare the shared spreadsheet response adapter for frontend exports.
+        *
+        * Design Intent:
+        * Centralize XLS header setup and shared template filter registration so
+        * export-oriented outfits reuse one transport contract.
+        *
+        * Strict Constraints:
+        * - Keep this limited to response/header preparation.
+        * - Do not add export business rules or owner-side query logic here.
+        *
+        * Porting Guidelines:
+        * Preserve the separation between transport header setup and owner-side data
+        * generation in the target export stack.
      */
     public static function _setXls($filename)
     {
@@ -170,9 +263,19 @@ class Outfit extends Module
     }
 
     /**
-     * Outputs XML content.
-     *
-     * @param string $filename The name of the XML file.
+        * Architecture Purpose:
+        * Emit a shared XML response through the template adapter.
+        *
+        * Design Intent:
+        * Keep XML response framing and UTF-8 XML sanitization in the shared render
+        * layer instead of scattering transport details through owner outfits.
+        *
+        * Strict Constraints:
+        * - Limit this method to shared XML response shaping.
+        * - Do not add owner-side payload construction here.
+        *
+        * Porting Guidelines:
+        * Preserve explicit XML header emission plus invalid-character sanitization.
      */
     public static function _echoXML($filename)
     {
@@ -187,7 +290,20 @@ class Outfit extends Module
     }
 
     /**
-     * Displays variables for debugging purposes.
+        * Architecture Purpose:
+        * Expose shared frontend debug variables when debug mode allows it.
+        *
+        * Design Intent:
+        * Keep developer-facing debug rendering behind one shared gate instead of
+        * spreading ad hoc dumps across module outfits.
+        *
+        * Strict Constraints:
+        * - Only emit debug state under the shared debug policy.
+        * - Do not turn this into a general logging sink.
+        *
+        * Porting Guidelines:
+        * Preserve the debug-only exposure contract, even if rendered through a
+        * different diagnostics facility.
      */
     public static function _showVariables()
     {
@@ -197,12 +313,19 @@ class Outfit extends Module
     }
 
     /**
-     * Generates a breadcrumb navigation structure.
-     *
-     * @param array  $ary   The breadcrumb items.
-     * @param bool   $isLi  Whether to format the breadcrumb as a list.
-     * @param string $home  The label for the home link.
-     * @return string The generated breadcrumb HTML.
+        * Architecture Purpose:
+        * Normalize breadcrumb lineage into shared view data.
+        *
+        * Design Intent:
+        * Build a stable breadcrumb structure from owner-provided page lineage so
+        * rendering code can remain simple and consistent across outfits.
+        *
+        * Strict Constraints:
+        * - Return normalized breadcrumb data, not owner-side page decisions.
+        * - Do not query persistence or infer missing lineage here.
+        *
+        * Porting Guidelines:
+        * Preserve the recursive lineage-to-array transformation before rendering.
      */
     public static function breadcrumb($ary, $isLi = true, $home = '')
     {
@@ -228,11 +351,20 @@ class Outfit extends Module
     }
 
     /**
-     * Generates a breadcrumb navigation structure as a string.
-     *
-     * @param array $ary  The breadcrumb items.
-     * @param bool  $isLi Whether to format the breadcrumb as a list.
-     * @return string The generated breadcrumb string.
+        * Architecture Purpose:
+        * Materialize normalized breadcrumb items into shared HTML fragments.
+        *
+        * Design Intent:
+        * Keep the final breadcrumb markup format centralized so owner outfits only
+        * provide normalized breadcrumb items instead of duplicating templates.
+        *
+        * Strict Constraints:
+        * - Render only the provided breadcrumb array.
+        * - Do not collapse this into owner-specific navigation policy.
+        *
+        * Porting Guidelines:
+        * Preserve the separation between breadcrumb normalization and string/HTML
+        * rendering even if a different template system is used.
      */
     public static function breadcrumb_str($ary, $isLi = true)
     {
@@ -250,10 +382,19 @@ class Outfit extends Module
     }
 
     /**
-     * Converts a string to UTF-8 XML format.
-     *
-     * @param string $string The input string.
-     * @return string The UTF-8 XML formatted string.
+        * Architecture Purpose:
+        * Sanitize shared XML payloads to characters allowed by XML parsers.
+        *
+        * Design Intent:
+        * Keep XML-character filtering in one shared helper so XML responses from
+        * different outfits preserve the same transport safety rules.
+        *
+        * Strict Constraints:
+        * - Only remove invalid XML characters.
+        * - Do not add content-shaping policy beyond XML safety.
+        *
+        * Porting Guidelines:
+        * Preserve equivalent XML character filtering in the target runtime.
      */
     public static function utf8Xml($string)
     {
@@ -261,11 +402,19 @@ class Outfit extends Module
     }
 
     /**
-     * Generates a thumbnail for a given path and type.
-     *
-     * @param string $path The path to the image.
-     * @param string $type The type of thumbnail to generate.
-     * @return string The generated thumbnail path.
+        * Architecture Purpose:
+        * Resolve the shared thumbnail path convention for frontend assets.
+        *
+        * Design Intent:
+        * Keep filename derivation for shared thumbnail variants centralized so page
+        * rendering can request variants without duplicating path rules.
+        *
+        * Strict Constraints:
+        * - Only derive the path naming convention.
+        * - Do not perform storage I/O or image generation here.
+        *
+        * Porting Guidelines:
+        * Preserve the same naming contract expected by existing asset pipelines.
      */
     public static function thumbnail($path, $type)
     {
@@ -282,10 +431,19 @@ class Outfit extends Module
     }
 
     /**
-     * Converts URLs in a text to clickable links.
-     *
-     * @param string $text The input text containing URLs.
-     * @return string The text with URLs converted to links.
+        * Architecture Purpose:
+        * Apply a shared presentation transform that turns raw URLs into links.
+        *
+        * Design Intent:
+        * Keep this text-to-markup transform in the shared presentation layer so
+        * outfits can reuse one safe URL-linking rule.
+        *
+        * Strict Constraints:
+        * - Limit this helper to presentation shaping.
+        * - Do not fold business semantics or persistence rules into it.
+        *
+        * Porting Guidelines:
+        * Preserve safe escaping around generated links in the target runtime.
      */
     public static function convertUrlsToLinks($text)
     {
@@ -304,11 +462,20 @@ class Outfit extends Module
     }
 
     /**
-     * Adjusts a file path based on the device type.
-     *
-     * @param string $path The original file path.
-     * @param string $type The device type (e.g., mobile, desktop).
-     * @return string The adjusted file path.
+        * Architecture Purpose:
+        * Resolve device-specific asset paths using the shared thumbnail convention.
+        *
+        * Design Intent:
+        * Couple device detection to shared asset path derivation in one place so
+        * outfits can render device variants without reimplementing filename rules.
+        *
+        * Strict Constraints:
+        * - Only rewrite the asset path when a device-specific variant is expected.
+        * - Do not make owner-side content decisions here.
+        *
+        * Porting Guidelines:
+        * Preserve the current contract between shared device detection and asset
+        * naming, even if device handling is refactored elsewhere.
      */
     public static function pathByDevice($path, $type)
     {
@@ -326,10 +493,20 @@ class Outfit extends Module
     }
 
     /**
-     * Handles tags and processes them as needed.
-     *
-     * @param array $tags The tags to process.
-     * @return array The processed tags.
+        * Architecture Purpose:
+        * Normalize tag payloads into shared frontend view state.
+        *
+        * Design Intent:
+        * Decode the stored tag structure once and expose common page keyword state
+        * used by shared rendering and SEO helpers.
+        *
+        * Strict Constraints:
+        * - Treat this as presentation/view-state shaping only.
+        * - Do not make taxonomy ownership or persistence updates here.
+        *
+        * Porting Guidelines:
+        * Preserve the decode-and-publish contract to shared page state rather than
+        * hiding it inside owner-specific templates.
      */
     public static function handleTag($tags)
     {
@@ -347,11 +524,19 @@ class Outfit extends Module
     }
 
     /**
-     * Converts a value to a formatted date string.
+     * Architecture Purpose:
+     * Expose one shared date-formatting helper to the frontend layer.
      *
-     * @param mixed  $val    The value to format.
-     * @param string $format The date format.
-     * @return string The formatted date string.
+     * Design Intent:
+     * Keep template-facing date formatting consistent across shared filters and
+     * responses without pushing date presentation rules into owner outfits.
+     *
+     * Strict Constraints:
+     * - Restrict this helper to formatting.
+     * - Do not add locale/business policy beyond the passed format.
+     *
+     * Porting Guidelines:
+     * Preserve caller-supplied formatting semantics in the target runtime.
      */
     public static function date($val, $format)
     {
@@ -359,11 +544,20 @@ class Outfit extends Module
     }
 
     /**
-     * Calculates the duration between two timestamps.
+     * Architecture Purpose:
+     * Format a shared human-readable time-range string for frontend display.
      *
-     * @param int $start The start timestamp.
-     * @param int $end   The end timestamp.
-     * @return string The calculated duration.
+     * Design Intent:
+     * Centralize a common presentation rule for same-day versus cross-day time
+     * ranges so templates remain thin.
+     *
+     * Strict Constraints:
+     * - Keep this as display formatting only.
+     * - Do not attach scheduling or business validation rules here.
+     *
+     * Porting Guidelines:
+     * Preserve the same-day formatting distinction because templates may assume
+     * the condensed output shape.
      */
     public static function during($start, $end)
     {
@@ -375,10 +569,19 @@ class Outfit extends Module
     }
 
     /**
-     * Fixes and formats a slug string.
+     * Architecture Purpose:
+     * Convert shared slug tokens into a frontend-readable label.
      *
-     * @param string $val The input slug string.
-     * @return string The fixed slug string.
+     * Design Intent:
+     * Keep this lightweight presentation transform in the shared view layer
+     * instead of repeating slug prettification in templates.
+     *
+     * Strict Constraints:
+     * - Treat the slug as display input only.
+     * - Do not reinterpret slug ownership or routing semantics here.
+     *
+     * Porting Guidelines:
+     * Preserve the same delimiter replacement and title-casing behavior.
      */
     public static function fixSlug($val)
     {
@@ -386,7 +589,19 @@ class Outfit extends Module
     }
 
     /**
-     * @param $val
+     * Architecture Purpose:
+     * Safely render line breaks in shared frontend text output.
+     *
+     * Design Intent:
+     * Normalize stored newline encodings before passing them to `nl2br()` so
+     * shared template output stays consistent.
+     *
+     * Strict Constraints:
+     * - Limit this helper to newline normalization plus rendering.
+     * - Do not add HTML policy beyond the existing transform.
+     *
+     * Porting Guidelines:
+     * Preserve the current newline normalization before HTML break insertion.
      */
     public static function nl2brSecurity($val)
     {
@@ -396,7 +611,19 @@ class Outfit extends Module
     }
 
     /**
-     * @param $val
+     * Architecture Purpose:
+     * Provide a shared uppercase presentation transform.
+     *
+     * Design Intent:
+     * Keep trivial text-formatting helpers centralized for consistent template
+     * usage instead of duplicating formatting snippets.
+     *
+     * Strict Constraints:
+     * - Keep this helper presentation-only.
+     * - Do not attach locale/business semantics.
+     *
+     * Porting Guidelines:
+     * Preserve straightforward uppercase behavior for template callers.
      */
     public static function upper($val)
     {
@@ -404,7 +631,18 @@ class Outfit extends Module
     }
 
     /**
-     * @param $val
+     * Architecture Purpose:
+     * Join shared frontend lists into one presentation string.
+     *
+     * Design Intent:
+     * Offer a thin shared helper for template-friendly list joining.
+     *
+     * Strict Constraints:
+     * - Keep this helper as a pure string join.
+     * - Do not infer missing data or labels.
+     *
+     * Porting Guidelines:
+     * Preserve caller-controlled glue semantics.
      */
     public static function join($val, $glue = ',')
     {
@@ -412,20 +650,58 @@ class Outfit extends Module
     }
 
     /**
-     * @param $val
+     * Architecture Purpose:
+     * Generate a shared avatar asset URL for frontend rendering.
+     *
+     * Design Intent:
+     * Keep external avatar URL conventions centralized so templates and outfits
+     * reuse one transport-safe avatar contract.
+     *
+     * Strict Constraints:
+     * - Only construct the URL.
+     * - Do not add owner identity logic beyond provided inputs.
+     *
+     * Porting Guidelines:
+     * Preserve the existing provider split between gravatar and robohash.
      */
     public static function avatar($email, $size = 80, $type = 'avatar')
     {
         return (('cat' !== $type) ? '//www.gravatar.com/avatar/' . md5($email) . '.jpg?s=' : '//robohash.org/' . md5($email) . '?set=set4&s=') . $size;
     }
 
+    /**
+     * Architecture Purpose:
+     * Format numbers through one shared frontend presentation helper.
+     *
+     * Design Intent:
+     * Keep numeric display formatting consistent across filters and templates.
+     *
+     * Strict Constraints:
+     * - Limit this helper to output formatting.
+     * - Do not mix in currency or owner-specific rules.
+     *
+     * Porting Guidelines:
+     * Preserve the caller-controlled decimal precision contract.
+     */
     public static function numFormat($num, $decimals = 0)
     {
         return number_format($num, $decimals);
     }
 
     /**
-     * @param $num
+     * Architecture Purpose:
+     * Convert seconds into a shared minute/second display string.
+     *
+     * Design Intent:
+     * Centralize this small presentation rule so templates do not duplicate
+     * time-span formatting logic.
+     *
+     * Strict Constraints:
+     * - Keep this as display formatting only.
+     * - Do not repurpose it for duration math policy.
+     *
+     * Porting Guidelines:
+     * Preserve the current Chinese minute/second output contract.
      */
     public static function s2m($num)
     {
@@ -436,7 +712,18 @@ class Outfit extends Module
     }
 
     /**
-     * @param $num
+        * Architecture Purpose:
+        * Convert seconds into a rounded shared minute count.
+        *
+        * Design Intent:
+        * Provide a thin presentation helper for rounded minute display.
+        *
+        * Strict Constraints:
+        * - Keep this helper as a simple conversion.
+        * - Do not add business thresholds or labels.
+        *
+        * Porting Guidelines:
+        * Preserve the ceiling-based minute conversion rule.
      */
     public static function s2ms($num)
     {
@@ -446,7 +733,18 @@ class Outfit extends Module
     }
 
     /**
-     * @param $num
+        * Architecture Purpose:
+        * Convert seconds into a shared hour/minute display string.
+        *
+        * Design Intent:
+        * Keep the mixed hour/minute presentation rule centralized for templates.
+        *
+        * Strict Constraints:
+        * - Treat this as display formatting only.
+        * - Do not attach scheduling semantics here.
+        *
+        * Porting Guidelines:
+        * Preserve the existing Chinese hour/minute output shape.
      */
     public static function s2h($num)
     {
@@ -456,18 +754,61 @@ class Outfit extends Module
         return (($h > 0) ? $h . ' 小時' : '') . (($h > 0 && $m > 0) ? ' ' : '') . (($m > 0) ? $m . ' 分' : '');
     }
 
+    /**
+     * Architecture Purpose:
+     * Keep the shared hook point for image URI rewriting in frontend output.
+     *
+     * Design Intent:
+     * Preserve a stable adapter seam even while the current implementation is a
+     * pass-through, so ports can keep URI rewrite policy isolated.
+     *
+     * Strict Constraints:
+     * - Do not fold owner-specific storage logic into this helper.
+     * - Keep pass-through semantics unless the shared asset contract changes.
+     *
+     * Porting Guidelines:
+     * Preserve this seam as the shared image-URI adapter, even if it remains a
+     * no-op in the target runtime.
+     */
     public static function repathImg($str)
     {
         return $str; // str_replace('/upload/', f3()->get('picUri'), empty($str) ? '' : $str);
     }
 
+    /**
+     * Architecture Purpose:
+     * Keep the shared hook point for generic URI rewriting in frontend output.
+     *
+     * Design Intent:
+     * Mirror the image rewrite seam for non-image URIs without forcing owner
+     * templates to know whether rewriting is active.
+     *
+     * Strict Constraints:
+     * - Keep this helper generic and shared.
+     * - Do not inject owner-side routing rules here.
+     *
+     * Porting Guidelines:
+     * Preserve this no-op adapter seam for future shared URI policy changes.
+     */
     public static function repathUri($str)
     {
         return $str;
     }
 
     /**
-     * @param $val
+     * Architecture Purpose:
+     * Convert shared text rows into table markup for frontend rendering.
+     *
+     * Design Intent:
+     * Keep this structured-text presentation transform in the shared render
+     * layer so templates can reuse one convention.
+     *
+     * Strict Constraints:
+     * - Treat this strictly as presentation shaping.
+     * - Do not infer owner-side schema or validation rules.
+     *
+     * Porting Guidelines:
+     * Preserve the newline-splitting and full-width-colon parsing contract.
      */
     public static function str2tbl($val)
     {
@@ -483,7 +824,18 @@ class Outfit extends Module
     }
 
     /**
-     * @param $val
+        * Architecture Purpose:
+        * Convert shared multiline text into list-item markup.
+        *
+        * Design Intent:
+        * Keep this frontend-only text-to-list transform centralized.
+        *
+        * Strict Constraints:
+        * - Restrict this helper to presentation formatting.
+        * - Do not add owner-specific list semantics.
+        *
+        * Porting Guidelines:
+        * Preserve the newline-to-list-item transformation contract.
      */
     public static function str2li($val)
     {
@@ -497,6 +849,21 @@ class Outfit extends Module
         return $str;
     }
 
+    /**
+     * Architecture Purpose:
+     * Convert shared multiline text into hashtag link markup.
+     *
+     * Design Intent:
+     * Centralize hashtag presentation rules so owner outfits do not duplicate
+     * trimming and link construction behavior.
+     *
+     * Strict Constraints:
+     * - Keep this helper at the presentation layer.
+     * - Do not reassign search or taxonomy ownership here.
+     *
+     * Porting Guidelines:
+     * Preserve current trimming and search-link generation semantics.
+     */
     public static function str2hashtag($val)
     {
         $val = str_replace(['&#13;', '&#10;'], [PHP_EOL, ''], $val);
@@ -512,6 +879,21 @@ class Outfit extends Module
         return $str;
     }
 
+    /**
+     * Architecture Purpose:
+     * Convert shared multiline text into VTT-styled paragraph markup.
+     *
+     * Design Intent:
+     * Keep this frontend presentation rule centralized for templates that render
+     * transcript-like content.
+     *
+     * Strict Constraints:
+     * - Keep this helper markup-focused only.
+     * - Do not add content ownership or timing rules here.
+     *
+     * Porting Guidelines:
+     * Preserve the line-by-line paragraph generation contract.
+     */
     public static function str2vtt($val)
     {
         $val = str_replace(['&#13;', '&#10;'], [PHP_EOL, ''], $val);
@@ -524,16 +906,61 @@ class Outfit extends Module
         return $str;
     }
 
+    /**
+     * Architecture Purpose:
+     * Decode stored HTML entities for shared frontend output handling.
+     *
+     * Design Intent:
+     * Provide one shared decode rule used by other presentation helpers.
+     *
+     * Strict Constraints:
+     * - Limit this helper to entity decoding.
+     * - Do not mix in sanitization policy here.
+     *
+     * Porting Guidelines:
+     * Preserve UTF-8 entity-decoding behavior and flags.
+     */
     public static function htmlDecode($val)
     {
         return html_entity_decode($val, ENT_QUOTES | ENT_SUBSTITUTE | ENT_HTML401, 'UTF-8');
     }
 
+    /**
+     * Architecture Purpose:
+     * Expose a shared raw URL-encoding helper to templates and filters.
+     *
+     * Design Intent:
+     * Keep transport-safe URL encoding centralized instead of duplicating it in
+     * owner outfits or templates.
+     *
+     * Strict Constraints:
+     * - Only encode the provided value.
+     * - Do not add routing semantics here.
+     *
+     * Porting Guidelines:
+     * Preserve raw-url-encoding semantics.
+     */
     public static function urlencode($val)
     {
         return rawurlencode($val);
     }
 
+    /**
+     * Architecture Purpose:
+     * Provide a shared safe-raw text transform for frontend output.
+     *
+     * Design Intent:
+     * Decode stored entities and then neutralize selected raw characters so
+     * templates can opt into controlled unsafe-text display.
+     *
+     * Strict Constraints:
+     * - Keep the transform explicit and narrow.
+     * - Do not broaden this into a general sanitization engine.
+     *
+     * Porting Guidelines:
+     * Preserve the exact decode-then-replace behavior because templates may rely
+     * on this specific display contract.
+     */
     public static function safeRaw($val)
     {
         $val = self::htmlDecode($val);
@@ -545,8 +972,18 @@ class Outfit extends Module
     }
 
     /**
-     * @param $val
-     * @param $len
+     * Architecture Purpose:
+     * Crop shared frontend text to a fixed display length.
+     *
+     * Design Intent:
+     * Keep this multibyte-safe truncation rule centralized for templates.
+     *
+     * Strict Constraints:
+     * - Restrict this helper to substring extraction.
+     * - Do not add ellipsis or business display policy here.
+     *
+     * Porting Guidelines:
+     * Preserve UTF-8 multibyte substring behavior.
      */
     public static function crop($val, $len)
     {
@@ -556,9 +993,20 @@ class Outfit extends Module
     }
 
     /**
-     * @param $buffer
-     *
-     * @return mixed
+        * Architecture Purpose:
+        * Apply shared frontend HTML minification before delivery.
+        *
+        * Design Intent:
+        * Keep whitespace/comment reduction in one shared post-render transform while
+        * respecting debug mode as the escape hatch.
+        *
+        * Strict Constraints:
+        * - Only minify rendered output under the shared debug policy.
+        * - Do not alter owner-side content decisions here.
+        *
+        * Porting Guidelines:
+        * Preserve debug bypass behavior and the narrow HTML whitespace cleanup
+        * semantics if output minification is kept in the target stack.
      */
     public static function minify($buffer)
     {
@@ -585,16 +1033,43 @@ class Outfit extends Module
         return $buffer;
     }
 
+    /**
+     * Architecture Purpose:
+     * Resolve a shared absolute assets URI for frontend templates.
+     *
+     * Design Intent:
+     * Keep asset-root composition centralized so templates do not hardcode the
+     * current assets host/path contract.
+     *
+     * Strict Constraints:
+     * - Limit this helper to URI composition.
+     * - Do not add storage or deployment branching here.
+     *
+     * Porting Guidelines:
+     * Preserve the shared assets-root plus relative-path composition contract.
+     */
     public static function assetsSite($val)
     {
         return f3()->get('_dzv.assetsUri') . $val;
     }
 
     /**
-     * @param $html
-     * @param $title
-     * @param $slug
-     * @param $rtn
+     * Architecture Purpose:
+     * Wrap rendered frontend content with the shared page shell.
+     *
+     * Design Intent:
+     * Centralize shared UI path setup, navigation preload, SEO defaults, and
+     * final template rendering so owner outfits only provide page-specific body
+     * content and metadata.
+     *
+     * Strict Constraints:
+     * - Keep shared shell composition here.
+     * - Do not move owner-side page querying or business rules into this method.
+     * - Preserve return-vs-echo behavior as the shared response contract.
+     *
+     * Porting Guidelines:
+     * Preserve the separation between shared page shell composition and owner-
+     * supplied page content when migrating to another template stack.
      */
     public static function wrapper($html, $title = '', $slug = '', $rtn = false)
     {
@@ -626,9 +1101,20 @@ class Outfit extends Module
     }
 
     /**
-     * get twig instance
-     *
-     * @return instance
+        * Architecture Purpose:
+        * Build the shared legacy template instance used by wrapper-oriented output.
+        *
+        * Design Intent:
+        * Register shared presentation filters once so wrapper rendering remains
+        * consistent across outfits that still use the legacy template engine.
+        *
+        * Strict Constraints:
+        * - Keep this method limited to shared template adapter wiring.
+        * - Do not inject owner-specific filters here.
+        *
+        * Porting Guidelines:
+        * Preserve the concept of one shared template adapter with common filters,
+        * even if the concrete template engine changes.
      */
     public static function _origin()
     {
@@ -649,12 +1135,21 @@ class Outfit extends Module
     }
 
     /**
-     * @param $html
-     * @param $title
-     * @param $slug
-     * @param $rtn
-     *
-     * @return mixed
+        * Architecture Purpose:
+        * Render a frontend page through the shared Twig-based delivery pipeline.
+        *
+        * Design Intent:
+        * Collect shared page context, theme settings, breadcrumb data, and delivery
+        * diagnostics once, then hand the final payload to the shared Twig adapter.
+        *
+        * Strict Constraints:
+        * - Keep this method focused on shared rendering context assembly.
+        * - Do not move owner-side entity loading or business branching here.
+        * - Preserve the echo/return dual contract expected by callers.
+        *
+        * Porting Guidelines:
+        * Preserve the shared context-assembly step before final template render,
+        * even if the target runtime replaces Twig or `_dzv` state storage.
      */
     public static function render($html, $title = '', $slug = '', $rtn = false)
     {
@@ -716,9 +1211,20 @@ class Outfit extends Module
     }
 
     /**
-     * get twig instance
-     *
-     * @return instance
+        * Architecture Purpose:
+        * Construct the shared Twig environment for frontend delivery.
+        *
+        * Design Intent:
+        * Centralize loader paths, cache policy, and shared filter registration so
+        * all outfits render through one consistent Twig adapter.
+        *
+        * Strict Constraints:
+        * - Keep this method to Twig adapter wiring only.
+        * - Do not register owner-specific rendering behavior here.
+        *
+        * Porting Guidelines:
+        * Preserve one shared frontend template environment with equivalent filter
+        * registration, even if the target runtime swaps out Twig.
      */
     public static function _twig()
     {
@@ -816,7 +1322,20 @@ class Outfit extends Module
     }
 
     /**
-     * @param $title
+        * Architecture Purpose:
+        * Normalize shared SEO-related page state before rendering.
+        *
+        * Design Intent:
+        * Merge default site/page metadata with owner-supplied overrides in one
+        * shared step so frontend rendering sees a stable page meta contract.
+        *
+        * Strict Constraints:
+        * - Keep this method to shared meta-state assembly.
+        * - Do not add owner-specific content loading or ranking logic here.
+        *
+        * Porting Guidelines:
+        * Preserve the layered merge order between site defaults, page state, and
+        * `_dzv` overrides.
      */
     public static function _seoMeta($title = '')
     {
@@ -845,7 +1364,20 @@ class Outfit extends Module
     }
 
     /**
-     * @param $slug
+        * Architecture Purpose:
+        * Reserve the shared alternate-link hook for multilingual frontend output.
+        *
+        * Design Intent:
+        * Keep alternate-link shaping behind one shared method even while the
+        * current implementation remains a placeholder.
+        *
+        * Strict Constraints:
+        * - Keep this as shared SEO plumbing only.
+        * - Do not let placeholder behavior leak owner-specific rules here.
+        *
+        * Porting Guidelines:
+        * Preserve an explicit alternate-link seam so future multilingual handling
+        * does not sprawl across owner outfits.
      */
     public static function _setAlternate($slug = '')
     {
@@ -855,19 +1387,21 @@ class Outfit extends Module
     }
 
     /**
-     * Like vsprintf, but accepts $args keys instead of order index.
-     * Both numeric and strings matching /[a-zA-Z0-9_-]+/ are allowed.
-     *
-     * Example: vskprintf('y = %y$d, x = %x$1.1f', array('x' => 1, 'y' => 2))
-     * Result:  'y = 2, x = 1.0'
-     *
-     * $args also can be object, then it's properties are retrieved
-     * using get_object_vars().
-     *
-     * '%s' without argument name works fine too. Everything vsprintf() can do
-     * is supported.
-     *
-     * @author Josef Kufner <jkufner(at)gmail.com>
+        * Architecture Purpose:
+        * Provide a shared named-placeholder formatting helper for frontend output.
+        *
+        * Design Intent:
+        * Let shared markup helpers format templates by semantic keys rather than
+        * positional indexes, keeping string construction readable in the shared
+        * presentation layer.
+        *
+        * Strict Constraints:
+        * - Keep this helper generic and formatting-only.
+        * - Do not couple it to owner-side business objects.
+        *
+        * Porting Guidelines:
+        * Preserve named-argument placeholder support because breadcrumb and other
+        * shared rendering helpers depend on this calling convention.
      */
     public static function _sprintf($str, $args)
     {

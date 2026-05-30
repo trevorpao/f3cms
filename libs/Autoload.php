@@ -1,11 +1,36 @@
 <?php
 
-// This file is responsible for autoloading classes and managing dependencies.
-// It ensures that required classes are loaded dynamically when needed.
+/**
+ * Architecture Purpose
+ * - Shared FORKS class-loader entry that resolves type-prefix and namespace/path mapping for F3CMS runtime surfaces.
+ *
+ * Design Intent
+ * - Keep class resolution conventions in one loader so module Feed/Reaction/Outfit/Kit naming remains stable across the codebase and future ports.
+ *
+ * Strict Constraints
+ * - This loader must not become a generic runtime bootstrap coordinator or owner-side dependency container.
+ * - It resolves class paths only; module wiring, feature flags, and business initialization stay outside this shared surface.
+ *
+ * Porting Guidelines
+ * - Port as naming-convention and path-resolution infrastructure.
+ * - Preserve the FORKS prefix-to-layer mapping even if the target runtime uses a different loader mechanism.
+ */
 
 class F3CMS_Autoloader
 {
-    // Registers the autoloader function to PHP's SPL autoload stack.
+    /**
+     * Architecture Purpose
+     * - Register the shared class-resolution entry with the host runtime.
+     *
+     * Design Intent
+     * - Centralize loader installation so all downstream FORKS naming rules flow through one bootstrap-safe registration point.
+     *
+     * Strict Constraints
+     * - Registration stays at loader infrastructure level; it must not hide owner-side module bootstrap or service composition.
+     *
+     * Porting Guidelines
+     * - Port as startup-time loader registration compatible with the target runtime's autoload or assembly-resolution hook.
+     */
     public static function Register()
     {
         // If a legacy __autoload function exists, register it with SPL.
@@ -21,7 +46,19 @@ class F3CMS_Autoloader
         }
     }
 
-    // Returns a mapping of type prefixes to their corresponding module names.
+    /**
+     * Architecture Purpose
+     * - Expose the canonical FORKS prefix-to-layer mapping used during class detection.
+     *
+     * Design Intent
+     * - Keep feed/outfit/reaction/kit resolution rules explicit so future ports do not silently drift from established layer semantics.
+     *
+     * Strict Constraints
+     * - This map describes shared naming convention only; it must not encode module-specific routing or business ownership.
+     *
+     * Porting Guidelines
+     * - Preserve the semantic mapping even if the target runtime stores it in configuration or metadata instead of code.
+     */
     public static function getType()
     {
         return [
@@ -32,7 +69,19 @@ class F3CMS_Autoloader
         ];
     }
 
-    // Returns a mapping of module names to their corresponding type prefixes.
+    /**
+     * Architecture Purpose
+     * - Expose the inverse layer-to-prefix mapping for FORKS naming resolution.
+     *
+     * Design Intent
+     * - Keep both directions of the naming contract stable so generated or reflected class names preserve the same layer meaning.
+     *
+     * Strict Constraints
+     * - This helper must stay a naming primitive, not a registry of feature-specific aliases.
+     *
+     * Porting Guidelines
+     * - Port alongside getType() so reverse lookup remains deterministic in tooling or reflection helpers.
+     */
     public static function getPrefix()
     {
         return [
@@ -44,9 +93,17 @@ class F3CMS_Autoloader
     }
 
     /**
-     * Autoload a class identified by name.
-     *
-     * @param string $pClassName Name of the object to load.
+        * Architecture Purpose
+        * - Load the file resolved for a requested shared or module class name.
+        *
+        * Design Intent
+        * - Separate path detection from actual include execution so the loader keeps one narrow responsibility: resolve, then load.
+        *
+        * Strict Constraints
+        * - This method must not infer owner-side dependencies or perform broader bootstrap side effects beyond including the resolved class file.
+        *
+        * Porting Guidelines
+        * - Port as the final loader handoff after path resolution; in compiled runtimes this may become assembly/type lookup instead of file include.
      */
     public static function Load($pClassName)
     {
@@ -60,10 +117,17 @@ class F3CMS_Autoloader
     }
 
     /**
-     * Detects the file path of a class file based on its name.
-     *
-     * @param string $pClassName Name of the object to load.
-     * @return string|false The file path if found, or false if not.
+        * Architecture Purpose
+        * - Resolve a requested class name into the canonical file path implied by FORKS naming conventions.
+        *
+        * Design Intent
+        * - Keep namespace trimming, prefix decoding, and module path shifting in one infrastructure surface so ports can preserve the same layer contract.
+        *
+        * Strict Constraints
+        * - Detection must stay convention-driven; it must not evolve into arbitrary feature lookup, business routing, or container-managed discovery.
+        *
+        * Porting Guidelines
+        * - Port the naming algorithm, not the PHP-specific file include details; preserve how `f/o/r/k` prefixes map into module layer files.
      */
     public static function detect($pClassName)
     {

@@ -2,8 +2,36 @@
 
 namespace F3CMS;
 
-// The Reaction class extends the Module class and handles backend operations.
-// It includes methods for saving, uploading, and retrieving data, as well as managing user interactions.
+/**
+ * Architecture Purpose
+ * - Reaction is the backend request/orchestration boundary in the FORKS module stack.
+ *   It receives request input, enforces permission and validation flow, and delegates
+ *   entity persistence to Feed or owner-side rules to Kit instead of owning those
+ *   responsibilities itself.
+ *
+ * Design Intent
+ * - OntoCMS keeps request handling separate from persistence ownership. Reaction exists
+ *   so module actions can coordinate auth, validation, and response shaping while
+ *   preserving FORKS boundaries between request orchestration, entity persistence,
+ *   runtime evaluators, and owner-side business coordination.
+ *
+ * Strict Constraints
+ * - Reaction does not own Feed persistence semantics, schema decomposition, or generic
+ *   runtime services such as WorkflowEngine.
+ * - If local convenience conflicts with FORKS owner boundary, keep orchestration in
+ *   Reaction and keep persistence or workflow writeback in the correct owner-side
+ *   collaborator instead of collapsing everything into a controller-like class.
+ * - Do not push shared libs responsibilities back into Reaction, but do not let
+ *   Reaction absorb module business truth that should stay in Feed, Kit, or the
+ *   owning module path.
+ *
+ * Porting Guidelines
+ * - In .NET or Go, map Reaction to a request handler / application orchestration layer,
+ *   not to a repository and not to a domain entity owner.
+ * - Preserve the F3CMS split: request parsing, auth gates, and response shaping stay
+ *   here; persistence ownership stays with Feed; owner-specific rules stay with Kit or
+ *   the owning module boundary.
+ */
 
 class Reaction extends Module
 {
@@ -13,10 +41,17 @@ class Reaction extends Module
     const RTN_UNVERIFIED = 'UnVerified'; // Indicates unverified data.
 
     /**
-     * Handles rerouting logic for backend operations.
+     * Architecture Role
+     * - Dispatches a backend request to the module-specific Reaction method while
+     *   keeping the entry boundary in the shared Reaction layer.
      *
-     * @param object $f3   The Fat-Free Framework instance.
-     * @param array  $args The URI parameters.
+     * Strict Constraints
+     * - This method resolves and invokes the owner-side Reaction endpoint, but it must
+     *   not absorb module business logic or Feed persistence semantics itself.
+     *
+     * Porting Note
+     * - In other runtimes this maps to a controller/handler dispatcher, not to a
+     *   domain coordinator.
      */
     public function do_rerouter($f3, $args)
     {
@@ -47,17 +82,23 @@ class Reaction extends Module
                 $reflectionInstance,
                 [$f3, $args]
             );
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return self::_return($e->getCode());
         }
     }
 
     /**
-     * Retrieves a list of records based on the provided query.
+     * Architecture Role
+     * - Orchestrates backend list retrieval by reading request input, applying access
+     *   control, and delegating entity query ownership to Feed.
      *
-     * @param object $f3   The Fat-Free Framework instance.
-     * @param array  $args The URI parameters.
-     * @return array The list of retrieved records.
+     * Strict Constraints
+     * - List shaping belongs here, but query truth and row retrieval stay with Feed;
+     *   do not turn this method into an entity query owner.
+     *
+     * Porting Note
+     * - Preserve the split between request pagination orchestration and repository /
+     *   Feed query execution.
      */
     public function do_list($f3, $args)
     {
@@ -88,11 +129,17 @@ class Reaction extends Module
     }
 
     /**
-     * Saves data to the backend.
+     * Architecture Role
+     * - Coordinates the backend save flow by enforcing auth, optional Kit validation,
+     *   pre-save normalization, and final response shaping.
      *
-     * @param object $f3   The Fat-Free Framework instance.
-     * @param array  $args The URI parameters.
-     * @return array The result of the save operation.
+     * Strict Constraints
+     * - Reaction may orchestrate save order, but Feed remains the persistence owner and
+     *   Kit remains the owner-side rule surface; do not collapse both into this method.
+     *
+     * Porting Note
+     * - Map this to an application-layer save handler that delegates validation and
+     *   persistence to the correct collaborators.
      */
     public function do_save($f3, $args)
     {
@@ -124,10 +171,16 @@ class Reaction extends Module
     }
 
     /**
-     * Handles file uploads.
+     * Architecture Role
+     * - Handles image upload orchestration for backend requests and returns a transport-
+     *   ready response payload.
      *
-     * @param object $f3   The Fat-Free Framework instance.
-     * @param array  $args The URI parameters.
+     * Strict Constraints
+     * - This method coordinates login and upload adapter usage, but it does not become
+     *   the owner of media persistence policy beyond the upload boundary.
+     *
+     * Porting Note
+     * - Keep this as an endpoint-facing upload action, not as a storage domain owner.
      */
     public function do_upload($f3, $args)
     {
@@ -149,10 +202,15 @@ class Reaction extends Module
     }
 
     /**
-     * save photo
+     * Architecture Role
+     * - Handles generic file upload orchestration for backend callers.
      *
-     * @param object $f3   - $f3
-     * @param array  $args - uri params
+     * Strict Constraints
+     * - It should stay a thin request boundary over the upload helper, not grow into a
+     *   module-specific file policy coordinator.
+     *
+     * Porting Note
+     * - Preserve this as transport-level upload handling.
      */
     public function do_upload_file($f3, $args)
     {
@@ -164,10 +222,17 @@ class Reaction extends Module
     }
 
     /**
-     * delete one row
+     * Architecture Role
+     * - Orchestrates backend delete requests by enforcing permissions and delegating the
+     *   actual row deletion to Feed.
      *
-     * @param object $f3   - $f3
-     * @param array  $args - uri params
+     * Strict Constraints
+     * - Deletion gating belongs here, but row lifecycle ownership stays with Feed; do
+     *   not duplicate deletion semantics inside Reaction.
+     *
+     * Porting Note
+     * - Keep hard-delete policy in the persistence owner and use this method as the
+     *   request-facing guard/orchestrator.
      */
     public function do_del($f3, $args)
     {
@@ -192,10 +257,16 @@ class Reaction extends Module
     }
 
     /**
-     * get one row
+     * Architecture Role
+     * - Orchestrates single-row backend retrieval and normalizes the response payload
+     *   for edit/get flows.
      *
-     * @param object $f3   - $f3
-     * @param array  $args - uri params
+     * Strict Constraints
+     * - Current-row shaping may happen here, but the entity read remains Feed-owned and
+     *   the method must not redefine persistence truth.
+     *
+     * Porting Note
+     * - Model this as an application read handler layered over a repository/Feed read.
      */
     public function do_get($f3, $args)
     {
@@ -228,11 +299,16 @@ class Reaction extends Module
     }
 
     /**
-     * Retrieves options for a specific query.
+     * Architecture Role
+     * - Exposes a thin backend options endpoint that forwards option-query intent to
+     *   Feed and wraps the response.
      *
-     * @param object $f3   The Fat-Free Framework instance.
-     * @param array  $args The URI parameters.
-     * @return array The retrieved options.
+     * Strict Constraints
+     * - Option generation semantics stay with Feed; this method should remain a thin
+     *   request boundary rather than a second query implementation.
+     *
+     * Porting Note
+     * - Preserve this as a lightweight endpoint over owner-side option lookup.
      */
     public function do_get_opts($f3, $args)
     {
@@ -253,9 +329,16 @@ class Reaction extends Module
     }
 
     /**
-     * @param array $params
+     * Architecture Role
+     * - Provides a pre-persistence hook for owner-side request normalization before the
+     *   save flow reaches Feed.
      *
-     * @return mixed
+     * Strict Constraints
+     * - Keep this hook focused on Reaction-side normalization; persistence semantics and
+     *   module business truth should not silently migrate here.
+     *
+     * Porting Note
+     * - Map this to an optional input-preparation hook in the application layer.
      */
     public static function beforeSave($params = [])
     {
@@ -263,10 +346,15 @@ class Reaction extends Module
     }
 
     /**
-     * Processes a single row of data.
+     * Architecture Role
+     * - Shapes each row for list output after Feed has already produced entity data.
      *
-     * @param array $row The row of data to process.
-     * @return array The processed row.
+     * Strict Constraints
+     * - Use this for presentation/output adaptation, not for redefining entity
+     *   persistence or query semantics.
+     *
+     * Porting Note
+     * - Treat this as a response-mapping hook over already loaded data.
      */
     public static function handleIteratee($row = [])
     {
@@ -274,15 +362,33 @@ class Reaction extends Module
     }
 
     /**
-     * @param array $row
+     * Architecture Role
+     * - Shapes a single current-row payload for backend get/edit style responses.
      *
-     * @return mixed
+     * Strict Constraints
+     * - This is a response-side adaptation hook; it must not replace Feed as the entity
+     *   owner or hide owner-side business coordination.
+     *
+     * Porting Note
+     * - Keep this as an output mapper close to the request boundary.
      */
     public static function handleRow($row = [])
     {
         return $row;
     }
 
+    /**
+     * Architecture Role
+     * - Normalizes backend query transport syntax before delegating filter generation to
+     *   Feed.
+     *
+     * Strict Constraints
+     * - Query string cleanup can happen here, but filter semantics still belong to the
+     *   Feed side; do not fork a second filter language in Reaction.
+     *
+     * Porting Note
+     * - Preserve this as a transport-to-filter adapter.
+     */
     public static function _parseBackendQuery($query)
     {
         $feed = parent::_shift(get_called_class(), 'feed');
@@ -293,6 +399,18 @@ class Reaction extends Module
         return (!empty($query)) ? $feed::genFilter($query) : [];
     }
 
+    /**
+     * Architecture Role
+     * - Centralizes backend return message definitions for Reaction-level response
+     *   formatting.
+     *
+     * Strict Constraints
+     * - Keep this method limited to response message mapping; it should not become an
+     *   owner for business error semantics beyond the backend transport contract.
+     *
+     * Porting Note
+     * - Map this to a response/error catalog local to the request layer.
+     */
     public static function formatMsgs()
     {
         return [
@@ -312,12 +430,16 @@ class Reaction extends Module
     }
 
     /**
-     * new return mode
+     * Architecture Role
+     * - Emits the canonical backend response envelope and terminates the request with
+     *   JSON or JSONP output.
      *
-     * @param mixed $code - whether sucess or error code
-     * @param array $data - the data need to return
+     * Strict Constraints
+     * - This is a transport boundary helper; it must not absorb business decision logic
+     *   just because every backend path exits through it.
      *
-     * @return array
+     * Porting Note
+     * - Preserve the response envelope contract separately from domain/application logic.
      */
     public static function _return($code = 1, $data = [])
     {
@@ -343,13 +465,16 @@ class Reaction extends Module
     }
 
     /**
-     * _hashKey
+     * Architecture Role
+     * - Builds a request-side hash token using Feed-provided field selection rules.
      *
-     * @param string $action - action name
-     * @param array  $args   - hash source
-     * @param string $secret - secret
+     * Strict Constraints
+     * - Hash material selection stays aligned with Feed ownership; this helper should
+     *   not invent a separate integrity model detached from the module's persistence
+     *   contract.
      *
-     * @return string
+     * Porting Note
+     * - Keep this as a request-integrity helper adjacent to the backend boundary.
      */
     public static function _hashKey($action, $args, $secret)
     {
