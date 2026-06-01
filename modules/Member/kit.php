@@ -2,6 +2,29 @@
 
 namespace F3CMS;
 
+/**
+ * Architecture Purpose
+ * - Owner-side Kit boundary for member identity/session helpers, OAuth binding and merge
+ *   flow, registration bridge, and EventRule player-context preload around the Member
+ *   module.
+ *
+ * Design Intent
+ * - Keep reusable member identity rules and OAuth/session bridge logic close to the
+ *   Member owner module while preserving the FORKS split: this Kit owns owner-side
+ *   normalization, merge judgment, transactional bind/register helpers, and reusable
+ *   session/context builders; Feed/Reaction collaborators keep persistence truth and
+ *   request orchestration.
+ *
+ * Strict Constraints
+ * - This Kit must not collapse into a generic social-login service or shared auth runtime.
+ * - Member truth, binding persistence, and request/response transport remain owned by the
+ *   Member collaborators and surrounding module layers.
+ *
+ * Porting Guidelines
+ * - Port as the Member module's owner-side OAuth/session/business bridge helper layer.
+ * - Preserve the split between reusable identity helpers here and persistence or request
+ *   orchestration in Member feeds/reactions.
+ */
 class kMember extends Kit
 {
     private const CONTEXT_FIELDS = [
@@ -15,13 +38,32 @@ class kMember extends Kit
     ];
 
     /**
-     * @return int
+     * Architecture Role
+     * - Report whether the current member session is authenticated.
+     *
+     * Strict Constraints
+     * - This helper reads owner-side session projection only; shared session runtime and
+     *   persistence remain outside this Kit.
+     *
+     * Porting Note
+     * - Port as the lightweight frontend/member login-state probe.
      */
     public static function _isLogin()
     {
         return (1 === (int) fMember::_current('has_login')) ? 1 : 0;
     }
 
+    /**
+     * Architecture Role
+     * - Enforce member login gating, including the development mobile-token bridge.
+     *
+     * Strict Constraints
+     * - Gate handling may happen here, but request transport and shared auth runtime must
+     *   not collapse into this Kit.
+     *
+     * Porting Note
+     * - Port as the reusable member login-guard helper with development token support.
+     */
     public static function _chkLogin()
     {
         if (self::_isLogin()) {
@@ -46,6 +88,17 @@ class kMember extends Kit
         return Reaction::_return(8201, ['msg' => 'Member login required.']);
     }
 
+    /**
+     * Architecture Role
+     * - Preload the owner-side EventRule player context for a member.
+     *
+     * Strict Constraints
+     * - Context shaping may happen here, but member/account truth remains owned by Member
+     *   and related feeds.
+     *
+     * Porting Note
+     * - Port as the canonical member EventRule context preloader.
+     */
     public static function preloadEventRuleContext($memberId, $overrides = [])
     {
         $memberId = (int) $memberId;
@@ -90,6 +143,17 @@ class kMember extends Kit
         return $payload;
     }
 
+    /**
+     * Architecture Role
+     * - Build the EventRule player-context object from preloaded member context data.
+     *
+     * Strict Constraints
+     * - This helper assembles runtime context only; EventRule execution and member truth
+     *   stay outside the Kit.
+     *
+     * Porting Note
+     * - Port as the member-to-EventRule context object bridge.
+     */
     public static function createEventRuleContext($memberId, $overrides = [])
     {
         if (!class_exists(EventRulePlayerContext::class)) {
@@ -99,6 +163,18 @@ class kMember extends Kit
         return new EventRulePlayerContext(self::preloadEventRuleContext($memberId, $overrides));
     }
 
+    /**
+     * Architecture Role
+     * - Normalize third-party OAuth profile payloads into the Member module's canonical
+     *   owner-side shape.
+     *
+     * Strict Constraints
+     * - Provider payload normalization may happen here, but provider transport contracts
+     *   and persistence truth remain outside this Kit.
+     *
+     * Porting Note
+     * - Port as the canonical OAuth profile normalizer for Member flows.
+     */
     public static function normalizeOauthProfile($oauthProfile)
     {
         $oauthProfile = is_array($oauthProfile) ? $oauthProfile : [];
@@ -148,6 +224,18 @@ class kMember extends Kit
         ];
     }
 
+    /**
+     * Architecture Role
+     * - Resolve OAuth login into bind, merge, or registration against the Member owner
+     *   boundary.
+     *
+     * Strict Constraints
+     * - Flow branching may happen here, but member persistence and request transport
+     *   remain owned by surrounding collaborators.
+     *
+     * Porting Note
+     * - Port as the main OAuth login-or-register decision helper for Member.
+     */
     public static function loginOrRegisterByOauth($oauthProfile)
     {
         $profile = self::normalizeOauthProfile($oauthProfile);
@@ -180,6 +268,17 @@ class kMember extends Kit
         return self::mergeExistingMemberByOauth($existingMember, $profile);
     }
 
+    /**
+     * Architecture Role
+     * - Register a new member from OAuth data and trigger owner-side post-register work.
+     *
+     * Strict Constraints
+     * - Transaction coordination may happen here, but member/binding persistence truth
+     *   remains with Member collaborators.
+     *
+     * Porting Note
+     * - Port as the OAuth-based member registration bridge.
+     */
     public static function registerByOauth($oauthProfile)
     {
         $profile = self::normalizeOauthProfile($oauthProfile);
@@ -219,6 +318,18 @@ class kMember extends Kit
         ];
     }
 
+    /**
+     * Architecture Role
+     * - Merge an OAuth identity into an existing member when owner-side auto-merge rules
+     *   permit it.
+     *
+     * Strict Constraints
+     * - Merge judgment and bind transaction may happen here, but canonical member truth
+     *   remains Member-owned.
+     *
+     * Porting Note
+     * - Port as the owner-side OAuth merge bridge for existing members.
+     */
     public static function mergeExistingMemberByOauth($member, $oauthProfile)
     {
         $member = is_array($member) ? $member : [];
@@ -257,6 +368,17 @@ class kMember extends Kit
         ];
     }
 
+    /**
+     * Architecture Role
+     * - Bind a normalized OAuth identity to a member account.
+     *
+     * Strict Constraints
+     * - Binding coordination may happen here, but persistence truth and conflict rules
+     *   remain owned by Member collaborators.
+     *
+     * Porting Note
+     * - Port as the owner-side OAuth account binding helper.
+     */
     public static function bindOauthToMember($memberId, $oauthProfile, $operatorId = 0)
     {
         $memberId = (int) $memberId;
@@ -286,6 +408,17 @@ class kMember extends Kit
         return $binding;
     }
 
+    /**
+     * Architecture Role
+     * - Establish the current member session snapshot from a member payload.
+     *
+     * Strict Constraints
+     * - Session projection may be set here, but shared session runtime and persisted
+     *   member truth remain outside this Kit.
+     *
+     * Porting Note
+     * - Port as the member-session snapshot helper after successful auth/bind flows.
+     */
     public static function createMemberSession($member)
     {
         $member = is_array($member) ? $member : [];
@@ -298,6 +431,17 @@ class kMember extends Kit
         return $member;
     }
 
+    /**
+     * Architecture Role
+     * - Decide whether an existing member may be auto-merged with an OAuth profile.
+     *
+     * Strict Constraints
+     * - This helper enforces owner-side merge policy only; it must not become a generic
+     *   identity-linking rule engine.
+     *
+     * Porting Note
+     * - Port as the Member-specific OAuth auto-merge gate.
+     */
     public static function canAutoMergeByOauth($member, $oauthProfile)
     {
         $member = is_array($member) ? $member : [];
@@ -323,6 +467,17 @@ class kMember extends Kit
         return !empty($member['email']) && 0 === strcasecmp((string) $member['email'], $verifiedEmail);
     }
 
+    /**
+     * Architecture Role
+     * - Extract a verified email from a normalized OAuth profile.
+     *
+     * Strict Constraints
+     * - This helper shapes trusted email projection only; provider verification truth
+     *   remains in the incoming profile data.
+     *
+     * Porting Note
+     * - Port as the Member-specific verified-email extractor for OAuth flows.
+     */
     public static function extractVerifiedEmail($oauthProfile)
     {
         $profile = self::normalizeOauthProfile($oauthProfile);
@@ -338,6 +493,17 @@ class kMember extends Kit
         return strtolower(trim((string) $profile['email']));
     }
 
+    /**
+     * Architecture Role
+     * - Filter override payloads down to the allowed member EventRule context fields.
+     *
+     * Strict Constraints
+     * - This helper constrains owner-side context shaping only; arbitrary runtime payloads
+     *   must not leak through this Kit.
+     *
+     * Porting Note
+     * - Port as the whitelist gate for member context override fields.
+     */
     private static function filterOverrides($overrides)
     {
         if (!is_array($overrides) || empty($overrides)) {
@@ -347,6 +513,17 @@ class kMember extends Kit
         return array_intersect_key($overrides, array_flip(self::CONTEXT_FIELDS));
     }
 
+    /**
+     * Architecture Role
+     * - Normalize owner-side string-list payloads used in member context shaping.
+     *
+     * Strict Constraints
+     * - This helper exists for local context normalization only; it must not become a
+     *   generic string-array utility surface.
+     *
+     * Porting Note
+     * - Port as the member-context string-list normalizer.
+     */
     private static function normalizeStringList($values)
     {
         if (!is_array($values) || empty($values)) {
@@ -358,6 +535,17 @@ class kMember extends Kit
         }, $values))));
     }
 
+    /**
+     * Architecture Role
+     * - Normalize the member seen-target map used in EventRule/player context payloads.
+     *
+     * Strict Constraints
+     * - This helper shapes owner-side context data only; canonical seen-target truth stays
+     *   in Member collaborators.
+     *
+     * Porting Note
+     * - Port as the member seen-target map normalizer.
+     */
     private static function normalizeSeenTargetMap($values)
     {
         if (!is_array($values) || empty($values)) {
@@ -380,6 +568,17 @@ class kMember extends Kit
         return $map;
     }
 
+    /**
+     * Architecture Role
+     * - Build the canonical member-create payload from a normalized OAuth profile.
+     *
+     * Strict Constraints
+     * - Payload shaping may happen here, but persisted member truth remains owned by the
+     *   Member feed.
+     *
+     * Porting Note
+     * - Port as the member registration payload builder for OAuth onboarding.
+     */
     private static function buildMemberPayload($profile)
     {
         $profile = self::normalizeOauthProfile($profile);
@@ -400,6 +599,17 @@ class kMember extends Kit
         ];
     }
 
+    /**
+     * Architecture Role
+     * - Normalize loosely typed truthy/falsey values into booleans for OAuth payloads.
+     *
+     * Strict Constraints
+     * - This helper exists for local Member payload normalization only; it must not grow
+     *   into a generic boolean utility surface.
+     *
+     * Porting Note
+     * - Port as the OAuth-profile boolean normalizer used by Member.
+     */
     private static function toBool($value)
     {
         if (is_bool($value)) {

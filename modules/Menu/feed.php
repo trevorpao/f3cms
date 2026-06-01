@@ -3,7 +3,26 @@
 namespace F3CMS;
 
 /**
- * data feed
+ * Architecture Purpose
+ * - Owner-side Feed for menu tree persistence, hierarchical ordering, parent-child
+ *   rewiring, and menu option projection in the backend site-navigation domain.
+ *
+ * Design Intent
+ * - Keep structural menu ownership inside the Menu module even when it reuses the
+ *   shared Feed base, so tree sorting, parent reassignment, cloned subtree creation,
+ *   and orphan cleanup do not drift into generic utilities or UI-side helpers.
+ *
+ * Strict Constraints
+ * - Hierarchical menu semantics belong to this module boundary and must not be widened
+ *   into a generic tree engine that starts owning unrelated content structures.
+ * - Parent/child maintenance, deletion cleanup, and option projection must remain tied
+ *   to Menu entity truth rather than being reconstructed ad hoc by callers.
+ *
+ * Porting Guidelines
+ * - Port as the owner-side Feed for backend menu-tree persistence and navigation
+ *   structure maintenance.
+ * - Preserve the split between shared Feed mechanics and Menu-owned tree shaping,
+ *   deletion cleanup, and option projection semantics.
  */
 class fMenu extends Feed
 {
@@ -21,9 +40,16 @@ class fMenu extends Feed
     const HARD_DEL = 1;
 
     /**
-     * @param $query
-     * @param $page
-     * @param $limit
+     * Architecture Role
+     * - Provide the canonical backend menu listing result using the module-owned sorted
+     *   tree projection instead of generic paginated SQL rows.
+     *
+     * Strict Constraints
+     * - Menu hierarchy presentation belongs to this Feed boundary; do not replace it
+     *   with flat caller-side pagination when the tree structure is still required.
+     *
+     * Porting Note
+     * - Port as the menu-tree listing entry that returns sorted hierarchical subsets.
      */
     public static function limitRows($query = '', $page = 0, $limit = 0, $cols = '')
     {
@@ -40,11 +66,16 @@ class fMenu extends Feed
     }
 
     /**
-     * get menus by parent id
+     * Architecture Role
+     * - Read menu rows by parent boundary with localized titles and optional disabled
+     *   nodes for backend maintenance flows.
      *
-     * @param int $parent_id - parent type id
+     * Strict Constraints
+     * - Parent-scoped menu retrieval remains a Menu module concern; do not rebuild the
+     *   join and status rules across callers.
      *
-     * @return array
+     * Porting Note
+     * - Port as a localized menu read query scoped by parent_id and force flag.
      */
     public static function get_menus($parent_id = -1, $force = 0)
     {
@@ -72,8 +103,15 @@ class fMenu extends Feed
     }
 
     /**
-     * @param $pid
-     * @param $value
+     * Architecture Role
+     * - Update the stored sort order of one menu node.
+     *
+     * Strict Constraints
+     * - Sort-order mutation is part of Menu tree ownership; do not scatter this write
+     *   across controllers or generic reorder helpers.
+     *
+     * Porting Note
+     * - Port as a focused menu-node sorter update primitive.
      */
     public static function update_sorter($pid, $sorter)
     {
@@ -87,8 +125,15 @@ class fMenu extends Feed
     }
 
     /**
-     * @param $pid
-     * @param $value
+     * Architecture Role
+     * - Reassign the parent node of one menu item within the menu tree.
+     *
+     * Strict Constraints
+     * - Parent rewiring remains a Menu-owned structural write; do not delegate this to
+     *   generic tree utilities that ignore menu-specific persistence context.
+     *
+     * Porting Note
+     * - Port as a focused menu-node parent update primitive.
      */
     public static function update_parent($pid, $parent = 0)
     {
@@ -102,9 +147,15 @@ class fMenu extends Feed
     }
 
     /**
-     * @param $query
-     * @param $page
-     * @param $limit
+     * Architecture Role
+     * - Project the menu tree into a flattened option list for selection UIs.
+     *
+     * Strict Constraints
+     * - Option projection must preserve menu hierarchy ownership and should not be
+     *   regenerated inconsistently in views or request handlers.
+     *
+     * Porting Note
+     * - Port as a flattened option-list projection over the sorted menu tree.
      */
     public static function getOpts($query = '', $column = 'title')
     {
@@ -119,8 +170,15 @@ class fMenu extends Feed
     }
 
     /**
-     * @param $rows
-     * @param $rtn
+     * Architecture Role
+     * - Flatten a hierarchical menu row set into the option-list accumulator.
+     *
+     * Strict Constraints
+     * - This recursion helper exists only to preserve Menu projection semantics; do not
+     *   widen it into a generic tree traversal helper.
+     *
+     * Porting Note
+     * - Port as a local recursive flattener for menu option projection.
      */
     public static function recursion($rows, &$rtn)
     {
@@ -133,10 +191,15 @@ class fMenu extends Feed
     }
 
     /**
-     * @param object $menu
-     * @param int    $parent_id
+     * Architecture Role
+     * - Clone one menu node into a new parent location while reusing the Menu save path.
      *
-     * @return int new menu id
+     * Strict Constraints
+     * - Clone semantics remain Menu-owned structural behavior; do not move them into a
+     *   generic duplication helper that loses parent-boundary meaning.
+     *
+     * Porting Note
+     * - Port as a menu-node clone primitive that resets identity and rewires parent_id.
      */
     public static function cloneMenu($menu, $parent_id)
     {
@@ -146,15 +209,32 @@ class fMenu extends Feed
         return self::save($menu);
     }
 
+    /**
+     * Architecture Role
+     * - Declare the fixed menu nodes that backend tree editing must not mutate freely.
+     *
+     * Strict Constraints
+     * - Frozen-node policy belongs to Menu structural ownership and should not be hidden
+     *   in UI-only code.
+     *
+     * Porting Note
+     * - Port as static protected-node metadata for menu maintenance flows.
+     */
     public static function freezeNode()
     {
         return [1, 2, 16];
     }
 
     /**
-     * delete one row
+     * Architecture Role
+     * - Delete one menu node and trigger the module-owned orphan cleanup pass.
      *
-     * @param int $pid
+     * Strict Constraints
+     * - Hard delete and follow-up tree cleanup are Menu persistence responsibilities;
+     *   do not separate them into unrelated deletion and repair flows.
+     *
+     * Porting Note
+     * - Port as a menu delete command that immediately normalizes orphaned descendants.
      */
     public static function delRow($pid, $sub_table = '')
     {
@@ -171,6 +251,19 @@ class fMenu extends Feed
         }
     }
 
+    /**
+     * Architecture Role
+     * - Remove orphaned menu and menu_lang rows until the menu tree reaches a stable
+     *   parent-child state.
+     *
+     * Strict Constraints
+     * - Orphan cleanup belongs to Menu structural ownership and should not be pushed to
+     *   generic maintenance jobs that no longer understand menu hierarchy truth.
+     *
+     * Porting Note
+     * - Port as a bounded recursive cleanup pass over orphaned menu nodes and localized
+     *   rows.
+     */
     private static function removeOrphanNode()
     {
         $rowCount = self::exec('DELETE FROM `' . self::fmTbl() . '` WHERE `parent_id` IN (SELECT l.`parent_id` FROM `' . self::fmTbl() . '` l LEFT JOIN `' .

@@ -2,10 +2,47 @@
 
 namespace F3CMS;
 
+/**
+ * Architecture Purpose
+ * - Owner-side Reaction boundary for Press request orchestration, covering publish
+ *   workflow transitions, trace-aware status mutation coordination, seen completion,
+ *   and frontend press list/detail response shaping.
+ *
+ * Design Intent
+ * - Keep request orchestration for Press close to the module while preserving the FORKS
+ *   split: workflow/runtime evaluation stays in WorkflowEngine, persistence ownership
+ *   stays in fPress, and this Reaction coordinates auth, request parsing, and response
+ *   shaping across those collaborators.
+ *
+ * Strict Constraints
+ * - This Reaction must not absorb Feed persistence semantics, schema decomposition, or
+ *   generic workflow runtime ownership.
+ * - Cross-module side effects such as Duty completion or page generation may be
+ *   coordinated here, but module truth and persistence writes must remain with the
+ *   owning collaborators.
+ *
+ * Porting Guidelines
+ * - Port as the Press module's request/application orchestration layer.
+ * - Preserve the split between request gates here, workflow evaluation in runtime
+ *   helpers, and entity persistence in the Feed boundary.
+ */
 class rPress extends Reaction
 {
     const WORKFLOW_OPERATOR_ROLE = 'ROLE_PUBLISHER';
 
+    /**
+     * Architecture Role
+     * - Complete the Press "seen" side effect for the current member through the owner-
+     *   side duty/task collaborator.
+     *
+     * Strict Constraints
+     * - This method coordinates member gate, request parsing, and response shaping, but
+     *   the actual task-completion business logic remains outside Reaction.
+     *
+     * Porting Note
+     * - Port as a member-authenticated endpoint that delegates seen completion to the
+     *   owning collaborator.
+     */
     public function do_seen($f3, $args)
     {
         $memberId = (int) fMember::_current('id');
@@ -25,8 +62,18 @@ class rPress extends Reaction
     }
 
     /**
-     * @param $f3
-     * @param $args
+     * Architecture Role
+     * - Orchestrate Press publish/offline requests by validating the requested workflow
+     *   transition, delegating trace-aware persistence to the Feed, and triggering the
+     *   necessary post-transition side effects.
+     *
+     * Strict Constraints
+     * - Workflow definition validation and transition projection may be coordinated here,
+     *   but persistence ownership stays with fPress and workflow runtime ownership stays
+     *   with WorkflowEngine.
+     *
+     * Porting Note
+     * - Port as the Press publish-status command handler over Feed and WorkflowEngine.
      */
     public function do_published($f3, $args)
     {
@@ -70,6 +117,19 @@ class rPress extends Reaction
         return self::_return(1, ['id' => $req['id']]);
     }
 
+    /**
+     * Architecture Role
+     * - Resolve the current published Press target for a member and delegate the seen
+     *   completion to the Duty-side collaborator.
+     *
+     * Strict Constraints
+     * - Press target lookup is coordinated here, but the owning completion logic must
+     *   remain in the collaborator that owns seen-task semantics.
+     *
+     * Porting Note
+     * - Port as a request-independent helper that maps member plus press identity into a
+     *   seen-completion call.
+     */
     public static function completeSeenForMember($memberId, $req = [])
     {
         $memberId = (int) $memberId;
@@ -99,6 +159,18 @@ class rPress extends Reaction
         return kDuty::completeTasksForSeenTarget($memberId, 'Press', (int) $press['id'], $source, $memberId);
     }
 
+    /**
+     * Architecture Role
+     * - Translate a requested Press status change into a validated workflow transition
+     *   plus trace payload ready for Feed-owned persistence.
+     *
+     * Strict Constraints
+     * - This helper coordinates WorkflowEngine usage and builds trace data, but it must
+     *   not itself mutate persistence state or become the workflow truth owner.
+     *
+     * Porting Note
+     * - Port as the Press workflow-transition preparation step before persistence.
+     */
     public static function applyWorkflowPublishedTransition($currentPress, $req, $operatorId)
     {
         $targetStatus = isset($req['status']) ? (string) $req['status'] : '';
@@ -179,6 +251,18 @@ class rPress extends Reaction
         ];
     }
 
+    /**
+     * Architecture Role
+     * - Map the requested Press target status to the workflow action code expected by
+     *   the Press workflow definition.
+     *
+     * Strict Constraints
+     * - Status-to-action mapping belongs to Press workflow orchestration semantics and
+     *   should not drift into generic status helpers.
+     *
+     * Porting Note
+     * - Port as a small Press-specific workflow action resolver.
+     */
     private static function resolveWorkflowActionCode($targetStatus)
     {
         switch ((string) $targetStatus) {
@@ -192,8 +276,16 @@ class rPress extends Reaction
     }
 
     /**
-     * @param $f3
-     * @param $args
+     * Architecture Role
+     * - Serve the frontend "more" listing action by shaping request input, optional tag
+     *   resolution, and Press list projections.
+     *
+     * Strict Constraints
+     * - Request-side list shaping belongs here, but list retrieval and relation truth
+     *   remain owned by the Feed boundary.
+     *
+     * Porting Note
+     * - Port as a frontend list/load-more endpoint over Press feed queries.
      */
     public function do_more($f3, $args)
     {
@@ -240,9 +332,15 @@ class rPress extends Reaction
     }
 
     /**
-     * @param array $row
+     * Architecture Role
+     * - Enrich one Press row into the detail payload used by backend/frontend callers.
      *
-     * @return mixed
+     * Strict Constraints
+     * - Detail payload shaping belongs here, but related/meta/term data ownership stays
+     *   with the Feed methods that retrieve those structures.
+     *
+     * Porting Note
+     * - Port as a Press detail response assembler over Feed-owned read helpers.
      */
     public static function handleRow($row = [])
     {
@@ -257,9 +355,15 @@ class rPress extends Reaction
     }
 
     /**
-     * @param array $row
+     * Architecture Role
+     * - Enrich one Press row with the lightweight relation payload needed by list views.
      *
-     * @return mixed
+     * Strict Constraints
+     * - Iteratee shaping remains a Reaction response concern; do not turn it into a
+     *   persistence-side projection that would blur Feed ownership.
+     *
+     * Porting Note
+     * - Port as a list-row response shaper for Press list endpoints.
      */
     public static function handleIteratee($row = [])
     {

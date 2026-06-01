@@ -2,6 +2,28 @@
 
 namespace F3CMS;
 
+/**
+ * Architecture Purpose
+ * - Owner-side Reaction boundary for backend staff auth/session orchestration,
+ *   self-service profile updates, invite resend, sudo flow, and role-option exposure.
+ *
+ * Design Intent
+ * - Keep backend operator login and session choreography close to the Staff module while
+ *   preserving the FORKS split: request/auth sequencing stays here, staff persistence
+ *   stays in fStaff, and password/footmark/security collaborators retain their own
+ *   ownership.
+ *
+ * Strict Constraints
+ * - This Reaction must not absorb Feed persistence semantics or become the owner of
+ *   session storage, password policy runtime, or member domain truth.
+ * - Cross-module coordination with Doorman, Role, Member, and Stream may be orchestrated
+ *   here, but each collaborator must retain its own persistence and policy ownership.
+ *
+ * Porting Guidelines
+ * - Port as the backend staff/session application-layer handler.
+ * - Preserve the split between request/auth gates here, persistence in Staff Feed, and
+ *   password/session/security policy in the owning collaborators.
+ */
 class rStaff extends Reaction
 {
     const RTN_MISSCOLS   = 'MissCols';
@@ -21,8 +43,17 @@ class rStaff extends Reaction
     const RTN_WRONGCSRF  = 'WrongCSRF';
 
     /**
-     * @param $f3
-     * @param $args
+     * Architecture Role
+     * - Orchestrate backend staff login by validating CSRF, password, whitelist, status,
+     *   and lockout state before materializing the current staff session snapshot.
+     *
+     * Strict Constraints
+     * - This method coordinates login flow, but password verification, doorman state,
+     *   role privilege truth, and session persistence remain with their owning
+     *   collaborators.
+     *
+     * Porting Note
+     * - Port as the backend staff login handler over Staff, Role, and Doorman services.
      */
     public function do_login($f3, $args)
     {
@@ -62,9 +93,11 @@ class rStaff extends Reaction
 
                     $whitelist = fOption::get('ip_whitelist');
 
-                    if (!empty($whitelist)) {
+                    if (empty($whitelist)) {
+                        $whitelist = ['*'];
+                    } elseif (is_string($whitelist)) {
                         $whitelist = explode(PHP_EOL, $whitelist);
-                    } else {
+                    } elseif (!is_array($whitelist)) {
                         $whitelist = ['*'];
                     }
 
@@ -106,8 +139,16 @@ class rStaff extends Reaction
     }
 
     /**
-     * @param $f3
-     * @param $args
+     * Architecture Role
+     * - Update the currently logged-in staff member's own profile and optional password,
+     *   then refresh the session snapshot.
+     *
+     * Strict Constraints
+     * - Self-service update orchestration belongs here, but persistence ownership stays
+     *   with fStaff and password-footmark tracking stays with Doorman.
+     *
+     * Porting Note
+     * - Port as the current-staff profile update endpoint.
      */
     public function do_saveMine($f3, $args)
     {
@@ -168,8 +209,15 @@ class rStaff extends Reaction
     }
 
     /**
-     * @param $f3
-     * @param $args
+     * Architecture Role
+     * - Orchestrate backend staff logout by clearing the current staff session snapshot.
+     *
+     * Strict Constraints
+     * - Logout flow remains a thin session-boundary action here; broader cleanup must
+     *   stay with the owning collaborators if needed.
+     *
+     * Porting Note
+     * - Port as the backend staff logout endpoint.
      */
     public function do_logout($f3, $args)
     {
@@ -181,8 +229,16 @@ class rStaff extends Reaction
     }
 
     /**
-     * @param $f3
-     * @param $args
+     * Architecture Role
+     * - Report current backend staff login state and session payload to callers that need
+     *   a lightweight auth-status probe.
+     *
+     * Strict Constraints
+     * - This endpoint only exposes Staff-owned session state; do not let it become a
+     *   generic auth aggregator for unrelated modules.
+     *
+     * Porting Note
+     * - Port as a small staff-session status endpoint.
      */
     public function do_status($f3, $args)
     {
@@ -198,8 +254,16 @@ class rStaff extends Reaction
     }
 
     /**
-     * @param $f3
-     * @param $args
+     * Architecture Role
+     * - Resend the staff invite/verification flow by generating a new verify code and
+     *   delegating delivery to the Staff-side collaborator.
+     *
+     * Strict Constraints
+     * - This method coordinates invite resend only; delivery/runtime policy stays with
+     *   the Staff collaborator and persistence ownership stays with fStaff.
+     *
+     * Porting Note
+     * - Port as a backend invite-resend endpoint for staff accounts.
      */
     public function do_resend($f3, $args)
     {
@@ -230,8 +294,16 @@ class rStaff extends Reaction
     }
 
     /**
-     * @param $f3
-     * @param $args
+     * Architecture Role
+     * - Orchestrate backend staff sudo into a Member session when authorization rules
+     *   allow it, while recording the audit trail.
+     *
+     * Strict Constraints
+     * - Reaction may coordinate the sudo sequence, but member session truth, staff sudo
+     *   persistence, and audit logging remain owned by the corresponding collaborators.
+     *
+     * Porting Note
+     * - Port as a staff-to-member sudo endpoint with explicit audit side effects.
      */
     public function do_sudo($f3, $args)
     {
@@ -240,7 +312,7 @@ class rStaff extends Reaction
         $member = fMember::one($args['UID']);
 
         if (!empty($member)) {
-            $super  = canDo(fMember::PV_SDP);
+            $super  = canDo(fStaff::PV_U);
             $normal = canDo(fMember::PV_R);
 
             if ($super || ($normal && fStaff::_current('email') == $member['email'])) {
@@ -257,6 +329,17 @@ class rStaff extends Reaction
         f3()->reroute(f3()->get('uri') . '/member');
     }
 
+    /**
+     * Architecture Role
+     * - Expose backend role authority options for staff-side administration flows.
+     *
+     * Strict Constraints
+     * - Option exposure is coordinated here, but role authority truth remains owned by
+     *   the Role module.
+     *
+     * Porting Note
+     * - Port as a thin staff-admin endpoint over Role option projection.
+     */
     public function do_get_opts($f3, $args)
     {
         chkAuth(fRole::PV_R);
@@ -264,6 +347,18 @@ class rStaff extends Reaction
         return self::_return(1, fRole::getAuthOpts());
     }
 
+    /**
+     * Architecture Role
+     * - Define the Staff reaction-specific response code/message map layered on top of
+     *   shared Reaction messages.
+     *
+     * Strict Constraints
+     * - Message semantics remain a request-boundary concern; do not hide business state
+     *   ownership behind these transport-facing strings.
+     *
+     * Porting Note
+     * - Port as endpoint/result metadata for staff auth and profile flows.
+     */
     public static function formatMsgs()
     {
         return array_merge([
@@ -319,9 +414,16 @@ class rStaff extends Reaction
     }
 
     /**
-     * @param array $row
+     * Architecture Role
+     * - Sanitize one Staff row before it is returned to callers by removing sensitive
+     *   password material from the response payload.
      *
-     * @return mixed
+     * Strict Constraints
+     * - Response sanitization belongs here, but it must stay minimal and not become a
+     *   replacement for deeper data-access policy.
+     *
+     * Porting Note
+     * - Port as a Staff response-shaping helper that strips password fields.
      */
     public static function handleRow($row = [])
     {

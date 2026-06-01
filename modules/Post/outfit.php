@@ -3,12 +3,40 @@
 namespace F3CMS;
 
 /**
- * for render page
+ * Architecture Purpose
+ * - Owner-side Outfit boundary for site-level Post/frontdoor rendering, covering home,
+ *   robots, sitemap, RSS, LINE XML, static single-page rendering, maintenance/coming
+ *   soon gates, and not-found presentation.
+ *
+ * Design Intent
+ * - Keep site-wide frontend entry rendering close to the Post owner module while
+ *   preserving the FORKS split: this Outfit owns route-to-view flow, page-format
+ *   selection, and response projection for public frontdoor endpoints; Feed/Option/
+ *   Category collaborators keep persisted content truth and list data ownership.
+ *
+ * Strict Constraints
+ * - This Outfit must not absorb persistence ownership, generic site bootstrap logic, or
+ *   long-lived content query rules that belong to owner-side collaborators.
+ * - Rendering of XML/static/frontdoor pages may be coordinated here, but canonical data
+ *   sourcing and module-owned semantics remain outside the Outfit layer.
+ *
+ * Porting Guidelines
+ * - Port as the site-level public/frontdoor rendering boundary.
+ * - Preserve the split between route/render/output-format behavior here and content /
+ *   option retrieval ownership in Post/Press/Category collaborators.
  */
 class oPost extends Outfit
 {
     /**
-     * @param $args
+     * Architecture Role
+     * - Render the public site homepage through the frontdoor outfit boundary.
+     *
+     * Strict Constraints
+     * - This method is a route-to-view adapter only; homepage content sourcing remains
+     *   outside the Outfit itself.
+     *
+     * Porting Note
+     * - Port as the root homepage rendering entrypoint.
      */
     public static function home($args)
     {
@@ -16,7 +44,15 @@ class oPost extends Outfit
     }
 
     /**
-     * @param $args
+     * Architecture Role
+     * - Render the site robots.txt payload from the outfit boundary.
+     *
+     * Strict Constraints
+     * - This method outputs a static robots view only; crawler policy truth remains in
+     *   the served template/configuration.
+     *
+     * Porting Note
+     * - Port as the robots.txt rendering endpoint.
      */
     public function do_robots($f3, $args)
     {
@@ -24,7 +60,15 @@ class oPost extends Outfit
     }
 
     /**
-     * @param $args
+     * Architecture Role
+     * - Render the sitemap XML payload from published Press and Category inputs.
+     *
+     * Strict Constraints
+     * - XML response shaping may happen here, but canonical published rows and page
+     *   option truth remain owned by the corresponding feeds.
+     *
+     * Porting Note
+     * - Port as the sitemap-generation endpoint for public crawlers.
      */
     public static function sitemap($args)
     {
@@ -45,7 +89,15 @@ class oPost extends Outfit
     }
 
     /**
-     * @param $args
+     * Architecture Role
+     * - Render the RSS feed output from published Press content.
+     *
+     * Strict Constraints
+     * - Feed formatting may happen here, but article truth and author relations remain
+     *   owned by Press collaborators.
+     *
+     * Porting Note
+     * - Port as the public RSS output endpoint.
      */
     public static function rss($args)
     {
@@ -74,7 +126,16 @@ class oPost extends Outfit
     }
 
     /**
-     * @param $args
+     * Architecture Role
+     * - Render the LINE XML export from published Press content when the integration gate
+     *   is enabled.
+     *
+     * Strict Constraints
+     * - Integration gating and XML shaping may happen here, but article/tag/author truth
+     *   remains with owner-side collaborators.
+     *
+     * Porting Note
+     * - Port as the conditional LINE XML output endpoint.
      */
     public static function lineXml($args)
     {
@@ -121,7 +182,15 @@ class oPost extends Outfit
     }
 
     /**
-     * @param $args
+     * Architecture Role
+     * - Resolve and render a static Post single page by slug/layout.
+     *
+     * Strict Constraints
+     * - This helper coordinates static-page routing and template selection, but persisted
+     *   page truth remains in the Post feed.
+     *
+     * Porting Note
+     * - Port as the internal static-page rendering helper behind named page routes.
      */
     public static function _render($args)
     {
@@ -146,7 +215,15 @@ class oPost extends Outfit
     }
 
     /**
-     * @param $args
+     * Architecture Role
+     * - Render the canonical About static page through the shared static-page helper.
+     *
+     * Strict Constraints
+     * - This method selects a fixed owner-side slug only; page content truth remains in
+     *   the Post collaborator.
+     *
+     * Porting Note
+     * - Port as the named About-page route entrypoint.
      */
     public static function about($args)
     {
@@ -155,7 +232,15 @@ class oPost extends Outfit
     }
 
     /**
-     * @param $args
+     * Architecture Role
+     * - Render the canonical Privacy static page through the shared static-page helper.
+     *
+     * Strict Constraints
+     * - This method selects a fixed owner-side slug only; page content truth remains in
+     *   the Post collaborator.
+     *
+     * Porting Note
+     * - Port as the named Privacy-page route entrypoint.
      */
     public static function privacy($args)
     {
@@ -164,7 +249,15 @@ class oPost extends Outfit
     }
 
     /**
-     * @param $args
+     * Architecture Role
+     * - Render the canonical Terms static page through the shared static-page helper.
+     *
+     * Strict Constraints
+     * - This method selects a fixed owner-side slug only; page content truth remains in
+     *   the Post collaborator.
+     *
+     * Porting Note
+     * - Port as the named Terms-page route entrypoint.
      */
     public static function terms($args)
     {
@@ -173,7 +266,15 @@ class oPost extends Outfit
     }
 
     /**
-     * @param $args
+     * Architecture Role
+     * - Render the maintenance holding page from the site frontdoor boundary.
+     *
+     * Strict Constraints
+     * - This method controls maintenance presentation only; deployment/site-state policy
+     *   remains outside the Outfit itself.
+     *
+     * Porting Note
+     * - Port as the maintenance-page rendering endpoint.
      */
     public static function maintenance($args)
     {
@@ -181,7 +282,15 @@ class oPost extends Outfit
     }
 
     /**
-     * @param $args
+     * Architecture Role
+     * - Gate and render the coming-soon page before the site begin date.
+     *
+     * Strict Constraints
+     * - Time-window gating may happen here, but site launch policy truth remains in the
+     *   configured begin-date setting.
+     *
+     * Porting Note
+     * - Port as the launch-window holding-page entrypoint.
      */
     public static function comingsoon($args)
     {
@@ -195,7 +304,15 @@ class oPost extends Outfit
     }
 
     /**
-     * @param $args
+     * Architecture Role
+     * - Render the public 404 error page from the frontdoor outfit boundary.
+     *
+     * Strict Constraints
+     * - Error-page shaping may happen here, but not-found detection semantics remain with
+     *   the routing layer.
+     *
+     * Porting Note
+     * - Port as the standard not-found presentation endpoint.
      */
     public static function notfound($args)
     {

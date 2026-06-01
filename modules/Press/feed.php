@@ -3,7 +3,28 @@
 namespace F3CMS;
 
 /**
- * data feed
+ * Architecture Purpose
+ * - Owner-side content Feed for press entities, covering editorial persistence,
+ *   publish-state transitions, relation writeback, and content retrieval surfaces
+ *   that stay specific to the Press module.
+ *
+ * Design Intent
+ * - Keep content lifecycle ownership with the Press module even when it reuses the
+ *   shared Feed base, so workflow trace logging, related-content mapping, author/tag
+ *   relations, and editorial retrieval rules are not flattened into generic helpers.
+ *
+ * Strict Constraints
+ * - This Feed may extend shared persistence behavior, but it must not push
+ *   module-owned editorial rules, workflow trace semantics, or relation truth into
+ *   unrelated shared libs just for reuse convenience.
+ * - Press-specific relation writeback, content scanning, and retrieval shaping must
+ *   stay aligned with the Press entity boundary rather than move into Reaction,
+ *   transport helpers, or generic search utilities.
+ *
+ * Porting Guidelines
+ * - Port as the Press module's entity-owned persistence/feed boundary.
+ * - Preserve the split between shared Feed mechanics and Press-owned content,
+ *   workflow-log, relation, and retrieval semantics.
  */
 class fPress extends Feed
 {
@@ -18,21 +39,68 @@ class fPress extends Feed
 
     const BE_COLS = 'm.id,l.title,l.info,m.last_ts,m.cover,m.status,m.slug,m.online_date,s.account,cl.title(category),c.slug(category_slug)';
 
+    /**
+     * Architecture Role
+     * - Expose a Press-owned scan surface for suspicious content markers in localized
+     *   article bodies.
+     *
+     * Strict Constraints
+     * - This is a diagnostic read helper only; detection policy may evolve, but the
+     *   scan must remain scoped to Press content rather than becoming a generic site
+     *   moderation service.
+     *
+     * Porting Note
+     * - Port as a module-owned diagnostic query over press_lang content.
+     */
     public static function suspiciousContentMarkers($pattern, $limit = 50)
     {
         return self::findLangContentMatches((string) $pattern, (int) $limit, false);
     }
 
+    /**
+     * Architecture Role
+     * - Provide the Press module's XSS-oriented content scan entry over localized
+     *   article bodies.
+     *
+     * Strict Constraints
+     * - Keep this helper focused on module-owned diagnostics; do not treat it as a
+     *   replacement for shared request sanitization or session-security layers.
+     *
+     * Porting Note
+     * - Port as a Press-specific suspicious-content scan with lowercase matching.
+     */
     public static function suspiciousXssIndicators($pattern, $limit = 50)
     {
         return self::findLangContentMatches(strtolower((string) $pattern), (int) $limit, true);
     }
 
+    /**
+     * Architecture Role
+     * - Define the canonical backend/default ordering contract for press listings.
+     *
+     * Strict Constraints
+     * - Ordering semantics belong to the Press feed boundary; do not duplicate them in
+     *   controllers or generic list helpers.
+     *
+     * Porting Note
+     * - Preserve sorter, online_date, then insert_ts precedence for press reads.
+     */
     public static function genOrder()
     {
         return ['m.sorter' => 'ASC', 'm.online_date' => 'DESC', 'm.insert_ts' => 'DESC'];
     }
 
+    /**
+     * Architecture Role
+     * - Execute the shared query primitive behind Press content-marker scans.
+     *
+     * Strict Constraints
+     * - Keep raw content probing inside the Press feed boundary and avoid turning this
+     *   helper into a cross-module text-mining abstraction.
+     *
+     * Porting Note
+     * - Port as a bounded press_lang regexp query with safe fallback on failure.
+     */
     private static function findLangContentMatches($pattern, $limit, $lowercase = false)
     {
         $contentExpr = $lowercase ? 'LOWER(`content`)' : '`content`';
@@ -49,6 +117,18 @@ class fPress extends Feed
         }
     }
 
+    /**
+     * Architecture Role
+     * - Declare the join topology for Press reads, including authoring staff and
+     *   category-localization projections.
+     *
+     * Strict Constraints
+     * - Join ownership stays with the Press feed because it mirrors module retrieval
+     *   shape; do not rebuild this topology ad hoc in request handlers.
+     *
+     * Porting Note
+     * - Port as the default projection graph for press backend/frontend list reads.
+     */
     public static function genJoin()
     {
         return [
@@ -60,10 +140,17 @@ class fPress extends Feed
     }
 
     /**
-     * @param $ids
-     * @param $page
-     * @param $limit
-     * @param $cols
+     * Architecture Role
+     * - Read a paginated Press collection constrained to an explicit set of entity IDs.
+     *
+     * Strict Constraints
+     * - This method preserves Press-owned publication filtering and projection shape;
+     *   callers must not bypass it with duplicated list logic when the read still
+     *   depends on Press entity semantics.
+     *
+     * Porting Note
+     * - Port as an ID-scoped Press listing query that always enforces published/changed
+     *   visibility rules.
      */
     public static function lotsByID($ids, $page = 0, $limit = 6, $cols = '')
     {
@@ -80,6 +167,18 @@ class fPress extends Feed
         return self::paginate(self::fmTbl() . '(m)', $filter, $page, $limit, explode(',', self::BE_COLS . $cols), self::genJoin());
     }
 
+    /**
+     * Architecture Role
+     * - Resolve a single Press entity only when it is already in a public/published
+     *   lifecycle state.
+     *
+     * Strict Constraints
+     * - Published-state gating remains a Feed concern here; do not leak this lifecycle
+     *   rule into generic callers as ad hoc condition building.
+     *
+     * Porting Note
+     * - Port as a published-only single-entity lookup wrapper over the shared Feed read.
+     */
     public static function onePublished($val, $col = 'id', $multilang = 0)
     {
         return self::one($val, $col, [
@@ -87,6 +186,18 @@ class fPress extends Feed
         ], $multilang);
     }
 
+    /**
+     * Architecture Role
+     * - Extract Press IDs from a specific relation table so higher-level relation reads
+     *   can reuse one module-owned primitive.
+     *
+     * Strict Constraints
+     * - Keep relation-key translation scoped to Press relation tables; do not widen it
+     *   into a generic relation broker that hides ownership.
+     *
+     * Porting Note
+     * - Port as a small relation-row-to-press-id helper local to the Press module.
+     */
     private static function pluckPressIds($relationTable, $relationColumn, $id)
     {
         $presses = mh()->select($relationTable . '(r)', ['r.press_id'], ['r.' . $relationColumn => $id]);
@@ -94,15 +205,33 @@ class fPress extends Feed
         return \__::pluck($presses, 'press_id');
     }
 
+    /**
+     * Architecture Role
+     * - Compose relation-driven Press listings from a relation table and relation key.
+     *
+     * Strict Constraints
+     * - This helper stays inside the Press feed because it still depends on Press list
+     *   ordering, status filtering, and projection rules.
+     *
+     * Porting Note
+     * - Port as a relation-based listing wrapper that reuses Press ID extraction.
+     */
     private static function lotsByRelation($relationTable, $relationColumn, $id, $page = 0, $limit = 6, $cols = '')
     {
         return self::lotsByID(self::pluckPressIds(self::fmTbl($relationTable), $relationColumn, $id), $page, $limit, $cols);
     }
 
     /**
-     * @param $id
-     * @param $page
-     * @param $limit
+     * Architecture Role
+     * - Read Press entities related to a search record through the module-owned search
+     *   relation table.
+     *
+     * Strict Constraints
+     * - Keep search-to-press resolution in the Press boundary rather than having search
+     *   callers reconstruct Press publication rules themselves.
+     *
+     * Porting Note
+     * - Port as a search relation listing over the Press feed.
      */
     public static function lotsBySearch($id, $page = 0, $limit = 6)
     {
@@ -110,20 +239,49 @@ class fPress extends Feed
     }
 
     /**
-     * @param $id
-     * @param $page
-     * @param $limit
+     * Architecture Role
+     * - Read published Press entities linked to an author relation.
+     *
+     * Strict Constraints
+     * - Author relation traversal remains Press-owned retrieval logic, not a generic
+     *   author module concern.
+     *
+     * Porting Note
+     * - Port as a Press listing by author relation.
      */
     public static function lotsByAuthor($id, $page = 0, $limit = 6)
     {
         return self::lotsByRelation('author', 'author_id', $id, $page, $limit);
     }
 
+    /**
+     * Architecture Role
+     * - Read published Press entities linked to a tag relation.
+     *
+     * Strict Constraints
+     * - Tag-to-press listing semantics belong to Press retrieval ownership; do not
+     *   relocate them into generic tag helpers.
+     *
+     * Porting Note
+     * - Port as a Press listing by tag relation with the standard Press projection.
+     */
     public static function lotsByTag($id, $page = 0, $limit = 6, $cols = '')
     {
         return self::lotsByRelation('tag', 'tag_id', $id, $page, $limit, $cols);
     }
 
+    /**
+     * Architecture Role
+     * - Commit the Press publish-state transition together with its workflow trace log
+     *   inside one owner-side transaction.
+     *
+     * Strict Constraints
+     * - Transaction ownership stays at the Feed boundary. Do not split workflow trace
+     *   logging and Press status mutation across separate generic services.
+     *
+     * Porting Note
+     * - Port as a single transactional publish-and-log command owned by the Press feed.
+     */
     public static function publishWithWorkflowTrace($req, $trace = null)
     {
         mh()->begin();
@@ -154,11 +312,16 @@ class fPress extends Feed
     }
 
     /**
-     * get a next press
+     * Architecture Role
+     * - Resolve the neighboring published Press entity within the same category and
+     *   editorial ordering window.
      *
-     * @param int $cu - current press
+     * Strict Constraints
+     * - Neighbor lookup is a Press content-navigation rule, not a reusable generic
+     *   paginator. Keep category and ordering semantics with the module.
      *
-     * @return string
+     * Porting Note
+     * - Port as a module-owned next/previous content lookup over published press rows.
      */
     public static function neighbor($cu, $type = 'next')
     {
@@ -189,6 +352,18 @@ class fPress extends Feed
         }
     }
 
+    /**
+     * Architecture Role
+     * - Retrieve related Press content by overlapping tag relations and rank it by tag
+     *   overlap count.
+     *
+     * Strict Constraints
+     * - This relevance rule is Press-owned content retrieval logic; do not demote it to
+     *   a generic relation helper that loses publication and localization semantics.
+     *
+     * Porting Note
+     * - Port as a Press-specific related-content query keyed by tag overlap.
+     */
     public static function relatedTag($press_id, $tags, $limit = 5)
     {
         return self::exec('SELECT `m`.`id`,`l`.`title`,`l`.`info`,`m`.`slug`,`m`.`cover`,`cl`.`title` AS `category`
@@ -204,7 +379,15 @@ class fPress extends Feed
     }
 
     /**
-     * @param $query
+     * Architecture Role
+     * - Provide the lightweight backend option lookup used for selecting Press entities.
+     *
+     * Strict Constraints
+     * - Keep this legacy option lookup local to Press selection UX; do not treat it as
+     *   the canonical public retrieval API.
+     *
+     * Porting Note
+     * - Port as a narrow id-title option query for Press administration flows.
      */
     public static function get_opts($query = '', $column = 'title')
     {
@@ -217,6 +400,17 @@ class fPress extends Feed
         )->fetchAll(\PDO::FETCH_ASSOC);
     }
 
+    /**
+     * Architecture Role
+     * - Write AI-generated draft content into the localized Press content row.
+     *
+     * Strict Constraints
+     * - Draft-import ownership stays with Press localized content persistence; do not
+     *   push this writeback into generic AI adapters or shared content helpers.
+     *
+     * Porting Note
+     * - Port as a module-owned upsert for AI-originated press_lang fields.
+     */
     public static function fromDraft($pid, $lang, $data)
     {
         $old = mh()->get(self::fmTbl('lang'), ['id'], [
@@ -255,6 +449,17 @@ class fPress extends Feed
         return parent::chkErr($data->rowCount());
     }
 
+    /**
+     * Architecture Role
+     * - Clear AI-generated localized Press content for a specific language row.
+     *
+     * Strict Constraints
+     * - This reset only applies to Press AI-imported content; keep that ownership local
+     *   instead of moving it into generic i18n maintenance utilities.
+     *
+     * Porting Note
+     * - Port as a localized content reset scoped to AI-sourced press_lang rows.
+     */
     public static function emptyI18nContent($pid, $lang)
     {
         $data = mh()->update(self::fmTbl('lang'), [
@@ -269,9 +474,16 @@ class fPress extends Feed
     }
 
     /**
-     * save whole form for backend
+     * Architecture Role
+     * - Execute the Press-owned save lifecycle for backend editorial forms, including
+     *   relation payload decomposition and post-save writeback.
      *
-     * @param array $req
+     * Strict Constraints
+     * - This is the core Press persistence path. Editorial relation ownership must stay
+     *   here and in `_afterSave`, not in request handlers or generic save adapters.
+     *
+     * Porting Note
+     * - Port as the Press form-save pipeline layered on top of the shared Feed base.
      */
     public static function save($req, $tbl = '')
     {
@@ -332,7 +544,16 @@ class fPress extends Feed
     }
 
     /**
-     * @param $req
+     * Architecture Role
+     * - Normalize incoming Press save payload while preserving module-specific defaults
+     *   such as editorial sorter behavior.
+     *
+     * Strict Constraints
+     * - Keep Press-specific column shaping here instead of widening the shared Feed base
+     *   with module-owned editorial defaults.
+     *
+     * Porting Note
+     * - Port as a Press-specific payload-normalization extension over shared Feed logic.
      */
     public static function _handleColumn($req)
     {
@@ -346,9 +567,15 @@ class fPress extends Feed
     }
 
     /**
-     * @param $req
+     * Architecture Role
+     * - Persist Press-owned subordinate relations after the main row save completes.
      *
-     * @return int
+     * Strict Constraints
+     * - Author, term, related-content, book, and tag-count writeback are Press entity
+     *   responsibilities; do not move them into generic relation dispatchers.
+     *
+     * Porting Note
+     * - Port as the Press post-save relation persistence and count-refresh hook.
      */
     public static function _afterSave($pid, $other, $data = [])
     {
@@ -371,8 +598,15 @@ class fPress extends Feed
     }
 
     /**
-     * @param $pid
-     * @param $reverse
+     * Architecture Role
+     * - Read Press entities explicitly related to the current Press row.
+     *
+     * Strict Constraints
+     * - Related-content retrieval is a Press editorial surface; keep relation semantics,
+     *   publication filters, and projection shape here.
+     *
+     * Porting Note
+     * - Port as a module-owned related-press listing query.
      */
     public static function lotsRelated($pid)
     {
@@ -394,8 +628,15 @@ class fPress extends Feed
     }
 
     /**
-     * @param $pid
-     * @param $reverse
+     * Architecture Role
+     * - Read author entities attached to a Press row for editorial display surfaces.
+     *
+     * Strict Constraints
+     * - Keep author projection for press content within the Press feed rather than
+     *   spreading it across view helpers.
+     *
+     * Porting Note
+     * - Port as a Press-to-author relation listing.
      */
     public static function lotsAuthor($pid)
     {
@@ -418,8 +659,15 @@ class fPress extends Feed
     }
 
     /**
-     * @param $pid
-     * @param $reverse
+     * Architecture Role
+     * - Read dictionary/term entities attached to a Press row.
+     *
+     * Strict Constraints
+     * - Term relation reads remain part of Press content ownership and must not be
+     *   flattened into generic relation traversal.
+     *
+     * Porting Note
+     * - Port as a Press-to-term relation listing with dictionary visibility rules.
      */
     public static function lotsTerm($pid)
     {
@@ -440,8 +688,15 @@ class fPress extends Feed
     }
 
     /**
-     * @param $pid
-     * @param $reverse
+     * Architecture Role
+     * - Read book entities attached to a Press row for content cross-linking surfaces.
+     *
+     * Strict Constraints
+     * - Book linkage remains a Press-owned relation read, even if the referenced entity
+     *   lives in another module.
+     *
+     * Porting Note
+     * - Port as a Press-to-book relation listing with genus projection.
      */
     public static function lotsBook($pid)
     {
@@ -463,9 +718,16 @@ class fPress extends Feed
     }
 
     /**
-     * @param $queryStr
+     * Architecture Role
+     * - Enrich the shared Feed filter map with Press-specific tag and author lookup
+     *   semantics before list queries run.
      *
-     * @return mixed
+     * Strict Constraints
+     * - Filter enrichment remains module-owned because it encodes Press relation truth.
+     *   Do not relocate this logic into shared query parsers.
+     *
+     * Porting Note
+     * - Port as a Press-specific filter-normalization extension.
      */
     public static function adjustFilter($oldFilter = [])
     {
@@ -541,7 +803,15 @@ class fPress extends Feed
     }
 
     /**
-     * @param $query
+     * Architecture Role
+     * - Provide the canonical published-only option lookup used by Press selectors.
+     *
+     * Strict Constraints
+     * - Keep published visibility and localized title lookup in the Press feed rather
+     *   than duplicating them in callers.
+     *
+     * Porting Note
+     * - Port as a lightweight published press option query.
      */
     public static function getOpts($query = '', $column = 'title')
     {
@@ -559,11 +829,16 @@ class fPress extends Feed
     }
 
     /**
-     * Scan press_lang content for googleusercontent assets and rewrite them via kPress::handleCDNImages().
+     * Architecture Role
+     * - Rewrite legacy CDN-backed images inside localized Press content through the
+     *   Press kit's content migration helper.
      *
-     * @param int $limit Maximum rows to process in one run to avoid long transactions.
+     * Strict Constraints
+     * - This is a Press content-maintenance path, not a generic media-migration engine.
+     *   Keep ownership of logging and content replacement local to the module.
      *
-     * @return int Number of rows updated.
+     * Porting Note
+     * - Port as a bounded maintenance batch over press_lang HTML/content fields.
      */
     public static function normalizeCdnImages(int $limit = 100)
     {
@@ -608,20 +883,32 @@ class fPress extends Feed
         return $updated;
     }
 
+    /**
+     * Architecture Role
+     * - Extend the shared protected-column contract with Press-specific excluded fields.
+     *
+     * Strict Constraints
+     * - Only module-owned column exceptions belong here; do not widen this list into a
+     *   generic transport policy bucket.
+     *
+     * Porting Note
+     * - Port as Press-specific field-policy metadata.
+     */
     public static function filtered_column()
     {
         return ['hh', 'mm'];
     }
 
     /**
-     * @param $queryStr
+     * Architecture Role
+     * - Mark published Press rows for renewal when a linked relation entity changes.
      *
-     * @return mixed
-     */
-
-    /**
-     * @param $type
-     * @param $ids
+     * Strict Constraints
+     * - This batch side effect is Press lifecycle ownership. Do not push relation-driven
+     *   renewal policy into generic relation libraries.
+     *
+     * Porting Note
+     * - Port as a relation-triggered status refresh for affected Press rows.
      */
     public static function batchRenew($type, $ids)
     {
@@ -637,6 +924,19 @@ class fPress extends Feed
         }
     }
 
+    /**
+     * Architecture Role
+     * - Execute the scheduled publish cron that advances due Press rows and rebuilds
+     *   their rendered output.
+     *
+     * Strict Constraints
+     * - This operational batch belongs to the Press module's lifecycle boundary; keep
+     *   publish transition and page regeneration coupled here instead of splitting them
+     *   across unrelated schedulers.
+     *
+     * Porting Note
+     * - Port as a bounded scheduled-publish worker for Press content.
+     */
     public static function cronjob()
     {
         mh(true)->info();

@@ -3,14 +3,41 @@
 namespace F3CMS;
 
 /**
- * React any request
+ * Architecture Purpose
+ * - Owner-side Reaction boundary for Draft request orchestration, covering AI/content
+ *   draft import, translation task creation, SEO/i18n generation, and Draft-to-Press
+ *   lifecycle coordination.
+ *
+ * Design Intent
+ * - Keep content-generation and translation workflow orchestration close to the Draft
+ *   module while preserving the FORKS split: Draft/Press persistence stays in Feed,
+ *   content-generation logic stays in Kit/worker collaborators, and this Reaction owns
+ *   request validation, sequencing, and response shaping.
+ *
+ * Strict Constraints
+ * - This Reaction must not absorb Feed persistence semantics or become the runtime owner
+ *   of AI/translation execution itself.
+ * - Cross-module coordination with Press is allowed here, but entity truth and storage
+ *   writes must stay with the owning Feed collaborators.
+ *
+ * Porting Guidelines
+ * - Port as the Draft module's request/application orchestration layer.
+ * - Preserve the split between request/auth flow here, persistence in Draft/Press Feed,
+ *   and generation/translation execution in the owning collaborators or workers.
  */
 class rDraft extends Reaction
 {
     /**
-     * @param array $row
+     * Architecture Role
+     * - Enrich one Draft row into the backend detail payload by projecting related Press
+     *   and Staff references plus decoded structured content when applicable.
      *
-     * @return mixed
+     * Strict Constraints
+     * - Response shaping belongs here, but related entity truth remains with the Feed
+     *   lookups that provide those references.
+     *
+     * Porting Note
+     * - Port as a Draft detail response assembler for backend views.
      */
     public static function handleRow($row = [])
     {
@@ -24,6 +51,18 @@ class rDraft extends Reaction
         return $row;
     }
 
+    /**
+     * Architecture Role
+     * - Import a completed Draft into the owning Press language row after validating
+     *   source draft state, target press state, and field-length constraints.
+     *
+     * Strict Constraints
+     * - This method coordinates Draft-to-Press lifecycle flow, but persistence writes
+     *   remain owned by fPress and fDraft.
+     *
+     * Porting Note
+     * - Port as a Draft import command handler over Draft and Press Feed collaborators.
+     */
     public function do_import($f3, $args)
     {
         chkAuth(fDraft::PV_U);
@@ -70,8 +109,16 @@ class rDraft extends Reaction
     }
 
     /**
-     * @param $f3
-     * @param $args
+     * Architecture Role
+     * - Create a Draft task that asks the downstream generation pipeline to produce SEO
+     *   material from an existing Press article.
+     *
+     * Strict Constraints
+     * - This Reaction prepares and records the task request only; actual generation must
+     *   remain outside the request boundary.
+     *
+     * Porting Note
+     * - Port as a Draft task-creation endpoint for SEO helper generation.
      */
     public function do_genSeo($f3, $args)
     {
@@ -122,8 +169,17 @@ class rDraft extends Reaction
     }
 
     /**
-     * @param $f3
-     * @param $args
+     * Architecture Role
+     * - Advance a Draft through the next content-generation step based on the current
+     *   draft method and source payload.
+     *
+     * Strict Constraints
+     * - Step orchestration belongs here, but Draft/Press persistence and generated
+     *   content truth remain with the owning Feeds.
+     *
+     * Porting Note
+     * - Port as a Draft workflow-step endpoint that chains guideline, writing, and SEO
+     *   helper tasks.
      */
     public function do_nextstep($f3, $args)
     {
@@ -198,12 +254,26 @@ class rDraft extends Reaction
             ]);
         }
 
+        if (!isset($tip)) {
+            return self::_return(8106, ['msg' => '不支援的下一步草稿方法']);
+        }
+
         return self::_return(1, ['msg' => $tip . '，稍後由排程執行工作，可至草稿區查看結果。']);
     }
 
     /**
-     * @param $f3
-     * @param $args
+     * Architecture Role
+     * - Execute the quick translation request path by creating a Draft record, invoking
+     *   the Draft-side translation collaborator, and normalizing the response back into
+     *   Draft state.
+     *
+     * Strict Constraints
+     * - This method coordinates translation request/response flow, but it must not turn
+     *   Reaction into the owner of AI translation runtime behavior.
+     *
+     * Porting Note
+     * - Port as a synchronous translation orchestration endpoint layered on top of the
+     *   Draft collaborator and Feed writes.
      */
     public function do_quicktrans($f3, $args)
     {
@@ -287,8 +357,16 @@ class rDraft extends Reaction
     }
 
     /**
-     * @param $f3
-     * @param $args
+     * Architecture Role
+     * - Reset existing i18n content and related Draft translation tasks for a Press
+     *   article before a new translation round begins.
+     *
+     * Strict Constraints
+     * - This is a lifecycle coordination endpoint; translation reset semantics stay in
+     *   the Draft/Press module boundary and should not move into generic cleanup jobs.
+     *
+     * Porting Note
+     * - Port as a reset command for Press i18n content plus Draft translation tasks.
      */
     public function do_resetI18n($f3, $args)
     {
@@ -330,8 +408,16 @@ class rDraft extends Reaction
     }
 
     /**
-     * @param $f3
-     * @param $args
+     * Architecture Role
+     * - Create one Draft translation task for a specific target language from an
+     *   existing Press source article.
+     *
+     * Strict Constraints
+     * - Task creation belongs here, but translation execution and persistence truth stay
+     *   with the owning collaborators.
+     *
+     * Porting Note
+     * - Port as a per-language Draft translation task endpoint.
      */
     public function do_translate($f3, $args)
     {
@@ -400,8 +486,16 @@ class rDraft extends Reaction
     }
 
     /**
-     * @param $f3
-     * @param $args
+     * Architecture Role
+     * - Create the full batch of Draft translation tasks for all accepted target
+     *   languages derived from one source Press article.
+     *
+     * Strict Constraints
+     * - Batch orchestration belongs here, but each created task remains Draft-owned and
+     *   later execution must stay outside the request boundary.
+     *
+     * Porting Note
+     * - Port as a bulk Draft i18n task-creation endpoint over the accepted language set.
      */
     public function do_genI18n($f3, $args)
     {

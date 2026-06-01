@@ -3,7 +3,25 @@
 namespace F3CMS;
 
 /**
- * data feed
+ * Architecture Purpose
+ * - Owner-side Feed for backend role records, privilege mapping, and role-specific query
+ *   semantics used by the staff/operator administration boundary.
+ *
+ * Design Intent
+ * - Keep backend authority truth inside the Role module even when it reuses the shared
+ *   Feed base, so permission-bit mapping, role option projection, and role search
+ *   behavior do not drift into generic auth helpers or caller-specific code.
+ *
+ * Strict Constraints
+ * - Role-to-privilege semantics belong to this module boundary and must not be widened
+ *   into a generic authorization engine that starts owning session or request policy.
+ * - This Feed may reuse shared persistence/query mechanics, but it must remain the
+ *   source of truth for backend role bitmask interpretation and projection helpers.
+ *
+ * Porting Guidelines
+ * - Port as the backend role/privilege Feed owned by the Role module.
+ * - Preserve the split between shared Feed mechanics and Role-owned authority mapping,
+ *   option projection, and search/filter semantics.
  */
 class fRole extends Feed
 {
@@ -20,9 +38,16 @@ class fRole extends Feed
     const BE_COLS = 'id,status,priv,title,info';
 
     /**
-     * @param $queryStr
+     * Architecture Role
+     * - Extend the shared Feed query parser with Role-specific full-text style title
+     *   search semantics.
      *
-     * @return mixed
+     * Strict Constraints
+     * - Role search shaping stays with this module because it reflects role-admin read
+     *   semantics; do not scatter these clauses across callers.
+     *
+     * Porting Note
+     * - Port as a Role-specific query-normalization extension over the shared Feed parser.
      */
     public static function genQuery($queryStr = '')
     {
@@ -46,6 +71,18 @@ class fRole extends Feed
         return $query;
     }
 
+    /**
+     * Architecture Role
+     * - Materialize the canonical backend authority catalog and cache it for role/staff
+     *   privilege projection.
+     *
+     * Strict Constraints
+     * - This method defines role authority truth for the backend administration domain;
+     *   do not relocate that mapping into unrelated session or controller helpers.
+     *
+     * Porting Note
+     * - Port as the authoritative role-permission registry with bounded caching.
+     */
     public static function getAuth()
     {
         $load = [];
@@ -75,6 +112,18 @@ class fRole extends Feed
         return $load;
     }
 
+    /**
+     * Architecture Role
+     * - Project the authority catalog into option-list data for backend role editing
+     *   surfaces.
+     *
+     * Strict Constraints
+     * - Option projection is derived from Role authority truth and should stay close to
+     *   the module instead of being rebuilt in views or request handlers.
+     *
+     * Porting Note
+     * - Port as a UI-facing projection helper over the authority catalog.
+     */
     public static function getAuthOpts()
     {
         $auth_list = fRole::getAuth();
@@ -90,7 +139,16 @@ class fRole extends Feed
     }
 
     /**
-     * http://sqlfiddle.com/#!9/6932da6/1
+     * Architecture Role
+     * - Check whether a backend privilege bitmask contains a named authority owned by
+     *   the Role module.
+     *
+     * Strict Constraints
+     * - This helper interprets stored role privilege semantics only; broader access-flow
+     *   orchestration must remain with callers such as Staff/Reaction boundaries.
+     *
+     * Porting Note
+     * - Port as a bitmask-membership check keyed by authority name.
      */
     public static function hasAuth($user_priv = 0, $authority = '')
     {
@@ -99,6 +157,17 @@ class fRole extends Feed
         return !empty($auth_list[$authority]) && (($user_priv & $auth_list[$authority]['val']) == $auth_list[$authority]['val']);
     }
 
+    /**
+     * Architecture Role
+     * - Convert a list of authority indexes into the stored role privilege bitmask.
+     *
+     * Strict Constraints
+     * - Bitmask encoding belongs to Role persistence semantics; do not duplicate this
+     *   conversion logic in callers that merely consume role data.
+     *
+     * Porting Note
+     * - Port as the index-to-bitmask encoder for role persistence payloads.
+     */
     public static function parseAuth($ary = [])
     {
         $sum = 0;
@@ -109,6 +178,17 @@ class fRole extends Feed
         return $sum;
     }
 
+    /**
+     * Architecture Role
+     * - Extract the enabled privilege values from a boolean-like authority map.
+     *
+     * Strict Constraints
+     * - Keep this value projection local to Role privilege semantics rather than turning
+     *   it into a generic array utility.
+     *
+     * Porting Note
+     * - Port as a helper that maps selected authority flags to stored bit values.
+     */
     public static function parseAuthVal($ary = [])
     {
         $sum = [];
@@ -121,6 +201,17 @@ class fRole extends Feed
         return $sum;
     }
 
+    /**
+     * Architecture Role
+     * - Extract enabled authority indexes from a boolean-like authority map.
+     *
+     * Strict Constraints
+     * - Index projection remains part of Role permission-shaping semantics and should
+     *   not drift into generic caller-side preprocessing.
+     *
+     * Porting Note
+     * - Port as a helper returning enabled authority indexes for UI/session projection.
+     */
     public static function parseAuthIdx($ary = [])
     {
         $sum = [];
@@ -133,11 +224,34 @@ class fRole extends Feed
         return $sum;
     }
 
+    /**
+     * Architecture Role
+     * - Decode the stored privilege integer into a reversed binary authority array.
+     *
+     * Strict Constraints
+     * - Stored-role bitmask decoding is Role-owned semantics; do not hide or re-define
+     *   this encoding elsewhere.
+     *
+     * Porting Note
+     * - Port as the privilege-bitmask decoder used before index/value projection.
+     */
     public static function reverseAuth($val = 0)
     {
         return str_split(strrev(sprintf('%07s', base_convert($val, 10, 2) . '')));
     }
 
+    /**
+     * Architecture Role
+     * - Normalize incoming Role save payload by collapsing selected authorities into the
+     *   stored privilege value.
+     *
+     * Strict Constraints
+     * - Role privilege encoding stays in this module extension point rather than being
+     *   pushed up to request handlers or shared Feed logic.
+     *
+     * Porting Note
+     * - Port as a Role-specific save-payload normalization hook over shared Feed logic.
+     */
     public static function _handleColumn($req)
     {
         $req['priv'] = array_sum($req['auth']);

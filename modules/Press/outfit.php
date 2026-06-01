@@ -3,14 +3,40 @@
 namespace F3CMS;
 
 /**
- * for render page
+ * Architecture Purpose
+ * - Owner-side Outfit boundary for Press frontend rendering, covering article list/search,
+ *   published article delivery, preview/build-cache flows, and article-page shaping
+ *   around the Press module.
+ *
+ * Design Intent
+ * - Keep article page rendering and public presentation orchestration close to the Press
+ *   owner module while preserving the FORKS split: this Outfit owns route-to-view flow,
+ *   cache coordination, template payload shaping, and SEO/ld+json projection; Feed/Kit
+ *   collaborators keep content truth, relations, and farther business data assembly.
+ *
+ * Strict Constraints
+ * - This Outfit must not absorb Press persistence ownership, workflow mutation, or
+ *   generic page-helper responsibilities.
+ * - Preview/build paths may be coordinated here, but content truth, relation reads, and
+ *   owner-side data policies remain in Press/Category/Media/History collaborators.
+ *
+ * Porting Guidelines
+ * - Port as the frontend article rendering boundary for Press pages.
+ * - Preserve the split between route/render/cache/SEO shaping here and content retrieval
+ *   or workflow ownership in the Press owner-side collaborators.
  */
 class oPress extends Outfit
 {
     /**
-     * @param $args
+     * Architecture Role
+     * - Render the public Press listing page with language-aware page-title projection.
      *
-     * @return mixed
+     * Strict Constraints
+     * - This method shapes listing-page presentation only; list data ownership remains in
+     *   Press collaborators and downstream page loaders.
+     *
+     * Porting Note
+     * - Port as the public article-list route entrypoint.
      */
     public static function list($args)
     {
@@ -30,7 +56,15 @@ class oPress extends Outfit
     }
 
     /**
-     * @param $args
+     * Architecture Role
+     * - Render the public Press search result page from request query input.
+     *
+     * Strict Constraints
+     * - Search-string projection may happen here, but actual search result ownership
+     *   remains outside this Outfit boundary.
+     *
+     * Porting Note
+     * - Port as the frontend search-results rendering entrypoint for article search.
      */
     public static function search($args)
     {
@@ -41,7 +75,15 @@ class oPress extends Outfit
     }
 
     /**
-     * @param $args
+     * Architecture Role
+     * - Deliver a published Press page through the cached frontend article route.
+     *
+     * Strict Constraints
+     * - Cache lookup and preview fallback may be coordinated here, but article truth and
+     *   permission semantics remain in Press/Staff collaborators.
+     *
+     * Porting Note
+     * - Port as the canonical public article-display endpoint with cache integration.
      */
     public static function show($args)
     {
@@ -71,7 +113,15 @@ class oPress extends Outfit
     }
 
     /**
-     * @param $args
+     * Architecture Role
+     * - Rebuild per-language cached Press pages from the backend/operator side.
+     *
+     * Strict Constraints
+     * - This method coordinates cache rebuild only; article content truth and cache
+     *   storage semantics remain outside the Outfit itself.
+     *
+     * Porting Note
+     * - Port as an operator-only article cache refresh entrypoint.
      */
     public static function buildPage($args)
     {
@@ -91,7 +141,15 @@ class oPress extends Outfit
     }
 
     /**
-     * @param $args
+     * Architecture Role
+     * - Render a non-published Press preview for authenticated staff.
+     *
+     * Strict Constraints
+     * - Preview gating may happen here, but unpublished content truth and staff policy
+     *   remain owned by Press/Staff collaborators.
+     *
+     * Porting Note
+     * - Port as the authenticated article-preview entrypoint.
      */
     public static function preview($args)
     {
@@ -103,10 +161,16 @@ class oPress extends Outfit
     }
 
     /**
-     * @param $id
-     * @param $published
+     * Architecture Role
+     * - Assemble the full article-page view model and renderable HTML for a Press page.
      *
-     * @return mixed
+     * Strict Constraints
+     * - This helper performs page-shaping and render assembly, but it must not become the
+     *   owner of article persistence, relation truth, or workflow state changes.
+     *
+     * Porting Note
+     * - Port as the internal article-page rendering assembler behind public/preview/cache
+     *   routes.
      */
     private static function _render($id = 0, $published = true, $history = false)
     {
@@ -198,6 +262,17 @@ class oPress extends Outfit
         return $html;
     }
 
+    /**
+     * Architecture Role
+     * - Project article metadata into schema.org NewsArticle ld+json for frontend pages.
+     *
+     * Strict Constraints
+     * - Structured-data shaping may happen here, but article metadata truth remains owned
+     *   by the Press render inputs.
+     *
+     * Porting Note
+     * - Port as a frontend structured-data projection helper for Press pages.
+     */
     public static function ldjson($title, $desc, $link, $img, $last_ts, $online_date)
     {
         switch (parent::_lang()) {

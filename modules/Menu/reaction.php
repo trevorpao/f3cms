@@ -3,15 +3,40 @@
 namespace F3CMS;
 
 /**
- * Menu
+ * Architecture Purpose
+ * - Owner-side Reaction boundary for menu tree orchestration, covering backend save,
+ *   nested menu retrieval, deep clone, sorter updates, and response shaping around the
+ *   Menu module's hierarchical navigation model.
+ *
+ * Design Intent
+ * - Keep hierarchical navigation orchestration close to the Menu owner module while
+ *   preserving the FORKS split: this Reaction owns request validation, auth gates,
+ *   tree-flow coordination, and transport shaping; fMenu keeps menu persistence,
+ *   tree update semantics, and tag relation truth.
+ *
+ * Strict Constraints
+ * - This Reaction must not absorb generic tree-helper responsibility or move menu
+ *   ownership rules into shared libs.
+ * - Structural mutation semantics, persistence truth, and frozen-node policy remain
+ *   owned by the Menu feed and collaborators.
+ *
+ * Porting Guidelines
+ * - Port as the request/orchestration layer for hierarchical menu management.
+ * - Preserve the split between request/auth/response behavior here and menu/tree
+ *   persistence rules in the Menu owner module.
  */
 class rMenu extends Reaction
 {
     /**
-     * save whole form for backend
+     * Architecture Role
+     * - Save a backend menu form through the owner-side request boundary.
      *
-     * @param object $f3   - $f3
-     * @param array  $args - uri params
+     * Strict Constraints
+     * - This method validates request shape and access, but menu persistence and parent
+     *   ownership rules remain with the Menu feed.
+     *
+     * Porting Note
+     * - Port as the backend menu save entrypoint with owner-side guardrails.
      */
     public function do_save($f3, $args)
     {
@@ -37,13 +62,16 @@ class rMenu extends Reaction
     }
 
     /**
-     * get menus in option mode
+     * Architecture Role
+     * - Project the menu tree into flattened or nested option structures for owner-side
+     *   menu selection and tree rendering flows.
      *
-     * @param int $parent_id - parent type id
-     * @param int $level     - level number
-     * @param int $level_mod - level string mode
+     * Strict Constraints
+     * - This method shapes traversal output, but authoritative menu/tree data remains in
+     *   fMenu and cached runtime state.
      *
-     * @return array
+     * Porting Note
+     * - Port as a menu-tree projection helper owned by the Menu reaction layer.
      */
     public static function sort_menus($parent_id = 0, $level = 0, $level_mod = '', $flatten = 1, $force = 0)
     {
@@ -82,8 +110,16 @@ class rMenu extends Reaction
     }
 
     /**
-     * @param $f3
-     * @param $args
+     * Architecture Role
+     * - Return a menu subtree for frontend/consumer lookup with language-aware cache
+     *   orchestration at the request boundary.
+     *
+     * Strict Constraints
+     * - Cache orchestration may happen here, but menu structure truth and query semantics
+     *   remain owned by Menu collaborators.
+     *
+     * Porting Note
+     * - Port as the cached menu-subtree retrieval endpoint.
      */
     public function do_lotsMenu($f3, $args)
     {
@@ -110,6 +146,17 @@ class rMenu extends Reaction
         return parent::_return(1, $rtn);
     }
 
+    /**
+     * Architecture Role
+     * - Trigger deep cloning of a menu subtree from the owner-side request boundary.
+     *
+     * Strict Constraints
+     * - This method validates access and dispatch only; clone semantics remain in the
+     *   Menu owner collaborators.
+     *
+     * Porting Note
+     * - Port as the backend menu subtree clone entrypoint.
+     */
     public static function do_deepClone()
     {
         chkAuth(fMenu::PV_U);
@@ -125,6 +172,18 @@ class rMenu extends Reaction
         return parent::_return(1);
     }
 
+    /**
+     * Architecture Role
+     * - Recursively duplicate a menu node and its descendants while preserving tree
+     *   ownership through Menu collaborators.
+     *
+     * Strict Constraints
+     * - This helper coordinates recursion only; source lookup and clone persistence stay
+     *   with fMenu.
+     *
+     * Porting Note
+     * - Port as a reaction-owned recursive clone coordinator for menu trees.
+     */
     public static function deepCloneMenu($menuID, $parent_id = 0)
     {
         $menu = fMenu::one($menuID);
@@ -142,12 +201,16 @@ class rMenu extends Reaction
     }
 
     /**
-     * save sorter
+     * Architecture Role
+     * - Persist drag-sorter and parent reassignment changes for the menu tree from the
+     *   backend request boundary.
      *
-     * @param object $f3   - $f3
-     * @param array  $args - uri params
+     * Strict Constraints
+     * - This method coordinates sorter payload application, but authoritative update rules
+     *   remain with the Menu feed.
      *
-     * @return array - std json
+     * Porting Note
+     * - Port as the backend menu tree reorder entrypoint.
      */
     public function do_update_sorter($f3, $args)
     {
@@ -167,9 +230,15 @@ class rMenu extends Reaction
     }
 
     /**
-     * @param array $row
+     * Architecture Role
+     * - Enrich a menu row with owner-side related tag data before transport.
      *
-     * @return mixed
+     * Strict Constraints
+     * - Transport shaping may happen here, but tag relation truth remains with the Menu
+     *   feed.
+     *
+     * Porting Note
+     * - Port as a row-shaping helper for menu payloads.
      */
     public static function handleRow($row = [])
     {
@@ -179,8 +248,16 @@ class rMenu extends Reaction
     }
 
     /**
-     * @param $rows
-     * @param $parent
+     * Architecture Role
+     * - Walk a submitted menu tree and apply recursive sorter/parent updates while
+     *   respecting frozen-node constraints.
+     *
+     * Strict Constraints
+     * - This helper coordinates recursion and guardrails, but frozen-node policy and
+     *   persistence updates remain Menu-owned.
+     *
+     * Porting Note
+     * - Port as a recursive tree-update coordinator for menu nesting changes.
      */
     public static function recursion($rows, $parent = 0)
     {

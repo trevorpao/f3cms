@@ -3,13 +3,42 @@
 namespace F3CMS;
 
 /**
- * Tag
+ * Architecture Purpose
+ * - Owner-side Reaction boundary for tag-driven content lookup and backend tag management,
+ *   covering public tag listing flows, backend detail/list endpoints, and detail-form
+ *   persistence around the Tag module.
+ *
+ * Design Intent
+ * - Keep content classification and tag-facing request orchestration close to the Tag
+ *   owner module while preserving the FORKS split: this Reaction owns request shaping,
+ *   auth gates, query branching, and response presentation; fTag and related feeds keep
+ *   tag truth, lookup semantics, and persisted classification data.
+ *
+ * Strict Constraints
+ * - This Reaction must not reduce tag ownership into a thin transport wrapper nor absorb
+ *   Press/Tag business rules into shared helpers.
+ * - Tag/detail persistence, relation truth, and classification semantics remain owned by
+ *   the Tag and Press collaborators.
+ *
+ * Porting Guidelines
+ * - Port as the request/orchestration layer for tag-facing listing and backend tag
+ *   management endpoints.
+ * - Preserve the split between request/auth/response behavior here and persisted tag /
+ *   content classification semantics in the owner modules.
  */
 class rTag extends Reaction
 {
     /**
-     * @param $f3
-     * @param $args
+     * Architecture Role
+     * - Return more published content for a tag or column-driven content listing flow at
+     *   the public request boundary.
+     *
+     * Strict Constraints
+     * - This method coordinates query branching and presentation shaping, but published
+     *   content lookup truth remains with Press and Tag collaborators.
+     *
+     * Porting Note
+     * - Port as a public tag/content listing endpoint with owner-side branching.
      */
     public function do_more($f3, $args)
     {
@@ -56,10 +85,16 @@ class rTag extends Reaction
     }
 
     /**
-     * get one row
+     * Architecture Role
+     * - Load one backend tag detail record, or synthesize an empty owner-side form state
+     *   when the detail row does not exist yet.
      *
-     * @param object $f3   - $f3
-     * @param array  $args - uri params
+     * Strict Constraints
+     * - This method controls backend access and form-state shaping, but detail truth
+     *   remains owned by the Tag feed.
+     *
+     * Porting Note
+     * - Port as the backend tag detail lookup entrypoint.
      */
     function do_getDetail($f3, $args)
     {
@@ -82,8 +117,16 @@ class rTag extends Reaction
     }
 
     /**
-     * @param $f3
-     * @param $args
+     * Architecture Role
+     * - Return backend tag rows grouped for management views at the owner-side request
+     *   boundary.
+     *
+     * Strict Constraints
+     * - Grouping/presentation may happen here, but list query semantics and genus/tag
+     *   data truth remain in owner-side collaborators.
+     *
+     * Porting Note
+     * - Port as the backend grouped tag list endpoint.
      */
     public function do_list($f3, $args)
     {
@@ -129,10 +172,15 @@ class rTag extends Reaction
     }
 
     /**
-     * save whole form for backend
+     * Architecture Role
+     * - Persist backend tag detail form updates through the owner-side request boundary.
      *
-     * @param object $f3   - $f3
-     * @param array  $args - uri params
+     * Strict Constraints
+     * - This method validates access and request shape only; detail persistence and field
+     *   semantics remain Tag-owned.
+     *
+     * Porting Note
+     * - Port as the backend tag detail save entrypoint.
      */
     function do_saveDetail($f3, $args)
     {

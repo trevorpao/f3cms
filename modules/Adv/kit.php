@@ -3,10 +3,40 @@
 namespace F3CMS;
 
 /**
- * kit lib
+ * Architecture Purpose
+ * - Owner-side Kit boundary for advertisement board loading, cached slot projection, and
+ *   content-enriched ad payload shaping around the Adv module.
+ *
+ * Design Intent
+ * - Keep reusable board-loading and ad payload shaping close to the Adv owner module
+ *   while preserving the FORKS split: this Kit owns cache-aware board assembly and
+ *   content enrichment hooks, while feeds keep advertisement truth and persistence.
+ *
+ * Strict Constraints
+ * - This Kit must not collapse into a generic board helper or absorb content ownership
+ *   from Press/Category collaborators.
+ * - Cache orchestration and payload shaping may happen here, but canonical ad/resource
+ *   truth remains with Adv feeds and related owner modules.
+ *
+ * Porting Guidelines
+ * - Port as the Adv module's owner-side board loading and cache helper layer.
+ * - Preserve the split between cache-aware payload assembly here and persisted ad/content
+ *   truth in the corresponding feeds.
  */
 class kAdv extends Kit
 {
+    /**
+     * Architecture Role
+     * - Load and cache advertisement board payloads, enriching slots with owner-side
+     *   related content projections when available.
+     *
+     * Strict Constraints
+     * - Board assembly may happen here, but advertisement/resource truth and content
+     *   ownership remain with Adv/Press/Category collaborators.
+     *
+     * Porting Note
+     * - Port as the cached board-payload loader for advertisement slots.
+     */
     public static function loadAry($key, $ary, $force = 0)
     {
         $fc  = new FCHelper('board');
@@ -47,6 +77,17 @@ class kAdv extends Kit
         return $ary;
     }
 
+    /**
+     * Architecture Role
+     * - Flush language-scoped board cache entries for a given advertisement key.
+     *
+     * Strict Constraints
+     * - Cache invalidation may happen here, but broader cache policy and ad truth remain
+     *   outside this Kit.
+     *
+     * Porting Note
+     * - Port as the advertisement board cache-clear helper.
+     */
     public static function clearCache($key)
     {
         $fc         = new FCHelper('board');
